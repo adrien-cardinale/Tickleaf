@@ -2,6 +2,10 @@ export function nowIso(): string {
   return new Date().toISOString()
 }
 
+export function touched(timestamp: string = nowIso()) {
+  return { updatedAt: timestamp, syncVersion: null }
+}
+
 function uuidFromRandomBytes(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(16))
   bytes[6] = ((bytes[6] ?? 0) & 0x0f) | 0x40

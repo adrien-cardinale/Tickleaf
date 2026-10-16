@@ -1,0 +1,19 @@
+{
+  "name": "@tickleaf/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/app.ts"
+  },
+  "scripts": {
+    "dev": "cd ../.. && bun --watch apps/server/src/index.ts",
+    "start": "bun src/index.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "hono": "^4.13.9",
+    "zod": "^4.6.5"
+  }
+}

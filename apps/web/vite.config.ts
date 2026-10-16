@@ -59,6 +59,7 @@ export default defineConfig(({ mode }) => {
           globPatterns: ["**/*.{js,css,html,svg,png,wasm,woff2}"],
           maximumFileSizeToCacheInBytes: MAX_PRECACHE_BYTES,
           navigateFallback: "index.html",
+          navigateFallbackDenylist: [/^\/api\//],
           cleanupOutdatedCaches: true,
         },
       }),
@@ -71,6 +72,9 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: true,
+      proxy: {
+        "/api": "http://localhost:3000",
+      },
     },
     preview: {
       host: true,

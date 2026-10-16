@@ -1,7 +1,7 @@
 import { DEFAULT_PRIORITY, type IsoDate, type Priority, type Task } from "@tickleaf/core"
 import { type Db, tasks } from "@tickleaf/db"
-import { and, desc, eq, inArray, isNotNull, isNull, lt, max } from "@tickleaf/db/orm"
-import { newId, nowIso } from "./clock"
+import { and, desc, eq, inArray, isNotNull, isNull, lt, max, type SQL } from "@tickleaf/db/orm"
+import { newId, nowIso, touched } from "./clock"
 
 export type NewTask = {
   title: string
@@ -13,20 +13,36 @@ export type NewTask = {
 
 export type TaskPatch = Partial<Pick<Task, "title" | "description" | "due" | "priority" | "projectId">>
 
+const notDeleted = isNull(tasks.deletedAt)
+
+function alive(condition: SQL | undefined): SQL | undefined {
+  return and(notDeleted, condition)
+}
+
 export async function listAllTasks(db: Db): Promise<Task[]> {
-  return db.select().from(tasks)
+  return db.select().from(tasks).where(notDeleted)
 }
 
 export async function listOpenTasks(db: Db): Promise<Task[]> {
-  return db.select().from(tasks).where(isNull(tasks.completedAt))
+  return db
+    .select()
+    .from(tasks)
+    .where(alive(isNull(tasks.completedAt)))
 }
 
 export async function listCompletedTasks(db: Db): Promise<Task[]> {
-  return db.select().from(tasks).where(isNotNull(tasks.completedAt)).orderBy(desc(tasks.completedAt))
+  return db
+    .select()
+    .from(tasks)
+    .where(alive(isNotNull(tasks.completedAt)))
+    .orderBy(desc(tasks.completedAt))
 }
 
 export async function getTask(db: Db, id: string): Promise<Task | null> {
-  const [task] = await db.select().from(tasks).where(eq(tasks.id, id))
+  const [task] = await db
+    .select()
+    .from(tasks)
+    .where(alive(eq(tasks.id, id)))
   return task ?? null
 }
 
@@ -63,7 +79,7 @@ export async function updateTask(db: Db, id: string, patch: TaskPatch): Promise<
   const previous = await requireTask(db, id)
   await db
     .update(tasks)
-    .set({ ...patch, updatedAt: nowIso() })
+    .set({ ...patch, ...touched() })
     .where(eq(tasks.id, id))
   return previous
 }
@@ -71,29 +87,40 @@ export async function updateTask(db: Db, id: string, patch: TaskPatch): Promise<
 export async function completeTask(db: Db, id: string): Promise<Task> {
   const previous = await requireTask(db, id)
   const timestamp = nowIso()
-  await db.update(tasks).set({ completedAt: timestamp, updatedAt: timestamp }).where(eq(tasks.id, id))
+  await db
+    .update(tasks)
+    .set({ completedAt: timestamp, ...touched(timestamp) })
+    .where(eq(tasks.id, id))
   return previous
 }
 
 export async function reopenTask(db: Db, id: string): Promise<Task> {
   const previous = await requireTask(db, id)
-  await db.update(tasks).set({ completedAt: null, updatedAt: nowIso() }).where(eq(tasks.id, id))
+  await db
+    .update(tasks)
+    .set({ completedAt: null, ...touched() })
+    .where(eq(tasks.id, id))
   return previous
 }
 
 export async function deleteTask(db: Db, id: string): Promise<Task | null> {
   const previous = await getTask(db, id)
-  await db.delete(tasks).where(eq(tasks.id, id))
+  if (!previous) return null
+  const timestamp = nowIso()
+  await db
+    .update(tasks)
+    .set({ deletedAt: timestamp, ...touched(timestamp) })
+    .where(eq(tasks.id, id))
   return previous
 }
 
 export async function rescheduleOverdue(db: Db, today: IsoDate): Promise<Task[]> {
-  const overdue = and(isNull(tasks.completedAt), isNotNull(tasks.due), lt(tasks.due, today))
+  const overdue = alive(and(isNull(tasks.completedAt), isNotNull(tasks.due), lt(tasks.due, today)))
   const previous = await db.select().from(tasks).where(overdue)
   if (previous.length === 0) return []
   await db
     .update(tasks)
-    .set({ due: today, updatedAt: nowIso() })
+    .set({ due: today, ...touched() })
     .where(
       inArray(
         tasks.id,
@@ -104,7 +131,8 @@ export async function rescheduleOverdue(db: Db, today: IsoDate): Promise<Task[]>
 }
 
 export async function restoreTask(db: Db, snapshot: Task): Promise<void> {
-  await db.insert(tasks).values(snapshot).onConflictDoUpdate({ target: tasks.id, set: snapshot })
+  const restored = { ...snapshot, deletedAt: null, ...touched() }
+  await db.insert(tasks).values(restored).onConflictDoUpdate({ target: tasks.id, set: restored })
 }
 
 export async function restoreTasks(db: Db, snapshots: readonly Task[]): Promise<void> {

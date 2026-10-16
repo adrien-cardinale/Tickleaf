@@ -5,6 +5,7 @@ import { useState } from "react"
 import { BrandMark } from "@/components/brand-mark"
 import { navigationItems } from "@/components/navigation"
 import { NewProjectForm } from "@/components/new-project-form"
+import { SyncIndicator } from "@/components/sync/sync-indicator"
 import { ThemeToggle } from "@/components/theme-toggle"
 import {
   Sidebar,
@@ -134,6 +135,9 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SyncIndicator />
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <ThemeToggle />
           </SidebarMenuItem>

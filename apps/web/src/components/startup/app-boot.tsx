@@ -1,8 +1,10 @@
 import { type ReactNode, useCallback, useEffect, useState } from "react"
+import { KeyRequiredError } from "@/lib/crypto/onboarding"
 import { labels } from "@/lib/labels"
+import { Onboarding } from "./onboarding"
 import { StartupFailure, StartupLoading } from "./startup-screen"
 
-type BootState = { kind: "loading" } | { kind: "ready" } | { kind: "failed"; message: string }
+type BootState = { kind: "loading" } | { kind: "onboarding" } | { kind: "ready" } | { kind: "failed"; message: string }
 
 type AppBootProps = {
   boot: () => Promise<void>
@@ -24,13 +26,19 @@ export function AppBoot({ boot, children }: AppBootProps) {
     setState({ kind: "loading" })
     boot().then(
       () => setState({ kind: "ready" }),
-      (error: unknown) => setState({ kind: "failed", message: failureMessage(error) }),
+      (error: unknown) =>
+        setState(
+          error instanceof KeyRequiredError
+            ? { kind: "onboarding" }
+            : { kind: "failed", message: failureMessage(error) },
+        ),
     )
   }, [boot])
 
   useEffect(start, [start])
 
   if (state.kind === "ready") return children
+  if (state.kind === "onboarding") return <Onboarding onDone={start} />
   if (state.kind === "failed") return <StartupFailure message={state.message} onRetry={start} />
   return <StartupLoading />
 }

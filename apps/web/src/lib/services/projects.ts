@@ -1,7 +1,7 @@
 import type { Project, Task } from "@tickleaf/core"
 import { type Db, projects, tasks } from "@tickleaf/db"
 import { and, asc, eq, isNull, max } from "@tickleaf/db/orm"
-import { newId, nowIso } from "./clock"
+import { newId, nowIso, touched } from "./clock"
 
 export type ArchivedProject = { project: Project; movedTasks: Task[] }
 
@@ -9,7 +9,7 @@ export async function listProjects(db: Db): Promise<Project[]> {
   return db
     .select()
     .from(projects)
-    .where(isNull(projects.archivedAt))
+    .where(and(isNull(projects.archivedAt), isNull(projects.deletedAt)))
     .orderBy(asc(projects.position), asc(projects.createdAt))
 }
 
@@ -45,25 +45,45 @@ export async function findOrCreateProject(db: Db, name: string): Promise<{ proje
 }
 
 export async function renameProject(db: Db, id: string, name: string): Promise<void> {
-  await db.update(projects).set({ name: name.trim(), updatedAt: nowIso() }).where(eq(projects.id, id))
+  await db
+    .update(projects)
+    .set({ name: name.trim(), ...touched() })
+    .where(eq(projects.id, id))
 }
 
 export async function archiveProject(db: Db, id: string): Promise<ArchivedProject | null> {
-  const [project] = await db.select().from(projects).where(eq(projects.id, id))
+  const [project] = await db
+    .select()
+    .from(projects)
+    .where(and(eq(projects.id, id), isNull(projects.deletedAt)))
   if (!project) return null
   const timestamp = nowIso()
-  const openInProject = and(eq(tasks.projectId, id), isNull(tasks.completedAt))
+  const openInProject = and(eq(tasks.projectId, id), isNull(tasks.completedAt), isNull(tasks.deletedAt))
   const movedTasks = await db.select().from(tasks).where(openInProject)
-  await db.update(tasks).set({ projectId: null, updatedAt: timestamp }).where(openInProject)
-  await db.update(projects).set({ archivedAt: timestamp, updatedAt: timestamp }).where(eq(projects.id, id))
+  await db
+    .update(tasks)
+    .set({ projectId: null, ...touched(timestamp) })
+    .where(openInProject)
+  await db
+    .update(projects)
+    .set({ archivedAt: timestamp, ...touched(timestamp) })
+    .where(eq(projects.id, id))
   return { project, movedTasks }
 }
 
 export async function restoreProject(db: Db, project: Project): Promise<void> {
-  await db.insert(projects).values(project).onConflictDoUpdate({ target: projects.id, set: project })
+  const restored = { ...project, deletedAt: null, ...touched() }
+  await db.insert(projects).values(restored).onConflictDoUpdate({ target: projects.id, set: restored })
 }
 
 export async function removeProject(db: Db, id: string): Promise<void> {
-  await db.update(tasks).set({ projectId: null }).where(eq(tasks.projectId, id))
-  await db.delete(projects).where(eq(projects.id, id))
+  const timestamp = nowIso()
+  await db
+    .update(tasks)
+    .set({ projectId: null, ...touched(timestamp) })
+    .where(and(eq(tasks.projectId, id), isNull(tasks.deletedAt)))
+  await db
+    .update(projects)
+    .set({ deletedAt: timestamp, ...touched(timestamp) })
+    .where(eq(projects.id, id))
 }

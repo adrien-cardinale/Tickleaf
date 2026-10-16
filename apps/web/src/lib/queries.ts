@@ -1,4 +1,4 @@
-import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { type QueryClient, queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import type { Db } from "@tickleaf/db"
 import { toast } from "sonner"
 import { labels } from "@/lib/labels"
@@ -9,6 +9,24 @@ import { listAllTasks } from "@/lib/services/tasks"
 export const queryKeys = {
   tasks: ["tasks"] as const,
   projects: ["projects"] as const,
+}
+
+const localWriteListeners = new Set<() => void>()
+
+export function onLocalWrite(listener: () => void): () => void {
+  localWriteListeners.add(listener)
+  return () => localWriteListeners.delete(listener)
+}
+
+function notifyLocalWrite(): void {
+  for (const listener of localWriteListeners) listener()
+}
+
+export async function invalidateData(queryClient: QueryClient): Promise<void> {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: queryKeys.tasks }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.projects }),
+  ])
 }
 
 export function runDb<Result>(task: (db: Db) => Promise<Result>): Promise<Result> {
@@ -35,12 +53,7 @@ export function useProjects() {
 
 export function useInvalidateData() {
   const queryClient = useQueryClient()
-  return async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects }),
-    ])
-  }
+  return () => invalidateData(queryClient)
 }
 
 type DbTask = (db: Db) => Promise<unknown>
@@ -54,7 +67,10 @@ export function useDbAction() {
   const mutation = useMutation({
     mutationFn: (task: DbTask) => runDb(task),
     onError: (error) => toast.error(labels.toast.failed, { description: errorMessage(error) }),
-    onSettled: invalidate,
+    onSettled: async () => {
+      notifyLocalWrite()
+      await invalidate()
+    },
   })
   const { mutateAsync } = mutation
   return async <Result>(task: (db: Db) => Promise<Result>): Promise<Result | null> => {

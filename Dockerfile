@@ -1,0 +1,31 @@
+ARG BUN_IMAGE=oven/bun:1.4.2-slim
+
+FROM ${BUN_IMAGE} AS build
+WORKDIR /app
+COPY package.json bun.lock bunfig.toml ./
+COPY packages/core/package.json packages/core/
+COPY packages/db/package.json packages/db/
+COPY apps/server/package.json apps/server/
+COPY apps/web/package.json apps/web/
+RUN bun install --frozen-lockfile
+COPY . .
+RUN bun run --cwd apps/web build
+
+FROM ${BUN_IMAGE} AS runtime
+WORKDIR /app
+ENV NODE_ENV=production \
+    PORT=3000 \
+    DATABASE_PATH=/app/data/relay.db
+COPY package.json bun.lock bunfig.toml ./
+COPY packages/core/package.json packages/core/
+COPY packages/db/package.json packages/db/
+COPY apps/server/package.json apps/server/
+COPY apps/web/package.json apps/web/
+RUN bun install --frozen-lockfile --production --filter '@tickleaf/server'
+COPY apps/server/src apps/server/src
+COPY --from=build /app/apps/web/dist apps/web/dist
+RUN mkdir -p /app/data && chown bun:bun /app/data
+USER bun
+VOLUME /app/data
+EXPOSE 3000
+CMD ["bun", "apps/server/src/index.ts"]

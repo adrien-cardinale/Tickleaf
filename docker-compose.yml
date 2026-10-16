@@ -1,0 +1,14 @@
+services:
+  tickleaf:
+    build: .
+    image: tickleaf:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      ALLOW_SIGNUP: "true"
+    volumes:
+      - tickleaf-data:/app/data
+
+volumes:
+  tickleaf-data:

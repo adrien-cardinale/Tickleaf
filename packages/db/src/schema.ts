@@ -8,6 +8,8 @@ export const projects = sqliteTable("projects", {
   archivedAt: text("archived_at"),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
+  deletedAt: text("deleted_at"),
+  syncVersion: integer("sync_version"),
 })
 
 export const tasks = sqliteTable(
@@ -23,6 +25,8 @@ export const tasks = sqliteTable(
     completedAt: text("completed_at"),
     createdAt: text("created_at").notNull(),
     updatedAt: text("updated_at").notNull(),
+    deletedAt: text("deleted_at"),
+    syncVersion: integer("sync_version"),
   },
   (table) => [
     index("tasks_project_id_idx").on(table.projectId),
@@ -30,6 +34,11 @@ export const tasks = sqliteTable(
     index("tasks_completed_at_idx").on(table.completedAt),
   ],
 )
+
+export const syncState = sqliteTable("sync_state", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+})
 
 export type ProjectRow = typeof projects.$inferSelect
 export type NewProjectRow = typeof projects.$inferInsert

@@ -7,7 +7,7 @@ import { PwaUpdater } from "@/components/pwa-updater"
 import { AppBoot } from "@/components/startup/app-boot"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { bootLocalDatabase } from "@/lib/boot"
+import { bootApp } from "@/lib/boot"
 import { routeTree } from "./routeTree.gen"
 import "./index.css"
 
@@ -17,6 +17,8 @@ const queryClient = new QueryClient({
     mutations: { retry: false },
   },
 })
+
+const boot = () => bootApp(queryClient)
 
 const router = createRouter({
   routeTree,
@@ -41,7 +43,7 @@ createRoot(rootElement).render(
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <AppBoot boot={bootLocalDatabase}>
+          <AppBoot boot={boot}>
             <RouterProvider router={router} />
             <PwaUpdater />
           </AppBoot>
