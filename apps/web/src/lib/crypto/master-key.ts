@@ -1,3 +1,5 @@
+import { defaultPrimitives, type Primitives } from "./primitives"
+
 export const MASTER_KEY_BYTES = 32
 
 const BASE32_ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
@@ -9,9 +11,8 @@ export function generateMasterKey(): Uint8Array {
   return crypto.getRandomValues(new Uint8Array(MASTER_KEY_BYTES))
 }
 
-async function checksumOf(bytes: Uint8Array): Promise<Uint8Array> {
-  const digest = await crypto.subtle.digest("SHA-256", bytes as BufferSource)
-  return new Uint8Array(digest).slice(0, CHECKSUM_BYTES)
+async function checksumOf(bytes: Uint8Array, primitives: Primitives): Promise<Uint8Array> {
+  return (await primitives.sha256(bytes)).slice(0, CHECKSUM_BYTES)
 }
 
 function encodeBase32(bytes: Uint8Array): string {
@@ -55,20 +56,20 @@ function normalizePhrase(phrase: string): string {
     .replace(/[IL]/g, "1")
 }
 
-export async function formatMasterKey(key: Uint8Array): Promise<string> {
-  const payload = new Uint8Array([...key, ...(await checksumOf(key))])
+export async function formatMasterKey(key: Uint8Array, primitives = defaultPrimitives): Promise<string> {
+  const payload = new Uint8Array([...key, ...(await checksumOf(key, primitives))])
   const text = encodeBase32(payload)
   const groups: string[] = []
   for (let index = 0; index < text.length; index += GROUP_SIZE) groups.push(text.slice(index, index + GROUP_SIZE))
   return groups.join("-")
 }
 
-export async function parseMasterKey(phrase: string): Promise<Uint8Array> {
+export async function parseMasterKey(phrase: string, primitives = defaultPrimitives): Promise<Uint8Array> {
   const bytes = decodeBase32(normalizePhrase(phrase))
   if (!bytes || bytes.length < MASTER_KEY_BYTES + CHECKSUM_BYTES) throw new Error(INVALID_PHRASE)
   const key = bytes.slice(0, MASTER_KEY_BYTES)
   const checksum = bytes.slice(MASTER_KEY_BYTES, MASTER_KEY_BYTES + CHECKSUM_BYTES)
-  const expected = await checksumOf(key)
+  const expected = await checksumOf(key, primitives)
   if (checksum.some((byte, index) => byte !== expected[index])) throw new Error(INVALID_PHRASE)
   return key
 }

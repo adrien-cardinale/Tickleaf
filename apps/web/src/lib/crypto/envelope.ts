@@ -1,3 +1,5 @@
+import { defaultPrimitives } from "./primitives"
+
 const encoder = new TextEncoder()
 const decoder = new TextDecoder()
 
@@ -6,6 +8,7 @@ const IV_BYTES = 12
 const HEADER_BYTES = 1 + IV_BYTES
 const AUTH_SECRET_BYTES = 32
 const USER_ID_BYTES = 16
+const AES_KEY_BYTES = 32
 const HKDF_SALT = encoder.encode("tickleaf/v1")
 const UNREADABLE = "Données illisibles : la clé ne correspond pas ou les données sont corrompues"
 
@@ -46,35 +49,21 @@ function toBase64Url(bytes: Uint8Array): string {
   return toBase64(bytes).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")
 }
 
-async function deriveBits(master: CryptoKey, label: string, bytes: number): Promise<Uint8Array> {
-  const bits = await crypto.subtle.deriveBits(
-    { name: "HKDF", hash: "SHA-256", salt: HKDF_SALT, info: encoder.encode(label) },
-    master,
-    bytes * 8,
-  )
-  return new Uint8Array(bits)
-}
-
-export async function deriveVault(masterKey: Uint8Array): Promise<Vault> {
-  const master = await crypto.subtle.importKey("raw", masterKey as BufferSource, "HKDF", false, ["deriveBits"])
-  const userId = toHex(await deriveBits(master, "user-id", USER_ID_BYTES))
-  const secret = toBase64Url(await deriveBits(master, "auth-secret", AUTH_SECRET_BYTES))
-  const aesKey = await crypto.subtle.importKey(
-    "raw",
-    (await deriveBits(master, "encryption", 32)) as BufferSource,
-    "AES-GCM",
-    false,
-    ["encrypt", "decrypt"],
-  )
-  const additionalData = encoder.encode(`tickleaf/v${FORMAT_VERSION}/${userId}`) as BufferSource
+export async function deriveVault(masterKey: Uint8Array, primitives = defaultPrimitives): Promise<Vault> {
+  const derive = (label: string, bytes: number) =>
+    primitives.hkdfSha256(masterKey, HKDF_SALT, encoder.encode(label), bytes)
+  const userId = toHex(await derive("user-id", USER_ID_BYTES))
+  const secret = toBase64Url(await derive("auth-secret", AUTH_SECRET_BYTES))
+  const aesKey = await derive("encryption", AES_KEY_BYTES)
+  const additionalData = encoder.encode(`tickleaf/v${FORMAT_VERSION}/${userId}`)
 
   const encrypt = async (plain: Uint8Array): Promise<Uint8Array> => {
     const iv = crypto.getRandomValues(new Uint8Array(IV_BYTES))
-    const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData }, aesKey, plain as BufferSource)
-    const sealed = new Uint8Array(HEADER_BYTES + cipher.byteLength)
+    const cipher = await primitives.aesGcmEncrypt(aesKey, iv, additionalData, plain)
+    const sealed = new Uint8Array(HEADER_BYTES + cipher.length)
     sealed[0] = FORMAT_VERSION
     sealed.set(iv, 1)
-    sealed.set(new Uint8Array(cipher), HEADER_BYTES)
+    sealed.set(cipher, HEADER_BYTES)
     return sealed
   }
 
@@ -82,12 +71,7 @@ export async function deriveVault(masterKey: Uint8Array): Promise<Vault> {
     if (sealed.length <= HEADER_BYTES || sealed[0] !== FORMAT_VERSION) throw new Error(UNREADABLE)
     const iv = sealed.slice(1, HEADER_BYTES)
     try {
-      const plain = await crypto.subtle.decrypt(
-        { name: "AES-GCM", iv, additionalData },
-        aesKey,
-        sealed.slice(HEADER_BYTES) as BufferSource,
-      )
-      return new Uint8Array(plain)
+      return await primitives.aesGcmDecrypt(aesKey, iv, additionalData, sealed.slice(HEADER_BYTES))
     } catch {
       throw new Error(UNREADABLE)
     }

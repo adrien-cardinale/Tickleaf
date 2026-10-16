@@ -76,7 +76,9 @@ function CreateKeyStep({ onDone, onBack }: StepProps) {
   const server = useServerField()
 
   useEffect(() => {
-    void formatMasterKey(key).then(setPhrase)
+    formatMasterKey(key).then(setPhrase, (caught: unknown) =>
+      setError(messageOf(caught, labels.onboarding.keyGenerationFailed)),
+    )
   }, [key])
 
   const submit = async () => {

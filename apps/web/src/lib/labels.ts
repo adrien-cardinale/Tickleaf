@@ -174,6 +174,7 @@ export const labels = {
     serverHint: "Optionnel. Laissez vide pour garder vos tâches sur cet appareil seulement.",
     invalidServer: "Adresse du serveur invalide : commencez par http:// ou https://",
     saveFailed: "Enregistrement de la clé impossible",
+    keyGenerationFailed: "Création de la clé impossible sur ce navigateur",
   },
   sync: {
     indicator: "Synchronisation",

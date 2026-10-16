@@ -1,106 +1,106 @@
 # Tickleaf
 
-Application de tâches inspirée de Todoist. Local-first : les données vivent dans le navigateur, l'application s'installe comme une PWA et fonctionne hors ligne. Un relais chiffré optionnel synchronise plusieurs appareils : le serveur ne voit jamais les données en clair.
+Task app inspired by Todoist. Local-first: data lives in the browser, the app installs as a PWA and works offline. An optional encrypted relay synchronizes several devices: the server never sees the data in clear text.
 
-## Pile
+## Stack
 
 - Bun (workspaces), TypeScript.
-- `packages/core` : types du domaine, parseur d'ajout rapide, dates, tri. Aucune dépendance.
-- `packages/db` : schéma Drizzle SQLite, migrations embarquées.
-- `apps/web` : React 19, Vite, TanStack Router et Query, Tailwind 4, shadcn/ui, sql.js, vite-plugin-pwa. Le chiffrement vit dans `src/lib/crypto`, la synchronisation dans `src/lib/sync`.
-- `apps/server` : relais Hono sur `bun:sqlite`. Il stocke un journal de blobs chiffrés et sert le build web. Aucune logique métier.
+- `packages/core`: domain types, quick-add parser, dates, sorting. No dependency.
+- `packages/db`: Drizzle SQLite schema, bundled migrations.
+- `apps/web`: React 19, Vite, TanStack Router and Query, Tailwind 4, shadcn/ui, sql.js, vite-plugin-pwa. Encryption lives in `src/lib/crypto`, synchronization in `src/lib/sync`.
+- `apps/server`: Hono relay on `bun:sqlite`. It stores a log of encrypted blobs and serves the web build. No business logic.
 
-## Commandes
+## Commands
 
-| Commande | Effet |
+| Command | Purpose |
 |---|---|
-| `bun install` | Installe les dépendances. |
-| `bun run dev` | Lance le relais sur le port 3000 et Vite sur le port 5173 (proxy `/api`). |
-| `bun run build` | Vérifie les types de `core` et `db`, puis construit `apps/web/dist`. |
-| `bun run start` | Lance le relais, qui sert `apps/web/dist`. |
-| `bun run build:static` | Construit pour GitHub Pages dans `apps/web/dist-static`. Préfixe avec `BASE_PATH=/tickleaf/`. |
-| `bun run typecheck` | Vérifie les types de tous les paquets. |
-| `bun run test` | Lance les tests unitaires de `core`, `web` et `server`. |
-| `bun run lint` | Lance Biome. |
-| `bun run db:generate` | Génère une migration après un changement de schéma, puis la regroupe. |
-| `bun run db:bundle` | Regroupe les migrations dans `migrations.generated.ts`. |
-| `bun run icons` | Régénère les icônes de la PWA. |
+| `bun install` | Installs dependencies. |
+| `bun run dev` | Starts the relay on port 3000 and Vite on port 5173 (proxies `/api`). |
+| `bun run build` | Type-checks `core` and `db`, then builds `apps/web/dist`. |
+| `bun run start` | Starts the relay, which serves `apps/web/dist`. |
+| `bun run build:static` | Builds for GitHub Pages into `apps/web/dist-static`. Prefix with `BASE_PATH=/tickleaf/`. |
+| `bun run typecheck` | Type-checks every package. |
+| `bun run test` | Runs the unit tests of `core`, `web` and `server`. |
+| `bun run lint` | Runs Biome. |
+| `bun run db:generate` | Generates a migration after a schema change, then bundles it. |
+| `bun run db:bundle` | Bundles the migrations into `migrations.generated.ts`. |
+| `bun run icons` | Regenerates the PWA icons. |
 
-## Lancer avec Docker
+## Running with Docker
 
 ```sh
 docker compose up -d --build
 ```
 
-Ouvre `http://localhost:3000`. L'image construit le web, puis lance le relais avec les seules dépendances du serveur. La base du relais vit dans le volume `tickleaf-data`, monté sur `/app/data`.
+Open `http://localhost:3000`. The image builds the web UI, then starts the relay with the server dependencies only. The relay database lives in the `tickleaf-data` volume, mounted on `/app/data`.
 
-Sans Compose :
+Without Compose:
 
 ```sh
 docker build -t tickleaf .
 docker run -d -p 3000:3000 -v tickleaf-data:/app/data tickleaf
 ```
 
-Le service worker et Web Crypto exigent HTTPS, sauf sur `localhost`. Place un reverse proxy TLS devant le port 3000 pour un accès distant.
+Encryption also works over plain HTTP, thanks to a JavaScript fallback when Web Crypto is unavailable. Only the service worker (PWA install, offline mode) requires HTTPS or `localhost`. Put a TLS reverse proxy in front of port 3000 for remote access.
 
-## Configuration du relais
+## Relay configuration
 
-Toutes les variables ont une valeur par défaut. Copie `.env.example` en `.env` pour les changer en développement.
+Every variable has a default. Copy `.env.example` to `.env` to change them in development.
 
-| Variable | Défaut | Rôle |
+| Variable | Default | Role |
 |---|---|---|
-| `PORT` | `3000` | Port d'écoute. |
-| `DATABASE_PATH` | `./data/relay.db` | Base SQLite du relais (`/app/data/relay.db` dans l'image). |
-| `ALLOW_SIGNUP` | `true` | `false` refuse toute nouvelle clé. Mets `false` une fois tes appareils connectés. |
-| `STATIC_DIR` | `apps/web/dist` | Dossier du build web à servir. |
-| `MAX_USER_BYTES` | 512 Mo | Quota du journal par clé. `0` désactive le quota. |
-| `RATE_LIMIT_PER_MINUTE` | `300` | Requêtes par minute et par client. `0` désactive la limite. |
-| `ALLOWED_ORIGINS` | vide | Origines CORS autorisées, séparées par des virgules. Utile pour un build statique hébergé ailleurs. |
+| `PORT` | `3000` | Listening port. |
+| `DATABASE_PATH` | `./data/relay.db` | Relay SQLite database (`/app/data/relay.db` in the image). |
+| `ALLOW_SIGNUP` | `true` | `false` refuses any new key. Set it to `false` once your devices are connected. |
+| `STATIC_DIR` | `apps/web/dist` | Web build folder to serve. |
+| `MAX_USER_BYTES` | 512 MiB | Log quota per key. `0` disables the quota. |
+| `RATE_LIMIT_PER_MINUTE` | `300` | Requests per minute and per client. `0` disables the limit. |
+| `ALLOWED_ORIGINS` | empty | Allowed CORS origins, comma-separated. Needed for a static build hosted elsewhere. |
 
-## Modèle de chiffrement
+## Encryption model
 
-Chaque appareil garde sa propre base SQLite avec toutes les données. Le serveur ne la voit jamais en clair.
+Each device keeps its own SQLite database with all the data. The server never sees it in clear text.
 
-- **Clé maîtresse** : 32 octets aléatoires générés sur l'appareil. Elle s'affiche comme clé de récupération en base32 Crockford, par groupes de quatre caractères, avec un checksum de 2 octets qui détecte les fautes de frappe (`I`, `L` et `O` sont acceptés pour `1`, `1` et `0`). Qui détient cette clé lit les données. Perdre la clé rend les données irrécupérables.
-- **Valeurs dérivées** (HKDF-SHA-256, sel `tickleaf/v1`) : un **identifiant public** (32 caractères hex), un **secret d'authentification** et une **clé AES-256-GCM**. La clé maîtresse ne quitte jamais l'appareil.
-- **Blobs scellés** : chaque entrée est chiffrée avec un IV aléatoire de 12 octets, précédée d'un octet de version, avec l'identifiant public en données authentifiées.
-- **Authentification** : `Authorization: Bearer <userId>.<secret>`. Le serveur stocke seulement le SHA-256 du secret et le compare en temps constant. Pas de mot de passe, pas de session.
+- **Master key**: 32 random bytes generated on the device. It is shown as a recovery key in Crockford base32, in groups of four characters, with a 2-byte checksum that detects typos (`I`, `L` and `O` are accepted for `1`, `1` and `0`). Anyone holding this key can read the data. Losing it makes the data unrecoverable.
+- **Derived values** (HKDF-SHA-256, salt `tickleaf/v1`): a public **user id** (32 hex characters), an **auth secret** and an **AES-256-GCM key**. The master key never leaves the device.
+- **Sealed blobs**: each entry is encrypted with a random 12-byte IV, prefixed by a format version byte, with the user id bound as additional authenticated data.
+- **Authentication**: `Authorization: Bearer <userId>.<secret>`. The server stores only the SHA-256 hash of the secret and compares it in constant time. No password, no session.
 
-La base locale sauvegardée dans IndexedDB est chiffrée avec la même clé. Une base en clair d'une version précédente est relue puis rechiffrée à la sauvegarde suivante.
+The local database saved in IndexedDB is encrypted with the same key. A plain database from an earlier version is read once and re-encrypted on the next save.
 
-## API du relais
+## Relay API
 
-Toutes les routes vivent sous `/api`. `data` est le base64 d'un blob scellé (8 Mio max par entrée, 9 Mio max par requête). Les erreurs sont en JSON : `{ "error": "…" }`.
+All routes live under `/api`. `data` is the base64 of a sealed blob (8 MiB max per entry, 9 MiB max per request). Errors are JSON: `{ "error": "…" }`.
 
 | Route | Description |
 |---|---|
-| `GET /api/health` | Renvoie `{ "status": "ok" }`. |
-| `POST /api/log` | Ajoute `{ "data" }` au journal et renvoie `{ "seq" }` (201). Le premier ajout d'un identifiant inconnu crée le compte (403 si les inscriptions sont fermées) ; les suivants exigent le bon secret (401 sinon). 413 si le quota est atteint. |
-| `GET /api/log?since=<seq>&limit=<n>` | Renvoie `{ entries: [{ seq, data }], cursor, hasMore }` pour les entrées après `since`. `limit` vaut 200 par défaut, 500 au plus ; une page est aussi plafonnée à 8 Mio. Rappelle avec `cursor` tant que `hasMore` vaut `true`. |
-| `DELETE /api/account` | Supprime le compte et tout son journal (204). |
+| `GET /api/health` | Returns `{ "status": "ok" }`. |
+| `POST /api/log` | Appends `{ "data" }` to the log and returns `{ "seq" }` (201). The first append from an unknown user id creates the account (403 if signups are closed); later appends need the matching secret (401 otherwise). 413 when the quota is reached. |
+| `GET /api/log?since=<seq>&limit=<n>` | Returns `{ entries: [{ seq, data }], cursor, hasMore }` for entries after `since`. `limit` defaults to 200 and is capped at 500; a page is also capped at 8 MiB. Call again with `cursor` while `hasMore` is `true`. |
+| `DELETE /api/account` | Deletes the account and its whole log (204). |
 
-Le journal est append-only, numéroté par compte sans trou (`seq`), stocké dans SQLite en mode WAL.
+The log is append-only, numbered per account with a gapless sequence (`seq`), stored in SQLite in WAL mode.
 
-## Synchronisation
+## Synchronization
 
-Le serveur est un journal ordonné et aveugle ; les clients fusionnent.
+The server is a blind, ordered log; clients do the merging.
 
-1. **Pull** : le client lit le journal depuis son curseur, page par page, déchiffre chaque entrée et applique ses lignes. Une entrée illisible arrête la synchronisation sans avancer le curseur : la clé ne correspond pas, ou les données sont corrompues.
-2. **Push** : les lignes locales non envoyées (`sync_version` à `NULL`) partent par lots de 200, chacun scellé puis ajouté au journal. Les lignes acceptées reçoivent leur numéro de séquence en `sync_version`.
-3. **Conflits** : la ligne au `updatedAt` le plus récent gagne. Les suppressions sont logiques (`deleted_at`) pour se propager entre appareils.
+1. **Pull**: the client reads the log from its cursor, page by page, decrypts each entry and applies its rows. An unreadable entry aborts the sync without moving the cursor: the key does not match, or the data is corrupted.
+2. **Push**: local rows not yet sent (`sync_version` is `NULL`) go out in batches of 200, each sealed and appended to the log. Accepted rows get their sequence number as `sync_version`.
+3. **Conflicts**: the row with the most recent `updatedAt` wins. Deletions are soft (`deleted_at`) so they propagate between devices.
 
-La synchronisation tourne au démarrage, toutes les 5 minutes, 5 secondes après chaque modification, au retour de l'onglet au premier plan, au retour du réseau, et à la demande depuis la barre latérale.
+Synchronization runs at startup, every 5 minutes, 5 seconds after each change, when the tab comes back to the foreground, when the network comes back, and on demand from the sidebar.
 
-## Connecter un appareil
+## Connecting a device
 
-1. Au premier lancement, l'application demande une clé : **crée une clé** (note la clé de récupération affichée) ou **entre une clé existante** pour rejoindre tes données.
-2. Dans le navigateur, le serveur est celui qui a servi la page : la synchronisation démarre seule. Le build statique (GitHub Pages) demande l'adresse du relais, qui doit lister cette origine dans `ALLOWED_ORIGINS`. Sans adresse, l'application reste locale.
-3. Le dialogue **Synchronisation** de la barre latérale montre l'état, affiche la clé de récupération derrière un avertissement, et permet d'**oublier cet appareil** (efface la base locale et la clé).
+1. On first launch the app asks for a key: **create a key** (write down the displayed recovery key) or **enter an existing key** to join your data.
+2. In the browser, the server is the one that served the page: synchronization starts on its own. The static build (GitHub Pages) asks for the relay address, which must list that origin in `ALLOWED_ORIGINS`. Without an address, the app stays local.
+3. The **Synchronization** dialog in the sidebar shows the status, reveals the recovery key behind a warning, and lets you **forget this device** (erases the local database and the key).
 
-Un appareil qui avait déjà des données avant cette version passe par « Créer une clé » et garde ses données ; elles sont alors envoyées au relais.
+A device that already had data before this version goes through "Create a key" and keeps its data; it is then sent to the relay.
 
-## Où vivent les données
+## Where the data lives
 
-La base SQLite tourne en mémoire avec sql.js. Elle est sauvegardée chiffrée dans IndexedDB (base `tickleaf`, entrée `database`, clé dans l'entrée `master-key`) 500 ms après chaque écriture, et à la fermeture de la page.
+The SQLite database runs in memory with sql.js. It is saved encrypted in IndexedDB (database `tickleaf`, entry `database`, key in the entry `master-key`) 500 ms after each write, and when the page closes.
 
-Le navigateur peut effacer ce stockage : nettoyage des données du site, navigation privée, manque d'espace, ou inactivité prolongée sur Safari. Avec un relais configuré, les données se retrouvent depuis un autre appareil avec la clé de récupération. Sans relais, ne confie pas à Tickleaf des données que tu ne peux pas perdre.
+The browser may clear this storage: site data cleanup, private browsing, storage pressure, or long inactivity on Safari. With a relay configured, the data comes back on another device with the recovery key. Without a relay, do not trust Tickleaf with data you cannot afford to lose.
