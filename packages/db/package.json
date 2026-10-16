@@ -1,0 +1,23 @@
+{
+  "name": "@tickleaf/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema.ts",
+    "./orm": "./src/orm.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "generate": "drizzle-kit generate && bun scripts/bundle-migrations.ts",
+    "bundle": "bun scripts/bundle-migrations.ts"
+  },
+  "dependencies": {
+    "@tickleaf/core": "workspace:*",
+    "drizzle-orm": "^0.45.3"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.11"
+  }
+}
