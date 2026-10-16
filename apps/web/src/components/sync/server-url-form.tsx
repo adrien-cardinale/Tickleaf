@@ -20,7 +20,7 @@ export function ServerUrlForm({ current }: { current: string | null }) {
     setPending(true)
     await changeServerUrl(serverUrl)
     setPending(false)
-    toast.success(labels.sync.dialog.serverSaved)
+    toast.success(labels.settings.sync.serverSaved)
   }
 
   return (
@@ -43,7 +43,7 @@ export function ServerUrlForm({ current }: { current: string | null }) {
           }}
         />
         <Button type="submit" variant="outline" disabled={unchanged || pending}>
-          {labels.sync.dialog.serverSave}
+          {labels.settings.sync.serverSave}
         </Button>
       </div>
       {error !== null ? (

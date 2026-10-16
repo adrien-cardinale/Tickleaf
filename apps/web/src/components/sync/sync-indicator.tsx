@@ -1,22 +1,23 @@
+import { Link } from "@tanstack/react-router"
 import { RefreshCw } from "lucide-react"
-import { useState } from "react"
-import { SidebarMenuAction, SidebarMenuButton } from "@/components/ui/sidebar"
+import { SidebarMenuAction, SidebarMenuButton, useSidebar } from "@/components/ui/sidebar"
 import { labels } from "@/lib/labels"
 import { describeSyncState, describeSyncStatus } from "@/lib/sync/sync-labels"
 import { isSyncConfigured, syncNow, useSyncState } from "@/lib/sync/sync-store"
-import { SyncDialog } from "./sync-dialog"
 import { SyncStatusIcon } from "./sync-status-icon"
 
 export function SyncIndicator() {
   const state = useSyncState()
-  const [open, setOpen] = useState(false)
+  const { isMobile, setOpenMobile } = useSidebar()
   const description = describeSyncState(state)
 
   return (
     <>
-      <SidebarMenuButton tooltip={description} onClick={() => setOpen(true)} aria-label={description}>
-        <SyncStatusIcon status={state.status} />
-        <span className="truncate">{describeSyncStatus(state)}</span>
+      <SidebarMenuButton asChild tooltip={description}>
+        <Link to="/settings" replace={isMobile} onClick={() => setOpenMobile(false)} aria-label={description}>
+          <SyncStatusIcon status={state.status} />
+          <span className="truncate">{describeSyncStatus(state)}</span>
+        </Link>
       </SidebarMenuButton>
       {isSyncConfigured(state) && (
         <SidebarMenuAction
@@ -28,7 +29,6 @@ export function SyncIndicator() {
           <RefreshCw />
         </SidebarMenuAction>
       )}
-      <SyncDialog open={open} onOpenChange={setOpen} />
     </>
   )
 }

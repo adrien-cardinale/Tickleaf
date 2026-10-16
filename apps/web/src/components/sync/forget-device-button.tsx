@@ -34,18 +34,18 @@ export function ForgetDeviceButton({ pendingCount }: { pendingCount: number }) {
       <AlertDialogTrigger asChild>
         <Button variant="ghost" className="text-destructive hover:text-destructive">
           <LogOut />
-          {labels.sync.dialog.forget}
+          {labels.settings.device.forget}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{labels.sync.dialog.forgetTitle}</AlertDialogTitle>
-          <AlertDialogDescription>{labels.sync.dialog.forgetDescription(pendingCount)}</AlertDialogDescription>
+          <AlertDialogTitle>{labels.settings.device.forgetTitle}</AlertDialogTitle>
+          <AlertDialogDescription>{labels.settings.device.forgetDescription(pendingCount)}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={pending}>{labels.sync.dialog.cancel}</AlertDialogCancel>
+          <AlertDialogCancel disabled={pending}>{labels.settings.cancel}</AlertDialogCancel>
           <AlertDialogAction variant="destructive" disabled={pending} onClick={() => void forget()}>
-            {labels.sync.dialog.forgetConfirm}
+            {labels.settings.device.forgetConfirm}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

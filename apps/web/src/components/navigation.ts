@@ -1,5 +1,5 @@
 import type { TaskCounts } from "@tickleaf/core"
-import { CalendarCheck, CalendarDays, CircleCheck, Inbox, type LucideIcon } from "lucide-react"
+import { CalendarCheck, CalendarDays, CircleCheck, Inbox, type LucideIcon, Settings } from "lucide-react"
 import { labels } from "@/lib/labels"
 
 export type ViewPath = "/inbox" | "/today" | "/upcoming" | "/completed"
@@ -17,3 +17,11 @@ export const navigationItems: readonly NavigationItem[] = [
   { title: labels.nav.upcoming, to: "/upcoming", icon: CalendarDays, count: (counts) => counts.upcoming },
   { title: labels.nav.completed, to: "/completed", icon: CircleCheck, count: (counts) => counts.completed },
 ]
+
+export type SettingsItem = {
+  title: string
+  to: "/settings"
+  icon: LucideIcon
+}
+
+export const settingsItem: SettingsItem = { title: labels.nav.settings, to: "/settings", icon: Settings }

@@ -35,7 +35,7 @@ export function RecoveryKeySection() {
         <RecoveryKey phrase={phrase} />
         <Button variant="ghost" className="w-full" onClick={() => setPhrase(null)}>
           <EyeOff />
-          {labels.sync.dialog.hideKey}
+          {labels.settings.recoveryKey.hideKey}
         </Button>
       </div>
     )
@@ -46,17 +46,17 @@ export function RecoveryKeySection() {
       <AlertDialogTrigger asChild>
         <Button variant="outline">
           <KeyRound />
-          {labels.sync.dialog.showKey}
+          {labels.settings.recoveryKey.showKey}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{labels.sync.dialog.keyWarningTitle}</AlertDialogTitle>
-          <AlertDialogDescription>{labels.sync.dialog.keyWarning}</AlertDialogDescription>
+          <AlertDialogTitle>{labels.settings.recoveryKey.keyWarningTitle}</AlertDialogTitle>
+          <AlertDialogDescription>{labels.settings.recoveryKey.keyWarning}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>{labels.sync.dialog.cancel}</AlertDialogCancel>
-          <AlertDialogAction onClick={() => void reveal()}>{labels.sync.dialog.reveal}</AlertDialogAction>
+          <AlertDialogCancel>{labels.settings.cancel}</AlertDialogCancel>
+          <AlertDialogAction onClick={() => void reveal()}>{labels.settings.recoveryKey.reveal}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

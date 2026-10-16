@@ -95,7 +95,7 @@ Synchronization runs at startup, every 5 minutes, 5 seconds after each change, w
 
 1. On first launch the app asks for a key: **create a key** (write down the displayed recovery key) or **enter an existing key** to join your data.
 2. In the browser, the server is the one that served the page: synchronization starts on its own. The static build (GitHub Pages) asks for the relay address, which must list that origin in `ALLOWED_ORIGINS`. Without an address, the app stays local.
-3. The **Synchronization** dialog in the sidebar shows the status, reveals the recovery key behind a warning, and lets you **forget this device** (erases the local database and the key).
+3. The **Settings** page (`/settings`) shows the synchronization status, reveals the recovery key behind a warning, checks for updates, and lets you **forget this device** (erases the local database and the key).
 
 A device that already had data before this version goes through "Create a key" and keeps its data; it is then sent to the relay.
 

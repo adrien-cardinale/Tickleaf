@@ -13,6 +13,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppCompletedRouteImport } from './routes/_app/completed'
 import { Route as AppInboxRouteImport } from './routes/_app/inbox'
+import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppTodayRouteImport } from './routes/_app/today'
 import { Route as AppUpcomingRouteImport } from './routes/_app/upcoming'
 import { Route as AppProjectProjectIdRouteImport } from './routes/_app/project.$projectId'
@@ -36,6 +37,11 @@ const AppInboxRoute = AppInboxRouteImport.update({
   path: '/inbox',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppTodayRoute = AppTodayRouteImport.update({
   id: '/today',
   path: '/today',
@@ -56,6 +62,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/completed': typeof AppCompletedRoute
   '/inbox': typeof AppInboxRoute
+  '/settings': typeof AppSettingsRoute
   '/today': typeof AppTodayRoute
   '/upcoming': typeof AppUpcomingRoute
   '/project/$projectId': typeof AppProjectProjectIdRoute
@@ -63,6 +70,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/completed': typeof AppCompletedRoute
   '/inbox': typeof AppInboxRoute
+  '/settings': typeof AppSettingsRoute
   '/today': typeof AppTodayRoute
   '/upcoming': typeof AppUpcomingRoute
   '/': typeof AppIndexRoute
@@ -73,6 +81,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_app/completed': typeof AppCompletedRoute
   '/_app/inbox': typeof AppInboxRoute
+  '/_app/settings': typeof AppSettingsRoute
   '/_app/today': typeof AppTodayRoute
   '/_app/upcoming': typeof AppUpcomingRoute
   '/_app/': typeof AppIndexRoute
@@ -84,6 +93,7 @@ export interface FileRouteTypes {
     | '/'
     | '/completed'
     | '/inbox'
+    | '/settings'
     | '/today'
     | '/upcoming'
     | '/project/$projectId'
@@ -91,6 +101,7 @@ export interface FileRouteTypes {
   to:
     | '/completed'
     | '/inbox'
+    | '/settings'
     | '/today'
     | '/upcoming'
     | '/'
@@ -100,6 +111,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_app/completed'
     | '/_app/inbox'
+    | '/_app/settings'
     | '/_app/today'
     | '/_app/upcoming'
     | '/_app/'
@@ -140,6 +152,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppInboxRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/today': {
       id: '/_app/today'
       path: '/today'
@@ -167,6 +186,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppCompletedRoute: typeof AppCompletedRoute
   AppInboxRoute: typeof AppInboxRoute
+  AppSettingsRoute: typeof AppSettingsRoute
   AppTodayRoute: typeof AppTodayRoute
   AppUpcomingRoute: typeof AppUpcomingRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -176,6 +196,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppCompletedRoute: AppCompletedRoute,
   AppInboxRoute: AppInboxRoute,
+  AppSettingsRoute: AppSettingsRoute,
   AppTodayRoute: AppTodayRoute,
   AppUpcomingRoute: AppUpcomingRoute,
   AppIndexRoute: AppIndexRoute,

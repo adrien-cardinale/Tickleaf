@@ -24,6 +24,7 @@ export const labels = {
     newProject: "Nouveau projet",
     projectName: "Nom du projet",
     projectNamePlaceholder: "Nom du projet, puis Entrée",
+    settings: "Paramètres",
   },
   search: {
     label: "Rechercher",
@@ -191,32 +192,6 @@ export const labels = {
       pending: (count: number) =>
         count === 0 ? "Rien en attente" : `${count} ${plural(count, "élément", "éléments")} en attente`,
     },
-    dialog: {
-      title: "Synchronisation",
-      description: "Vos tâches sont chiffrées sur cet appareil avant d’être envoyées au serveur.",
-      status: "Statut",
-      lastSync: "Dernière synchro",
-      pending: "En attente",
-      server: "Serveur",
-      sameOrigin: "Ce serveur",
-      none: "Aucun",
-      error: "Dernière erreur",
-      serverSave: "Enregistrer",
-      serverSaved: "Adresse du serveur enregistrée",
-      showKey: "Afficher la clé de récupération",
-      keyWarningTitle: "Afficher la clé ?",
-      keyWarning: "Quiconque voit cette clé peut lire toutes vos tâches. Vérifiez que personne ne regarde votre écran.",
-      reveal: "Afficher",
-      hideKey: "Masquer la clé",
-      forget: "Oublier cet appareil",
-      forgetTitle: "Oublier cet appareil ?",
-      forgetDescription: (pending: number) =>
-        pending > 0
-          ? `${pending} ${plural(pending, "modification n’est", "modifications ne sont")} pas encore ${plural(pending, "synchronisée", "synchronisées")} et ${plural(pending, "sera perdue", "seront perdues")}. La base locale et la clé seront effacées de cet appareil.`
-          : "La base locale et la clé seront effacées de cet appareil. Sans votre clé de récupération, vos tâches seront perdues.",
-      forgetConfirm: "Oublier",
-      cancel: "Annuler",
-    },
     errors: {
       network: "Serveur injoignable. Les modifications restent sur cet appareil.",
       unauthorized: "Accès refusé : la clé ne correspond pas à ce compte sur le serveur.",
@@ -230,6 +205,54 @@ export const labels = {
         `Entrée ${seq} écrite par une version plus récente de Tickleaf. Mettez l’application à jour.`,
       invalidEntry: (seq: number) => `Entrée ${seq} mal formée. Synchronisation arrêtée.`,
       unexpected: "Erreur de synchronisation inattendue",
+    },
+  },
+  settings: {
+    title: "Paramètres",
+    cancel: "Annuler",
+    sync: {
+      title: "Synchronisation",
+      configuredDescription: "Vos tâches sont chiffrées sur cet appareil avant d’être envoyées au serveur.",
+      unconfiguredDescription: "Aucun serveur configuré : vos tâches restent sur cet appareil seulement.",
+      status: "Statut",
+      lastSync: "Dernière synchro",
+      pending: "En attente",
+      server: "Serveur",
+      sameOrigin: "Ce serveur",
+      none: "Aucun",
+      error: "Dernière erreur",
+      serverSave: "Enregistrer",
+      serverSaved: "Adresse du serveur enregistrée",
+    },
+    recoveryKey: {
+      title: "Clé de récupération",
+      description: "Cette clé seule permet d’ouvrir vos tâches sur un autre appareil. Gardez-la en lieu sûr.",
+      showKey: "Afficher la clé de récupération",
+      keyWarningTitle: "Afficher la clé ?",
+      keyWarning: "Quiconque voit cette clé peut lire toutes vos tâches. Vérifiez que personne ne regarde votre écran.",
+      reveal: "Afficher",
+      hideKey: "Masquer la clé",
+    },
+    updates: {
+      title: "Mises à jour",
+      description: "Tickleaf se met à jour automatiquement. Vous pouvez aussi vérifier maintenant.",
+      installedVersion: "Version installée",
+      check: "Vérifier les mises à jour",
+      checking: "Vérification…",
+      upToDate: "Aucune mise à jour trouvée",
+      unavailable: "Vérification indisponible dans ce contexte",
+      checkFailed: "Vérification des mises à jour impossible",
+    },
+    device: {
+      title: "Cet appareil",
+      description: "La base locale et la clé restent sur cet appareil. Les oublier efface vos tâches de ce navigateur.",
+      forget: "Oublier cet appareil",
+      forgetTitle: "Oublier cet appareil ?",
+      forgetDescription: (pending: number) =>
+        pending > 0
+          ? `${pending} ${plural(pending, "modification n’est", "modifications ne sont")} pas encore ${plural(pending, "synchronisée", "synchronisées")} et ${plural(pending, "sera perdue", "seront perdues")}. La base locale et la clé seront effacées de cet appareil.`
+          : "La base locale et la clé seront effacées de cet appareil. Sans votre clé de récupération, vos tâches seront perdues.",
+      forgetConfirm: "Oublier",
     },
   },
   seed: {

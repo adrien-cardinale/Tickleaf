@@ -3,7 +3,7 @@ import { countTasks } from "@tickleaf/core"
 import { Plus } from "lucide-react"
 import { useState } from "react"
 import { BrandMark } from "@/components/brand-mark"
-import { navigationItems } from "@/components/navigation"
+import { navigationItems, settingsItem } from "@/components/navigation"
 import { NewProjectForm } from "@/components/new-project-form"
 import { SyncIndicator } from "@/components/sync/sync-indicator"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -36,6 +36,22 @@ function ProjectDot() {
     <span className="grid size-4 shrink-0 place-items-center" aria-hidden="true">
       <span className="size-2 rounded-full border-[1.5px] border-muted-foreground" />
     </span>
+  )
+}
+
+function SettingsMenuItem({ onNavigate }: { onNavigate: () => void }) {
+  const matchRoute = useMatchRoute()
+  const { isMobile } = useSidebar()
+  const isActive = Boolean(matchRoute({ to: settingsItem.to }))
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild isActive={isActive} tooltip={settingsItem.title}>
+        <Link to={settingsItem.to} replace={isMobile} onClick={onNavigate} aria-current={isActive ? "page" : undefined}>
+          <settingsItem.icon />
+          <span>{settingsItem.title}</span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
   )
 }
 
@@ -135,6 +151,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
+          <SettingsMenuItem onNavigate={closeMobileSidebar} />
           <SidebarMenuItem>
             <SyncIndicator />
           </SidebarMenuItem>
