@@ -1,16 +1,11 @@
-import { type FormEvent, useEffect, useRef, useState } from "react"
+import { type FormEvent, type KeyboardEvent, useState } from "react"
+import { Kbd } from "@/components/kbd"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { type QuickAddContext, useTaskActions } from "@/hooks/use-task-actions"
 import { useToday } from "@/hooks/use-today"
 import { labels } from "@/lib/labels"
-
-const EDITABLE_TAGS = new Set(["INPUT", "TEXTAREA", "SELECT"])
-
-function isTyping(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false
-  return EDITABLE_TAGS.has(target.tagName) || target.isContentEditable
-}
+import { QUICK_ADD_INPUT_ID } from "@/lib/shortcuts"
 
 type QuickAddProps = {
   context: QuickAddContext
@@ -27,9 +22,7 @@ function QuickAddHint() {
     <p className="-mt-3 text-xs text-muted-foreground">
       {labels.quickAdd.hintBefore} <Token>{first}</Token>, <Token>{second}</Token>, <Token>{third}</Token>,{" "}
       <Token>p1</Token>…<Token>p4</Token> {labels.quickAdd.hintOr} <Token>#Projet</Token> {labels.quickAdd.hintAfter}{" "}
-      <kbd className="inline-block rounded-[5px] border border-b-2 px-1.5 font-mono text-[11px] text-muted-foreground">
-        /
-      </kbd>{" "}
+      <Kbd>/</Kbd>
       {labels.quickAdd.hintShortcut}
     </p>
   )
@@ -37,19 +30,14 @@ function QuickAddHint() {
 
 export function QuickAdd({ context, placeholder }: QuickAddProps) {
   const [value, setValue] = useState("")
-  const inputRef = useRef<HTMLInputElement>(null)
   const today = useToday()
   const { add } = useTaskActions()
 
-  useEffect(() => {
-    const focusOnSlash = (event: KeyboardEvent) => {
-      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey || isTyping(event.target)) return
-      event.preventDefault()
-      inputRef.current?.focus()
-    }
-    document.addEventListener("keydown", focusOnSlash)
-    return () => document.removeEventListener("keydown", focusOnSlash)
-  }, [])
+  const blurOnEscape = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== "Escape") return
+    event.preventDefault()
+    event.currentTarget.blur()
+  }
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
@@ -60,14 +48,14 @@ export function QuickAdd({ context, placeholder }: QuickAddProps) {
   return (
     <>
       <form onSubmit={submit} className="flex gap-2">
-        <label className="sr-only" htmlFor="quick-add">
+        <label className="sr-only" htmlFor={QUICK_ADD_INPUT_ID}>
           {labels.quickAdd.label}
         </label>
         <Input
-          id="quick-add"
-          ref={inputRef}
+          id={QUICK_ADD_INPUT_ID}
           value={value}
           onChange={(event) => setValue(event.target.value)}
+          onKeyDown={blurOnEscape}
           placeholder={placeholder}
           autoComplete="off"
           enterKeyHint="done"

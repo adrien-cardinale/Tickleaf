@@ -3,6 +3,7 @@ import { AccountsCard } from "@/components/settings/accounts-card"
 import { DeviceCard } from "@/components/settings/device-card"
 import { ExportCard } from "@/components/settings/export-card"
 import { RecoveryKeyCard } from "@/components/settings/recovery-key-card"
+import { ShortcutsCard } from "@/components/settings/shortcuts-card"
 import { SyncCard } from "@/components/settings/sync-card"
 import { UpdateCard } from "@/components/settings/update-card"
 import { ViewPage } from "@/components/view-page"
@@ -23,6 +24,7 @@ function SettingsPage() {
         <RecoveryKeyCard serverUrl={state.serverUrl} />
         <AccountsCard />
         <ExportCard />
+        <ShortcutsCard />
         <UpdateCard />
         <DeviceCard pendingCount={state.pendingCount} syncConfigured={isSyncConfigured(state)} />
       </div>

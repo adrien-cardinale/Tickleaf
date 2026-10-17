@@ -9,6 +9,7 @@ The section matching the released version is attached automatically as the GitHu
 ### Added
 
 - Reorder tasks by drag and drop in the inbox and in projects, in the list without a section and inside each section. Drag the handle at the left of a task, or focus it and use the keyboard. Today and Upcoming stay sorted by priority and date.
+- Keyboard shortcuts on the computer: `g` then a letter to change view, `j` and `k` to move between tasks, `x` to complete the focused task, `Ctrl+K` (`⌘K` on a Mac) to search. Press `?` or open **Settings › Raccourcis clavier** to list them all.
 
 ## [0.2.0] - 2026-10-17
 

@@ -5,11 +5,14 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { BrandMark } from "@/components/brand-mark"
 import { ReminderScheduler } from "@/components/reminder-scheduler"
 import { SearchField } from "@/components/search-field"
+import { ShortcutsButton } from "@/components/shortcuts-button"
+import { ShortcutsDialog } from "@/components/shortcuts-dialog"
 import { TaskDetailSheet } from "@/components/tasks/task-detail-sheet"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { WorkspaceProvider } from "@/components/workspace-context"
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts"
 import { usePageTitle } from "@/hooks/use-page-title"
 import { labels } from "@/lib/labels"
 import { projectsQuery, tasksQuery } from "@/lib/queries"
@@ -21,6 +24,11 @@ export const Route = createFileRoute("/_app")({
   component: AppLayout,
   errorComponent: AppError,
 })
+
+function KeyboardShortcuts() {
+  useKeyboardShortcuts()
+  return <ShortcutsDialog />
+}
 
 function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -35,10 +43,12 @@ function AppShell({ children }: { children: ReactNode }) {
               {labels.app.name}
             </span>
             <SearchField />
+            <ShortcutsButton />
           </header>
           <div className="flex-1 px-4 pt-6 pb-[calc(3rem+env(safe-area-inset-bottom))] text-sm sm:px-6">{children}</div>
         </SidebarInset>
         <TaskDetailSheet />
+        <KeyboardShortcuts />
         {isTauri() && <ReminderScheduler />}
       </SidebarProvider>
     </WorkspaceProvider>

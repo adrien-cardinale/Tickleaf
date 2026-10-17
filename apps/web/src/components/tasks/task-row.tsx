@@ -1,12 +1,13 @@
 import { type IsoDate, subtaskProgress, type Task } from "@tickleaf/core"
 import { ListChecks, Repeat } from "lucide-react"
-import type { ReactNode } from "react"
+import type { KeyboardEvent, ReactNode } from "react"
 import { Button } from "@/components/ui/button"
 import { useWorkspace } from "@/components/workspace-context"
 import { useTaskActions } from "@/hooks/use-task-actions"
 import { dueLabel, recurrenceLabel } from "@/lib/format"
 import { labels } from "@/lib/labels"
 import { useSubtasks } from "@/lib/queries"
+import { hasAnyModifier, TASK_ROW_ATTRIBUTE, TOGGLE_TASK_KEYS } from "@/lib/shortcuts"
 import { cn } from "@/lib/utils"
 import { PriorityCheck } from "./priority-check"
 
@@ -31,6 +32,13 @@ export function TaskRow({ task, today, projectName, handle }: TaskRowProps) {
   const progress = subtaskProgress(subtasks)
   const done = task.completedAt !== null
   const hasMeta = task.due !== null || projectName !== null || task.description !== "" || progress.total > 0
+  const rowAttributes = { [TASK_ROW_ATTRIBUTE]: "" }
+
+  const toggleOnKey = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (hasAnyModifier(event) || !TOGGLE_TASK_KEYS.includes(event.key)) return
+    event.preventDefault()
+    void toggle(task)
+  }
 
   return (
     <div
@@ -49,6 +57,8 @@ export function TaskRow({ task, today, projectName, handle }: TaskRowProps) {
       <button
         type="button"
         onClick={() => openTask(task.id)}
+        onKeyDown={toggleOnKey}
+        {...rowAttributes}
         className="min-w-0 flex-1 cursor-pointer rounded-sm text-left outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
       >
         <span
