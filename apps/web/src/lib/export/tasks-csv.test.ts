@@ -5,6 +5,8 @@ import { tasksToCsv } from "./tasks-csv"
 const project: Project = {
   id: "p1",
   name: "Maison",
+  color: "gray",
+  parentId: null,
   position: 0,
   archivedAt: null,
   createdAt: "2026-10-01T08:00:00.000Z",

@@ -1,3 +1,4 @@
+import type { ProjectColor } from "./projects"
 import type { Recurrence } from "./recurrence"
 
 export const PRIORITIES = [1, 2, 3, 4] as const
@@ -11,6 +12,8 @@ export type IsoDate = string
 export type Project = {
   id: string
   name: string
+  color: ProjectColor
+  parentId: string | null
   position: number
   archivedAt: string | null
   createdAt: string

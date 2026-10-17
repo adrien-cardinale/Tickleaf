@@ -10,6 +10,12 @@ The section matching the released version is attached automatically as the GitHu
 
 - Reorder tasks by drag and drop in the inbox and in projects, in the list without a section and inside each section. Drag the handle at the left of a task, or focus it and use the keyboard. Today and Upcoming stay sorted by priority and date.
 - Keyboard shortcuts on the computer: `g` then a letter to change view, `j` and `k` to move between tasks, `x` to complete the focused task, `Ctrl+K` (`⌘K` on a Mac) to search. Press `?` or open **Settings › Raccourcis clavier** to list them all.
+- Subprojects: a project can hold subprojects, up to four levels deep. **Ajouter un sous-projet** in the project menu creates one, and **Déplacer vers…** moves a project under another project or back to the root. The sidebar indents subprojects under their parent and folds them with a chevron. Archiving a project archives its subprojects too.
+- Project colors: pick one of ten colors below the name when you create a project, or later with **Couleur** in the project menu. The dot next to the project name takes that color in the sidebar, on task rows and in the breadcrumb.
+
+### Changed
+
+- Projects now carry a parent and are synchronized with it. Update every device: an older version ignores the parent and can drop it when it edits a project.
 
 ## [0.2.0] - 2026-10-17
 

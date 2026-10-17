@@ -3,7 +3,7 @@ import { type Db, projects, tasks } from "@tickleaf/db"
 import { eq } from "@tickleaf/db/orm"
 import { createMemoryDb } from "../test-support/memory-db"
 import { applyPayload, keepsLocal, stampAcceptedRow } from "./sync-apply"
-import type { TaskRowPayload } from "./sync-schemas"
+import { payloadSchema, type TaskRowPayload } from "./sync-schemas"
 import { SYNC_TABLES } from "./sync-tables"
 
 const TASK_ID = "task-1"
@@ -95,6 +95,8 @@ describe("applyPayload", () => {
     const project = {
       id: "project-1",
       name: "Maison",
+      color: "green" as const,
+      parentId: null,
       position: 0,
       archivedAt: null,
       createdAt: "2026-01-01T08:00:00.000Z",
@@ -103,8 +105,68 @@ describe("applyPayload", () => {
     }
     await applyPayload(db, { v: 1, projects: [project], sections: [], tasks: [taskRow({ projectId: "project-1" })] }, 1)
     const [row] = await db.select().from(projects)
-    expect(row).toMatchObject({ name: "Maison", syncVersion: 1 })
+    expect(row).toMatchObject({ name: "Maison", color: "green", syncVersion: 1 })
     expect((await readTask(db))?.projectId).toBe("project-1")
+  })
+
+  test("applique le projet parent d'un sous-projet", async () => {
+    const base = {
+      color: "gray" as const,
+      position: 0,
+      archivedAt: null,
+      createdAt: "2026-01-01T08:00:00.000Z",
+      updatedAt: "2026-01-01T08:00:00.000Z",
+      deletedAt: null,
+    }
+    const child = { ...base, id: "project-2", name: "Jardin", parentId: "project-1" }
+    const parent = { ...base, id: "project-1", name: "Maison", parentId: null }
+    await applyPayload(db, { v: 6, projects: [child, parent], sections: [], tasks: [] }, 1)
+    const [row] = await db.select().from(projects).where(eq(projects.id, "project-2"))
+    expect(row?.parentId).toBe("project-1")
+  })
+
+  test("lit un ancien projet sans parent comme un projet racine", async () => {
+    const legacy = {
+      v: 5,
+      projects: [
+        {
+          id: "project-1",
+          name: "Maison",
+          position: 0,
+          archivedAt: null,
+          createdAt: "2026-01-01T08:00:00.000Z",
+          updatedAt: "2026-01-01T08:00:00.000Z",
+          deletedAt: null,
+        },
+      ],
+    }
+    const payload = payloadSchema.parse(legacy)
+    expect(payload.projects[0]?.parentId).toBeNull()
+    expect(payload.projects[0]?.color).toBe("gray")
+    await applyPayload(db, payload, 1)
+    const [row] = await db.select().from(projects)
+    expect(row?.parentId).toBeNull()
+    expect(row?.color).toBe("gray")
+  })
+
+  test("lit une couleur de projet inconnue comme du gris", () => {
+    const payload = payloadSchema.parse({
+      v: 6,
+      projects: [
+        {
+          id: "project-1",
+          name: "Maison",
+          color: "#ff0000",
+          parentId: null,
+          position: 0,
+          archivedAt: null,
+          createdAt: "2026-01-01T08:00:00.000Z",
+          updatedAt: "2026-01-01T08:00:00.000Z",
+          deletedAt: null,
+        },
+      ],
+    })
+    expect(payload.projects[0]?.color).toBe("gray")
   })
 })
 

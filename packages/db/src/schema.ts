@@ -1,16 +1,22 @@
-import type { IsoDate, Priority, Recurrence } from "@tickleaf/core"
+import type { IsoDate, Priority, ProjectColor, Recurrence } from "@tickleaf/core"
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
-export const projects = sqliteTable("projects", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  position: integer("position").notNull().default(0),
-  archivedAt: text("archived_at"),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
-  deletedAt: text("deleted_at"),
-  syncVersion: integer("sync_version"),
-})
+export const projects = sqliteTable(
+  "projects",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    color: text("color").$type<ProjectColor>().notNull().default("gray"),
+    parentId: text("parent_id"),
+    position: integer("position").notNull().default(0),
+    archivedAt: text("archived_at"),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+    deletedAt: text("deleted_at"),
+    syncVersion: integer("sync_version"),
+  },
+  (table) => [index("projects_parent_id_idx").on(table.parentId)],
+)
 
 export const sections = sqliteTable(
   "sections",

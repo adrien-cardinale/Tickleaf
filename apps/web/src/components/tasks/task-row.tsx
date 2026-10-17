@@ -1,12 +1,13 @@
-import { type IsoDate, subtaskProgress, type Task } from "@tickleaf/core"
+import { DEFAULT_PROJECT_COLOR, type IsoDate, type ProjectColor, subtaskProgress, type Task } from "@tickleaf/core"
 import { ListChecks, Repeat } from "lucide-react"
 import type { KeyboardEvent, ReactNode } from "react"
+import { ProjectDot } from "@/components/project-dot"
 import { Button } from "@/components/ui/button"
 import { useWorkspace } from "@/components/workspace-context"
 import { useTaskActions } from "@/hooks/use-task-actions"
 import { dueLabel, recurrenceLabel } from "@/lib/format"
 import { labels } from "@/lib/labels"
-import { useSubtasks } from "@/lib/queries"
+import { useProjects, useSubtasks } from "@/lib/queries"
 import { hasAnyModifier, TASK_ROW_ATTRIBUTE, TOGGLE_TASK_KEYS } from "@/lib/shortcuts"
 import { cn } from "@/lib/utils"
 import { PriorityCheck } from "./priority-check"
@@ -16,6 +17,11 @@ type TaskRowProps = {
   today: IsoDate
   projectName: string | null
   handle?: ReactNode
+}
+
+function useProjectColor(projectId: string | null): ProjectColor {
+  const { data: projects } = useProjects()
+  return projects?.find((project) => project.id === projectId)?.color ?? DEFAULT_PROJECT_COLOR
 }
 
 function dueClass(task: Task, today: IsoDate): string {
@@ -30,6 +36,7 @@ export function TaskRow({ task, today, projectName, handle }: TaskRowProps) {
   const { toggle } = useTaskActions()
   const { data: subtasks = [] } = useSubtasks(task.id)
   const progress = subtaskProgress(subtasks)
+  const projectColor = useProjectColor(task.projectId)
   const done = task.completedAt !== null
   const hasMeta = task.due !== null || projectName !== null || task.description !== "" || progress.total > 0
   const rowAttributes = { [TASK_ROW_ATTRIBUTE]: "" }
@@ -88,7 +95,7 @@ export function TaskRow({ task, today, projectName, handle }: TaskRowProps) {
             )}
             {projectName !== null && (
               <span className="inline-flex items-center gap-1.5">
-                <span className="size-1.5 rounded-full border border-current" aria-hidden="true" />
+                <ProjectDot color={projectColor} className="size-1.5" />
                 {projectName}
               </span>
             )}

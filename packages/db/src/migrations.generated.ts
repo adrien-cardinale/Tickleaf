@@ -31,4 +31,14 @@ export const GENERATED_MIGRATIONS: readonly Migration[] = [
     when: 1792267552656,
     sql: "ALTER TABLE `tasks` ADD `parent_id` text;--> statement-breakpoint\nCREATE INDEX `tasks_parent_id_idx` ON `tasks` (`parent_id`);",
   },
+  {
+    tag: "0006_subprojects",
+    when: 1792270118928,
+    sql: "ALTER TABLE `projects` ADD `parent_id` text;--> statement-breakpoint\nCREATE INDEX `projects_parent_id_idx` ON `projects` (`parent_id`);",
+  },
+  {
+    tag: "0007_project-colors",
+    when: 1792271356893,
+    sql: "ALTER TABLE `projects` ADD `color` text DEFAULT 'gray' NOT NULL;",
+  },
 ]

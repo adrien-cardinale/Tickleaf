@@ -1,3 +1,5 @@
+import type { ProjectColor } from "@tickleaf/core"
+
 function plural(count: number, singular: string, pluralForm: string): string {
   return count > 1 ? pluralForm : singular
 }
@@ -24,8 +26,24 @@ export const labels = {
     newProject: "Nouveau projet",
     projectName: "Nom du projet",
     projectNamePlaceholder: "Nom du projet, puis Entrée",
+    subprojectNamePlaceholder: "Nom du sous-projet, puis Entrée",
+    projectColor: "Couleur du projet",
+    expandProject: (name: string) => `Déplier ${name}`,
+    collapseProject: (name: string) => `Replier ${name}`,
     settings: "Paramètres",
   },
+  colors: {
+    gray: "Gris",
+    red: "Rouge",
+    orange: "Orange",
+    yellow: "Jaune",
+    green: "Vert",
+    teal: "Sarcelle",
+    blue: "Bleu",
+    indigo: "Indigo",
+    purple: "Violet",
+    pink: "Rose",
+  } satisfies Record<ProjectColor, string>,
   search: {
     label: "Rechercher",
     placeholder: "Rechercher dans la vue…",
@@ -123,8 +141,20 @@ export const labels = {
       archive: "Archiver",
       archiveTitle: "Archiver ce projet ?",
       archiveDescription:
-        "Le projet disparaît de la barre latérale. Ses tâches ouvertes retournent dans la boîte de réception.",
+        "Le projet et ses sous-projets disparaissent de la barre latérale. Leurs tâches ouvertes retournent dans la boîte de réception.",
       cancel: "Annuler",
+      addSubproject: "Ajouter un sous-projet",
+      newSubproject: "Nouveau sous-projet",
+      newSubprojectDescription: (parent: string) => `Le sous-projet sera rangé sous « ${parent} ».`,
+      color: "Couleur",
+      move: "Déplacer vers…",
+      moveTitle: "Déplacer le projet",
+      moveDescription: (name: string) => `Choisissez le nouveau parent de « ${name} ».`,
+      moveToRoot: "Aucun (racine)",
+      breadcrumb: "Projets parents",
+      subprojects: "Sous-projets",
+      subprojectCount: (count: number) =>
+        `${count} ${plural(count, "tâche", "tâches")} ${plural(count, "ouverte", "ouvertes")}`,
     },
     section: {
       add: "Ajouter une section",
@@ -218,6 +248,10 @@ export const labels = {
       `${count} ${plural(count, "tâche", "tâches")} ${plural(count, "reportée", "reportées")}`,
     projectCreated: (name: string) => `Projet « ${name} » créé`,
     projectArchived: (name: string) => `Projet « ${name} » archivé`,
+    projectArchivedWithSubprojects: (name: string, count: number) =>
+      `Projet « ${name} » et ${count} ${plural(count, "sous-projet", "sous-projets")} ${plural(count, "archivé", "archivés")}`,
+    projectMoved: (name: string, parent: string | null) =>
+      parent === null ? `Projet « ${name} » placé à la racine` : `Projet « ${name} » déplacé sous « ${parent} »`,
     sectionDeleted: (name: string) => `Section « ${name} » supprimée`,
     failed: "Action impossible",
   },

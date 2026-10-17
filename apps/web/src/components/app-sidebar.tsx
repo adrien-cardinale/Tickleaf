@@ -6,6 +6,7 @@ import { AccountSwitcher } from "@/components/account-switcher"
 import { BrandMark } from "@/components/brand-mark"
 import { navigationItems, settingsItem } from "@/components/navigation"
 import { NewProjectForm } from "@/components/new-project-form"
+import { SidebarProjectTree } from "@/components/sidebar-project-tree"
 import { SyncIndicator } from "@/components/sync/sync-indicator"
 import { ThemeToggle } from "@/components/theme-toggle"
 import {
@@ -30,14 +31,6 @@ import { useProjects, useTasks } from "@/lib/queries"
 function CountBadge({ value }: { value: number }) {
   if (value === 0) return null
   return <SidebarMenuBadge className="font-normal text-muted-foreground tabular-nums">{value}</SidebarMenuBadge>
-}
-
-function ProjectDot() {
-  return (
-    <span className="grid size-4 shrink-0 place-items-center" aria-hidden="true">
-      <span className="size-2 rounded-full border-[1.5px] border-muted-foreground" />
-    </span>
-  )
 }
 
 function SettingsMenuItem({ onNavigate }: { onNavigate: () => void }) {
@@ -114,28 +107,7 @@ export function AppSidebar() {
             <Plus />
           </SidebarGroupAction>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {projects.map((project) => {
-                const isActive = Boolean(matchRoute({ to: "/project/$projectId", params: { projectId: project.id } }))
-                return (
-                  <SidebarMenuItem key={project.id}>
-                    <SidebarMenuButton asChild isActive={isActive} tooltip={project.name}>
-                      <Link
-                        to="/project/$projectId"
-                        params={{ projectId: project.id }}
-                        replace={isMobile}
-                        onClick={closeMobileSidebar}
-                        aria-current={isActive ? "page" : undefined}
-                      >
-                        <ProjectDot />
-                        <span>{project.name}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                    <CountBadge value={counts.byProject[project.id] ?? 0} />
-                  </SidebarMenuItem>
-                )
-              })}
-            </SidebarMenu>
+            <SidebarProjectTree projects={projects} openByProject={counts.byProject} onNavigate={closeMobileSidebar} />
             {creatingProject && (
               <div className="group-data-[collapsible=icon]:hidden">
                 <NewProjectForm

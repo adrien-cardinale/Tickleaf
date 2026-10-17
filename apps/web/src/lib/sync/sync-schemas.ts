@@ -1,7 +1,13 @@
-import { MAX_RECURRENCE_INTERVAL, PRIORITIES, RECURRENCE_UNITS } from "@tickleaf/core"
+import {
+  DEFAULT_PROJECT_COLOR,
+  MAX_RECURRENCE_INTERVAL,
+  PRIORITIES,
+  PROJECT_COLORS,
+  RECURRENCE_UNITS,
+} from "@tickleaf/core"
 import { z } from "zod"
 
-export const PAYLOAD_VERSION = 5
+export const PAYLOAD_VERSION = 6
 
 const timestamp = z.iso.datetime()
 
@@ -20,6 +26,8 @@ const recurrenceSchema = z.object({
 export const projectRowSchema = z.object({
   ...syncFields,
   name: z.string(),
+  color: z.enum(PROJECT_COLORS).catch(DEFAULT_PROJECT_COLOR),
+  parentId: z.string().nullable().default(null),
   position: z.number().int(),
   archivedAt: timestamp.nullable(),
 })

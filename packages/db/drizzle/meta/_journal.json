@@ -43,6 +43,20 @@
       "when": 1792267552656,
       "tag": "0005_subtasks",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1792270118928,
+      "tag": "0006_subprojects",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1792271356893,
+      "tag": "0007_project-colors",
+      "breakpoints": true
     }
   ]
 }

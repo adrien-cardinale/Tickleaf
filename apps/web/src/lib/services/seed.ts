@@ -1,4 +1,4 @@
-import { addDays, type IsoDate, type Priority } from "@tickleaf/core"
+import { addDays, DEFAULT_PROJECT_COLOR, type IsoDate, type Priority, type ProjectColor } from "@tickleaf/core"
 import type { Db } from "@tickleaf/db"
 import { labels } from "@/lib/labels"
 import { createProject } from "./projects"
@@ -12,9 +12,13 @@ type SeedTask = {
   projectIndex: number | null
 }
 
+const SEED_PROJECT_COLORS: readonly ProjectColor[] = ["blue", "orange", "green"]
+
 export async function seedStarterData(db: Db, today: IsoDate): Promise<void> {
   const created = []
-  for (const name of labels.seed.projects) created.push(await createProject(db, name))
+  for (const [index, name] of labels.seed.projects.entries()) {
+    created.push(await createProject(db, name, null, SEED_PROJECT_COLORS[index] ?? DEFAULT_PROJECT_COLOR))
+  }
   for (const seed of labels.seed.tasks as readonly SeedTask[]) {
     await createTask(db, {
       title: seed.title,
