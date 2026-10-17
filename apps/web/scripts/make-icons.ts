@@ -6,6 +6,7 @@ const LEAF_PATHS = ["M4.5 19.5C4.5 10.5 10 4.5 19.5 4.5c0 9.5-6 15-15 15z", "M9 
 
 const publicDir = fileURLToPath(new URL("../public/", import.meta.url))
 const iconsDir = fileURLToPath(new URL("../public/icons/", import.meta.url))
+const desktopIcon = fileURLToPath(new URL("../../desktop/src-tauri/icons/icon.png", import.meta.url))
 
 type IconSpec = { file: string; size: number; glyphRatio: number }
 
@@ -15,6 +16,8 @@ const PNG_ICONS: readonly IconSpec[] = [
   { file: "icon-maskable-512.png", size: 512, glyphRatio: 0.56 },
   { file: "apple-touch-icon.png", size: 180, glyphRatio: 0.66 },
 ]
+
+const DESKTOP_ICON: IconSpec = { file: "icon.png", size: 1024, glyphRatio: 0.66 }
 
 function glyph(stroke: string): string {
   const paths = LEAF_PATHS.map((d) => `<path d="${d}"/>`).join("")
@@ -49,4 +52,7 @@ for (const spec of PNG_ICONS) {
     .toFile(`${iconsDir}${spec.file}`)
 }
 writeFileSync(`${publicDir}favicon.svg`, faviconSvg())
-console.log(`${PNG_ICONS.length} icônes PNG et favicon.svg écrits dans ${publicDir}`)
+await sharp(Buffer.from(iconSvg(DESKTOP_ICON)))
+  .png()
+  .toFile(desktopIcon)
+console.log(`${PNG_ICONS.length} icônes PNG et favicon.svg écrits dans ${publicDir}, icône desktop dans ${desktopIcon}`)

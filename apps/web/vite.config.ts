@@ -6,9 +6,13 @@ import { tanstackRouter } from "@tanstack/router-plugin/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig, type Plugin } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
-import pkg from "./package.json" with { type: "json" }
+// La version affichée est celle de la release, déclarée côté desktop (Tauri la lit dans Cargo.toml).
+import desktopPackage from "../desktop/package.json" with { type: "json" }
 
+const DESKTOP_MODE = "desktop"
 const STATIC_MODE = "static"
+const API_PROXY = { "/api": "http://localhost:3000" }
+const MOBILE_HMR_PORT = 5175
 const THEME_COLOR = "#ffffff"
 const MAX_PRECACHE_BYTES = 4 * 1024 * 1024
 
@@ -28,18 +32,21 @@ function spaFallback(): Plugin {
 }
 
 export default defineConfig(({ mode }) => {
+  const desktop = mode === DESKTOP_MODE
   const staticSite = mode === STATIC_MODE
+  const mobileHost = process.env.TAURI_DEV_HOST
   const base = staticSite ? (process.env.BASE_PATH ?? "/") : "/"
   return {
     base,
     define: {
-      __APP_VERSION__: JSON.stringify(pkg.version),
+      __APP_VERSION__: JSON.stringify(desktopPackage.version),
     },
     plugins: [
       tanstackRouter({ target: "react", autoCodeSplitting: true }),
       react(),
       tailwindcss(),
       VitePWA({
+        disable: desktop,
         registerType: "autoUpdate",
         injectRegister: "auto",
         includeAssets: ["favicon.svg", "icons/apple-touch-icon.png"],
@@ -75,10 +82,10 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      host: true,
-      proxy: {
-        "/api": "http://localhost:3000",
-      },
+      host: mobileHost || true,
+      proxy: desktop ? {} : API_PROXY,
+      strictPort: desktop,
+      hmr: mobileHost ? { protocol: "ws", host: mobileHost, port: MOBILE_HMR_PORT } : undefined,
     },
     preview: {
       host: true,

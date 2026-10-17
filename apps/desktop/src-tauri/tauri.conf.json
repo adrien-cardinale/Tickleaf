@@ -1,0 +1,37 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Tickleaf",
+  "identifier": "ch.tickleaf.app",
+  "build": {
+    "devUrl": "http://localhost:5174",
+    "frontendDist": "../../web/dist-desktop",
+    "beforeDevCommand": "bun run --cwd ../web dev:desktop",
+    "beforeBuildCommand": "bun run --cwd ../web build:desktop"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Tickleaf",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 560,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"]
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": ["https://github.com/adrien-cardinale/Tickleaf/releases/latest/download/latest.json"],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDA2RTVDQkQyQzkwQTA5MzkKUldRNUNRckowc3ZsQnQyY01DL2QwSm45UVh2QnZFN0ZOdlR6NEtzRVZRY2QxdUswSEZHay85N2MK"
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { isStaticBuild } from "@/lib/runtime"
+import { asksForServerUrl } from "@/lib/runtime"
 
 const STORAGE_KEY = "tickleaf.serverUrl"
 const SAME_ORIGIN = ""
@@ -27,7 +27,7 @@ function readStoredServerUrl(): string | null {
 }
 
 export function storeServerUrl(serverUrl: string | null): void {
-  if (!isStaticBuild()) return
+  if (!asksForServerUrl()) return
   try {
     if (serverUrl === null) localStorage.removeItem(STORAGE_KEY)
     else localStorage.setItem(STORAGE_KEY, serverUrl)
@@ -35,5 +35,5 @@ export function storeServerUrl(serverUrl: string | null): void {
 }
 
 export function resolveServerUrl(): string | null {
-  return isStaticBuild() ? readStoredServerUrl() : SAME_ORIGIN
+  return asksForServerUrl() ? readStoredServerUrl() : SAME_ORIGIN
 }

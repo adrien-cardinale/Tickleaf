@@ -6,7 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { labels } from "@/lib/labels"
-import { isStaticBuild } from "@/lib/runtime"
+import { asksForServerUrl } from "@/lib/runtime"
 import { describeSyncStatus, formatLastSync } from "@/lib/sync/sync-labels"
 import { isSyncConfigured, type SyncState, syncNow } from "@/lib/sync/sync-store"
 
@@ -32,7 +32,7 @@ function SyncDetails({ state }: { state: SyncState }) {
       <DetailRow term={text.status}>{describeSyncStatus(state)}</DetailRow>
       <DetailRow term={text.lastSync}>{formatLastSync(state.lastAt)}</DetailRow>
       <DetailRow term={text.pending}>{labels.sync.state.pending(state.pendingCount)}</DetailRow>
-      {!isStaticBuild() && <DetailRow term={text.server}>{serverLabel(state)}</DetailRow>}
+      {!asksForServerUrl() && <DetailRow term={text.server}>{serverLabel(state)}</DetailRow>}
     </dl>
   )
 }
@@ -67,7 +67,7 @@ export function SyncCard({ state }: { state: SyncState }) {
       <CardContent className="space-y-4">
         <SyncDetails state={state} />
         <SyncError message={state.lastError} />
-        {isStaticBuild() && <ServerUrlForm current={state.serverUrl} />}
+        {asksForServerUrl() && <ServerUrlForm current={state.serverUrl} />}
         <Button onClick={() => void synchronizeNow()} disabled={!configured || syncing}>
           <RefreshCw className={syncing ? "animate-spin" : undefined} />
           {labels.sync.syncNow}

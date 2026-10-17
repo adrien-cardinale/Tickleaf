@@ -8,6 +8,7 @@ import { AppBoot } from "@/components/startup/app-boot"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { bootApp } from "@/lib/boot"
+import { isDesktopBuild } from "@/lib/runtime"
 import { routeTree } from "./routeTree.gen"
 import "./index.css"
 
@@ -45,7 +46,7 @@ createRoot(rootElement).render(
         <TooltipProvider>
           <AppBoot boot={boot}>
             <RouterProvider router={router} />
-            <PwaUpdater />
+            {!isDesktopBuild() && <PwaUpdater />}
           </AppBoot>
           <Toaster
             position="bottom-center"

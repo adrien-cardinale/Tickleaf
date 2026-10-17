@@ -5,3 +5,9 @@ dist-static
 .env
 data
 *.db*
+dist-desktop
+*.key
+*.key.pub
+apps/desktop/src-tauri/target
+apps/desktop/src-tauri/gen/schemas
+apps/desktop/src-tauri/icons/ios

@@ -1,0 +1,32 @@
+[package]
+name = "tickleaf-desktop"
+version = "0.1.0"
+description = "Tickleaf, gestionnaire de tâches local"
+edition = "2021"
+publish = false
+
+[lib]
+name = "tickleaf_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-http = "2"
+tauri-plugin-os = "2"
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Mise à jour automatique : le plugin updater ne gère pas mobile, un APK se remplace par réinstallation.
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-process = "2"
+tauri-plugin-updater = "2"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

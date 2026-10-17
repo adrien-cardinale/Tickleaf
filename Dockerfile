@@ -7,6 +7,7 @@ COPY packages/core/package.json packages/core/
 COPY packages/db/package.json packages/db/
 COPY apps/server/package.json apps/server/
 COPY apps/web/package.json apps/web/
+COPY apps/desktop/package.json apps/desktop/
 RUN bun install --frozen-lockfile
 COPY . .
 RUN bun run --cwd apps/web build
@@ -21,6 +22,7 @@ COPY packages/core/package.json packages/core/
 COPY packages/db/package.json packages/db/
 COPY apps/server/package.json apps/server/
 COPY apps/web/package.json apps/web/
+COPY apps/desktop/package.json apps/desktop/
 RUN bun install --frozen-lockfile --production --filter '@tickleaf/server'
 COPY apps/server/src apps/server/src
 COPY --from=build /app/apps/web/dist apps/web/dist

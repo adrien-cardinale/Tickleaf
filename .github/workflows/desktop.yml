@@ -1,0 +1,230 @@
+name: Build desktop
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-version:
+    name: Check version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - run: bun apps/desktop/scripts/check-version.ts "$GITHUB_REF_NAME"
+      - name: Check changelog entry
+        run: bun apps/desktop/scripts/release-notes.ts "$GITHUB_REF_NAME" > /dev/null
+      - name: Check updater signing key
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          if [[ -z "$TAURI_SIGNING_PRIVATE_KEY" ]]; then
+            echo "Secret TAURI_SIGNING_PRIVATE_KEY manquant : sans signature, la mise à jour automatique refuserait le paquet." >&2
+            exit 1
+          fi
+
+  test:
+    name: Typecheck and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+      - run: bun run test
+
+  build:
+    name: Build (${{ matrix.name }})
+    needs: [check-version, test]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux
+            os: ubuntu-22.04
+          - name: windows
+            os: windows-latest
+          - name: macos
+            os: macos-latest
+            # macos-latest est Apple Silicon : le binaire universel couvre aussi les Mac Intel.
+            args: --target universal-apple-darwin
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Add macOS build targets
+        if: matrix.name == 'macos'
+        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+
+      - name: Install Linux dependencies
+        if: matrix.name == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - run: bun install --frozen-lockfile
+
+      - name: Build installers
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: bun run build --config src-tauri/tauri.updater.conf.json ${{ matrix.args }}
+        working-directory: apps/desktop
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tickleaf-desktop-${{ matrix.name }}
+          # Seulement les installateurs : les arborescences intermédiaires (.AppDir, .app, staging WiX/NSIS)
+          # contiennent des liens symboliques qui font échouer upload-artifact.
+          path: |
+            apps/desktop/src-tauri/target/**/bundle/**/*.msi
+            apps/desktop/src-tauri/target/**/bundle/**/*.exe
+            apps/desktop/src-tauri/target/**/bundle/**/*.dmg
+            apps/desktop/src-tauri/target/**/bundle/**/*.deb
+            apps/desktop/src-tauri/target/**/bundle/**/*.rpm
+            apps/desktop/src-tauri/target/**/bundle/**/*.AppImage
+            apps/desktop/src-tauri/target/**/bundle/**/*.app.tar.gz
+            apps/desktop/src-tauri/target/**/bundle/**/*.sig
+          if-no-files-found: error
+
+  build-android:
+    name: Build (android)
+    needs: [check-version, test]
+    runs-on: ubuntu-latest
+    env:
+      NDK_VERSION: 27.2.12479018
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: android-actions/setup-android@v3
+        with:
+          # Le package "tools" (défaut de l'action) a été retiré du dépôt SDK de Google.
+          packages: platform-tools
+
+      - name: Install NDK
+        run: sdkmanager --install "ndk;$NDK_VERSION"
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          # aarch64 + armv7 couvrent les téléphones et tablettes ; x86/x86_64 ne servent qu'aux émulateurs.
+          targets: aarch64-linux-android,armv7-linux-androideabi
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+
+      - run: bun install --frozen-lockfile
+
+      - name: Configure signing keystore
+        env:
+          ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          if [[ -z "$ANDROID_KEYSTORE" || -z "$ANDROID_KEYSTORE_PASSWORD" || -z "$ANDROID_KEY_ALIAS" ]]; then
+            echo "Secrets ANDROID_KEYSTORE / ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_ALIAS manquants : l'APK serait non signé donc ininstallable." >&2
+            exit 1
+          fi
+          printf '%s' "$ANDROID_KEYSTORE" | base64 -d > "$RUNNER_TEMP/release-keystore.jks"
+          cat > apps/desktop/src-tauri/gen/android/keystore.properties <<EOF
+          keyAlias=$ANDROID_KEY_ALIAS
+          password=$ANDROID_KEYSTORE_PASSWORD
+          storeFile=$RUNNER_TEMP/release-keystore.jks
+          EOF
+
+      - name: Build APK
+        run: |
+          export NDK_HOME="$ANDROID_HOME/ndk/$NDK_VERSION"
+          bunx tauri android build --apk --target aarch64 --target armv7
+        working-directory: apps/desktop
+
+      - name: Rename APK
+        run: |
+          apk=$(find apps/desktop/src-tauri/gen/android/app/build/outputs/apk -name '*-release.apk' | head -1)
+          if [[ -z "$apk" ]]; then
+            echo "Aucun APK release trouvé" >&2
+            exit 1
+          fi
+          mv "$apk" "tickleaf_${GITHUB_REF_NAME#v}.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tickleaf-desktop-android
+          path: tickleaf_*.apk
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: [build, build-android]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: tickleaf-desktop-*
+
+      - name: Build the updater manifest
+        run: |
+          bun apps/desktop/scripts/release-notes.ts "$GITHUB_REF_NAME" > "$RUNNER_TEMP/notes.md"
+          bun apps/desktop/scripts/updater-manifest.ts "$GITHUB_REF_NAME" artifacts "$RUNNER_TEMP/notes.md" > latest.json
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mapfile -t files < <(find artifacts -type f \( -name '*.msi' -o -name '*.exe' -o -name '*.dmg' -o -name '*.deb' -o -name '*.rpm' -o -name '*.AppImage' -o -name '*.apk' -o -name '*.app.tar.gz' \))
+          if [[ ${#files[@]} -eq 0 ]]; then
+            echo "Aucun installateur trouvé dans les artefacts" >&2
+            exit 1
+          fi
+          # latest.json porte la version et les signatures : sans lui, aucune application installée ne voit la mise à jour.
+          files+=(latest.json)
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            # Relance d'un job qui avait partiellement échoué : on complète le release existant.
+            gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber
+            gh release edit "$GITHUB_REF_NAME" --notes-file "$RUNNER_TEMP/notes.md"
+          else
+            prerelease=()
+            if [[ "$GITHUB_REF_NAME" == *-* ]]; then prerelease=(--prerelease); fi
+            gh release create "$GITHUB_REF_NAME" "${files[@]}" \
+              --title "$GITHUB_REF_NAME" --notes-file "$RUNNER_TEMP/notes.md" "${prerelease[@]}"
+          fi

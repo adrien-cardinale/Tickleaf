@@ -6,3 +6,6 @@ data
 .git
 *.db
 *.db-*
+**/dist-desktop
+apps/desktop/src-tauri/target
+apps/desktop/src-tauri/gen

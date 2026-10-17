@@ -5,6 +5,7 @@ import { clearMasterKey } from "@/lib/crypto/key-store"
 import { labels } from "@/lib/labels"
 import { getLocalDatabase } from "@/lib/local-db/current-database"
 import { invalidateData, onLocalWrite } from "@/lib/queries"
+import { runtimeFetch } from "@/lib/runtime"
 import { resolveServerUrl, storeServerUrl } from "./server-url"
 import { type SyncConfig, SyncError, type SyncReport, synchronize } from "./sync-client"
 import { readSyncSettings, writeSyncSetting } from "./sync-settings"
@@ -73,7 +74,7 @@ function syncConfigFor(serverUrl: string): SyncConfig {
   return {
     serverUrl,
     vault: getVault(),
-    fetch: (url, init) => fetch(url, init),
+    fetch: runtimeFetch,
     access: (task) => database.run(task),
   }
 }

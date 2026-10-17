@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { formatMasterKey, generateMasterKey, parseMasterKey } from "@/lib/crypto/master-key"
 import { completeOnboarding } from "@/lib/crypto/onboarding"
 import { labels } from "@/lib/labels"
-import { isStaticBuild } from "@/lib/runtime"
+import { asksForServerUrl } from "@/lib/runtime"
 import { parseServerUrl } from "@/lib/sync/server-url"
 
 type Mode = "choose" | "create" | "restore"
@@ -27,7 +27,7 @@ function messageOf(error: unknown, fallback: string): string {
 }
 
 function ServerField({ value, onChange }: { value: string; onChange: (value: string) => void }) {
-  if (!isStaticBuild()) return null
+  if (!asksForServerUrl()) return null
   return (
     <div className="space-y-2">
       <Label htmlFor="server-url">{labels.onboarding.serverLabel}</Label>
