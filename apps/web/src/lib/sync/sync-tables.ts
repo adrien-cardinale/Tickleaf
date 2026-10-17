@@ -1,8 +1,9 @@
-import { type Db, projects, tasks } from "@tickleaf/db"
+import { type Db, projects, sections, tasks } from "@tickleaf/db"
 import { count, isNull, sql } from "@tickleaf/db/orm"
 
 export const SYNC_TABLES = [
   { name: "projects", table: projects },
+  { name: "sections", table: sections },
   { name: "tasks", table: tasks },
 ] as const
 

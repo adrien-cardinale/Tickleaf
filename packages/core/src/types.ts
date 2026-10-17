@@ -15,6 +15,15 @@ export type Project = {
   updatedAt: string
 }
 
+export type Section = {
+  id: string
+  projectId: string
+  name: string
+  position: number
+  createdAt: string
+  updatedAt: string
+}
+
 export type Task = {
   id: string
   title: string
@@ -22,6 +31,7 @@ export type Task = {
   due: IsoDate | null
   priority: Priority
   projectId: string | null
+  sectionId: string | null
   position: number
   completedAt: string | null
   createdAt: string

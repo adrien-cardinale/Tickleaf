@@ -16,6 +16,7 @@ function taskRow(changes: Partial<TaskRowPayload> = {}): TaskRowPayload {
     due: null,
     priority: 4,
     projectId: null,
+    sectionId: null,
     position: 0,
     completedAt: null,
     createdAt: "2026-01-01T08:00:00.000Z",
@@ -56,34 +57,34 @@ describe("keepsLocal", () => {
 
 describe("applyPayload", () => {
   test("insère une ligne inconnue avec la version du serveur", async () => {
-    const applied = await applyPayload(db, { v: 1, projects: [], tasks: [taskRow()] }, 4)
+    const applied = await applyPayload(db, { v: 1, projects: [], sections: [], tasks: [taskRow()] }, 4)
     expect(applied).toBe(1)
     expect(await readTask(db)).toMatchObject({ title: "Arroser les plantes", syncVersion: 4, deletedAt: null })
   })
 
   test("le dernier updatedAt gagne", async () => {
-    await applyPayload(db, { v: 1, projects: [], tasks: [taskRow()] }, 1)
+    await applyPayload(db, { v: 1, projects: [], sections: [], tasks: [taskRow()] }, 1)
     const newer = taskRow({ title: "Arroser le basilic", updatedAt: "2026-01-03T00:00:00.000Z" })
-    await applyPayload(db, { v: 1, projects: [], tasks: [newer] }, 2)
+    await applyPayload(db, { v: 1, projects: [], sections: [], tasks: [newer] }, 2)
     const older = taskRow({ title: "Version périmée", updatedAt: "2026-01-02T00:00:00.000Z" })
-    expect(await applyPayload(db, { v: 1, projects: [], tasks: [older] }, 3)).toBe(0)
+    expect(await applyPayload(db, { v: 1, projects: [], sections: [], tasks: [older] }, 3)).toBe(0)
     expect(await readTask(db)).toMatchObject({ title: "Arroser le basilic", syncVersion: 2 })
   })
 
   test("ne remplace pas une modification locale plus récente en attente", async () => {
     await db.insert(tasks).values({ ...taskRow({ title: "Local", updatedAt: "2026-01-05T00:00:00.000Z" }) })
-    await applyPayload(db, { v: 1, projects: [], tasks: [taskRow({ title: "Distant" })] }, 1)
+    await applyPayload(db, { v: 1, projects: [], sections: [], tasks: [taskRow({ title: "Distant" })] }, 1)
     expect(await readTask(db)).toMatchObject({ title: "Local", syncVersion: null })
   })
 
   test("propage une suppression logique, même pour une ligne inconnue", async () => {
-    await applyPayload(db, { v: 1, projects: [], tasks: [taskRow()] }, 1)
+    await applyPayload(db, { v: 1, projects: [], sections: [], tasks: [taskRow()] }, 1)
     const deleted = taskRow({ updatedAt: "2026-01-02T00:00:00.000Z", deletedAt: "2026-01-02T00:00:00.000Z" })
-    await applyPayload(db, { v: 1, projects: [], tasks: [deleted] }, 2)
+    await applyPayload(db, { v: 1, projects: [], sections: [], tasks: [deleted] }, 2)
     expect((await readTask(db))?.deletedAt).toBe("2026-01-02T00:00:00.000Z")
 
     const tombstone = taskRow({ id: "task-2", deletedAt: "2026-01-02T00:00:00.000Z" })
-    await applyPayload(db, { v: 1, projects: [], tasks: [tombstone] }, 3)
+    await applyPayload(db, { v: 1, projects: [], sections: [], tasks: [tombstone] }, 3)
     expect((await readTask(db, "task-2"))?.deletedAt).toBe("2026-01-02T00:00:00.000Z")
   })
 
@@ -97,7 +98,7 @@ describe("applyPayload", () => {
       updatedAt: "2026-01-01T08:00:00.000Z",
       deletedAt: null,
     }
-    await applyPayload(db, { v: 1, projects: [project], tasks: [taskRow({ projectId: "project-1" })] }, 1)
+    await applyPayload(db, { v: 1, projects: [project], sections: [], tasks: [taskRow({ projectId: "project-1" })] }, 1)
     const [row] = await db.select().from(projects)
     expect(row).toMatchObject({ name: "Maison", syncVersion: 1 })
     expect((await readTask(db))?.projectId).toBe("project-1")

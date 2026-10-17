@@ -4,11 +4,13 @@ import { toast } from "sonner"
 import { labels } from "@/lib/labels"
 import { getLocalDatabase } from "@/lib/local-db/current-database"
 import { listProjects } from "@/lib/services/projects"
+import { listSections } from "@/lib/services/sections"
 import { listAllTasks } from "@/lib/services/tasks"
 
 export const queryKeys = {
   tasks: ["tasks"] as const,
   projects: ["projects"] as const,
+  sections: ["sections"] as const,
 }
 
 const localWriteListeners = new Set<() => void>()
@@ -26,6 +28,7 @@ export async function invalidateData(queryClient: QueryClient): Promise<void> {
   await Promise.all([
     queryClient.invalidateQueries({ queryKey: queryKeys.tasks }),
     queryClient.invalidateQueries({ queryKey: queryKeys.projects }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.sections }),
   ])
 }
 
@@ -43,12 +46,21 @@ export const projectsQuery = queryOptions({
   queryFn: () => runDb(listProjects),
 })
 
+export const sectionsQuery = queryOptions({
+  queryKey: queryKeys.sections,
+  queryFn: () => runDb(listSections),
+})
+
 export function useTasks() {
   return useQuery(tasksQuery)
 }
 
 export function useProjects() {
   return useQuery(projectsQuery)
+}
+
+export function useSections() {
+  return useQuery(sectionsQuery)
 }
 
 export function useInvalidateData() {

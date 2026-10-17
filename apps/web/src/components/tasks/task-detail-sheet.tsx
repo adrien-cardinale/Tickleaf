@@ -1,4 +1,4 @@
-import { isPriority, PRIORITIES, type Project, type Task } from "@tickleaf/core"
+import { isPriority, PRIORITIES, type Project, type Section, type Task } from "@tickleaf/core"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,17 +11,55 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { useTaskActions } from "@/hooks/use-task-actions"
 import { formatTimestamp } from "@/lib/format"
 import { labels } from "@/lib/labels"
-import { useProjects, useTasks } from "@/lib/queries"
+import { useProjects, useSections, useTasks } from "@/lib/queries"
 
 const INBOX_VALUE = "inbox"
+const NO_SECTION_VALUE = "none"
 
 type TaskDetailFormProps = {
   task: Task
   projects: readonly Project[]
+  sections: readonly Section[]
   onDeleted: () => void
 }
 
-function TaskDetailForm({ task, projects, onDeleted }: TaskDetailFormProps) {
+type SectionFieldProps = {
+  task: Task
+  sections: readonly Section[]
+}
+
+function SectionField({ task, sections }: SectionFieldProps) {
+  const { update } = useTaskActions()
+  const options = sections.filter((section) => section.projectId === task.projectId)
+  if (options.length === 0) return null
+  const current = options.some((section) => section.id === task.sectionId) ? task.sectionId : null
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label htmlFor="task-section" className="text-xs text-muted-foreground">
+        {labels.detail.fieldSection}
+      </Label>
+      <Select
+        value={current ?? NO_SECTION_VALUE}
+        onValueChange={(value) => void update(task.id, { sectionId: value === NO_SECTION_VALUE ? null : value })}
+      >
+        <SelectTrigger id="task-section" className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={NO_SECTION_VALUE}>{labels.detail.noSection}</SelectItem>
+          {options.map((section) => (
+            <SelectItem key={section.id} value={section.id}>
+              {section.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  )
+}
+
+function TaskDetailForm({ task, projects, sections, onDeleted }: TaskDetailFormProps) {
   const { update, remove } = useTaskActions()
   const [title, setTitle] = useState(task.title)
   const [description, setDescription] = useState(task.description)
@@ -122,6 +160,7 @@ function TaskDetailForm({ task, projects, onDeleted }: TaskDetailFormProps) {
           </SelectContent>
         </Select>
       </div>
+      <SectionField task={task} sections={sections} />
       <div className="flex items-center justify-between gap-2 pt-1">
         <span className="text-xs text-muted-foreground">{footnote}</span>
         <Button variant="outline" size="sm" className="text-destructive" onClick={deleteCurrent}>
@@ -136,6 +175,7 @@ export function TaskDetailSheet() {
   const { selectedTaskId, closeTask } = useWorkspace()
   const { data: tasks = [] } = useTasks()
   const { data: projects = [] } = useProjects()
+  const { data: sections = [] } = useSections()
   const isMobile = useIsMobile()
   const task = tasks.find((candidate) => candidate.id === selectedTaskId) ?? null
 
@@ -146,7 +186,9 @@ export function TaskDetailSheet() {
           <SheetTitle className="tracking-tight">{labels.detail.title}</SheetTitle>
           <SheetDescription className="sr-only">{labels.detail.description}</SheetDescription>
         </SheetHeader>
-        {task && <TaskDetailForm key={task.id} task={task} projects={projects} onDeleted={closeTask} />}
+        {task && (
+          <TaskDetailForm key={task.id} task={task} projects={projects} sections={sections} onDeleted={closeTask} />
+        )}
       </SheetContent>
     </Sheet>
   )

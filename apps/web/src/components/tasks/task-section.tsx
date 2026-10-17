@@ -4,7 +4,7 @@ import { labels } from "@/lib/labels"
 import { TaskRow } from "./task-row"
 
 type TaskSectionProps = {
-  title: string
+  title: ReactNode
   detail?: string
   badge?: ReactNode
   action?: ReactNode
@@ -12,9 +12,20 @@ type TaskSectionProps = {
   today: IsoDate
   empty?: string
   projectNameOf: (task: Task) => string | null
+  footer?: ReactNode
 }
 
-export function TaskSection({ title, detail, badge, action, tasks, today, empty, projectNameOf }: TaskSectionProps) {
+export function TaskSection({
+  title,
+  detail,
+  badge,
+  action,
+  tasks,
+  today,
+  empty,
+  projectNameOf,
+  footer,
+}: TaskSectionProps) {
   return (
     <section className="flex flex-col">
       <h2 className="flex items-center gap-2 border-b pb-2 text-sm font-semibold tracking-tight">
@@ -28,6 +39,7 @@ export function TaskSection({ title, detail, badge, action, tasks, today, empty,
       ) : (
         tasks.map((task) => <TaskRow key={task.id} task={task} today={today} projectName={projectNameOf(task)} />)
       )}
+      {footer}
     </section>
   )
 }

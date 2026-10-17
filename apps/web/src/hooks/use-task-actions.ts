@@ -17,7 +17,7 @@ import {
   updateTask,
 } from "@/lib/services/tasks"
 
-export type QuickAddContext = { due: IsoDate | null; project: Project | null }
+export type QuickAddContext = { due: IsoDate | null; project: Project | null; sectionId?: string | null }
 
 type UndoableToast = { message: string; undo: (db: Db) => Promise<void> }
 
@@ -44,7 +44,11 @@ export function useTaskActions() {
     add: async (input: string, context: QuickAddContext, today: IsoDate): Promise<boolean> => {
       const parsed = parseQuickAdd(input, today)
       if (parsed.title === "") return false
-      const defaults = { due: context.due, projectId: context.project?.id ?? null }
+      const defaults = {
+        due: context.due,
+        projectId: context.project?.id ?? null,
+        sectionId: context.sectionId ?? null,
+      }
       const outcome = await execute((db) => addQuickTask(db, parsed, defaults))
       if (!outcome) return false
       const { task, createdProject } = outcome

@@ -19,6 +19,7 @@ function task(overrides: Partial<Task>): Task {
     due: null,
     priority: 4,
     projectId: null,
+    sectionId: null,
     position: 0,
     completedAt: null,
     createdAt: "2026-10-02T08:00:00.000Z",

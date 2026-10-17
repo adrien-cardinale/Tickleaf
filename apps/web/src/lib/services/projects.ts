@@ -62,7 +62,7 @@ export async function archiveProject(db: Db, id: string): Promise<ArchivedProjec
   const movedTasks = await db.select().from(tasks).where(openInProject)
   await db
     .update(tasks)
-    .set({ projectId: null, ...touched(timestamp) })
+    .set({ projectId: null, sectionId: null, ...touched(timestamp) })
     .where(openInProject)
   await db
     .update(projects)
@@ -80,7 +80,7 @@ export async function removeProject(db: Db, id: string): Promise<void> {
   const timestamp = nowIso()
   await db
     .update(tasks)
-    .set({ projectId: null, ...touched(timestamp) })
+    .set({ projectId: null, sectionId: null, ...touched(timestamp) })
     .where(and(eq(tasks.projectId, id), isNull(tasks.deletedAt)))
   await db
     .update(projects)

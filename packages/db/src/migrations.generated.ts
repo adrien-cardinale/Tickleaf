@@ -11,4 +11,9 @@ export const GENERATED_MIGRATIONS: readonly Migration[] = [
     when: 1792141011395,
     sql: "CREATE TABLE `sync_state` (\n\t`key` text PRIMARY KEY NOT NULL,\n\t`value` text NOT NULL\n);\n--> statement-breakpoint\nALTER TABLE `projects` ADD `deleted_at` text;--> statement-breakpoint\nALTER TABLE `projects` ADD `sync_version` integer;--> statement-breakpoint\nALTER TABLE `tasks` ADD `deleted_at` text;--> statement-breakpoint\nALTER TABLE `tasks` ADD `sync_version` integer;",
   },
+  {
+    tag: "0002_sections",
+    when: 1792241616083,
+    sql: "CREATE TABLE `sections` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`project_id` text NOT NULL,\n\t`name` text NOT NULL,\n\t`position` integer DEFAULT 0 NOT NULL,\n\t`created_at` text NOT NULL,\n\t`updated_at` text NOT NULL,\n\t`deleted_at` text,\n\t`sync_version` integer,\n\tFOREIGN KEY (`project_id`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE no action\n);\n--> statement-breakpoint\nCREATE INDEX `sections_project_id_idx` ON `sections` (`project_id`);--> statement-breakpoint\nALTER TABLE `tasks` ADD `section_id` text REFERENCES sections(id);--> statement-breakpoint\nCREATE INDEX `tasks_section_id_idx` ON `tasks` (`section_id`);",
+  },
 ]

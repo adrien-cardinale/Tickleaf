@@ -1,7 +1,7 @@
 import { PRIORITIES } from "@tickleaf/core"
 import { z } from "zod"
 
-export const PAYLOAD_VERSION = 1
+export const PAYLOAD_VERSION = 2
 
 const timestamp = z.iso.datetime()
 
@@ -19,6 +19,13 @@ export const projectRowSchema = z.object({
   archivedAt: timestamp.nullable(),
 })
 
+export const sectionRowSchema = z.object({
+  ...syncFields,
+  projectId: z.string().min(1),
+  name: z.string(),
+  position: z.number().int(),
+})
+
 export const taskRowSchema = z.object({
   ...syncFields,
   title: z.string(),
@@ -26,6 +33,7 @@ export const taskRowSchema = z.object({
   due: z.string().nullable(),
   priority: z.literal(PRIORITIES),
   projectId: z.string().nullable(),
+  sectionId: z.string().nullable().default(null),
   position: z.number().int(),
   completedAt: timestamp.nullable(),
 })
@@ -33,11 +41,13 @@ export const taskRowSchema = z.object({
 export const payloadHeaderSchema = z.object({ v: z.number().int() })
 
 export const payloadSchema = z.object({
-  v: z.literal(PAYLOAD_VERSION),
+  v: z.number().int().min(1).max(PAYLOAD_VERSION),
   projects: z.array(projectRowSchema).default([]),
+  sections: z.array(sectionRowSchema).default([]),
   tasks: z.array(taskRowSchema).default([]),
 })
 
 export type ProjectRowPayload = z.infer<typeof projectRowSchema>
+export type SectionRowPayload = z.infer<typeof sectionRowSchema>
 export type TaskRowPayload = z.infer<typeof taskRowSchema>
 export type SyncPayload = z.infer<typeof payloadSchema>

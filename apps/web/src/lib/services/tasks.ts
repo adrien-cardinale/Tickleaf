@@ -9,9 +9,10 @@ export type NewTask = {
   due: IsoDate | null
   priority?: Priority
   projectId: string | null
+  sectionId?: string | null
 }
 
-export type TaskPatch = Partial<Pick<Task, "title" | "description" | "due" | "priority" | "projectId">>
+export type TaskPatch = Partial<Pick<Task, "title" | "description" | "due" | "priority" | "projectId" | "sectionId">>
 
 const notDeleted = isNull(tasks.deletedAt)
 
@@ -60,6 +61,7 @@ export async function createTask(db: Db, input: NewTask): Promise<Task> {
     due: input.due,
     priority: input.priority ?? DEFAULT_PRIORITY,
     projectId: input.projectId,
+    sectionId: input.projectId === null ? null : (input.sectionId ?? null),
     position: await nextPosition(db),
     completedAt: null,
     createdAt: timestamp,
@@ -75,11 +77,16 @@ async function requireTask(db: Db, id: string): Promise<Task> {
   return task
 }
 
+function withSectionCleared(previous: Task, patch: TaskPatch): TaskPatch {
+  const movesProject = patch.projectId !== undefined && patch.projectId !== previous.projectId
+  return movesProject && patch.sectionId === undefined ? { ...patch, sectionId: null } : patch
+}
+
 export async function updateTask(db: Db, id: string, patch: TaskPatch): Promise<Task> {
   const previous = await requireTask(db, id)
   await db
     .update(tasks)
-    .set({ ...patch, ...touched() })
+    .set({ ...withSectionCleared(previous, patch), ...touched() })
     .where(eq(tasks.id, id))
   return previous
 }

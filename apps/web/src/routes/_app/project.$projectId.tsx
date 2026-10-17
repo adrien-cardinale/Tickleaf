@@ -3,6 +3,8 @@ import { sortTasks } from "@tickleaf/core"
 import { useState } from "react"
 import { ProjectMenu } from "@/components/project-menu"
 import { ProjectTitle } from "@/components/project-title"
+import { NewSectionForm } from "@/components/sections/new-section-form"
+import { ProjectSection } from "@/components/sections/project-section"
 import { QuickAdd } from "@/components/tasks/quick-add"
 import { TaskSection } from "@/components/tasks/task-section"
 import { Button } from "@/components/ui/button"
@@ -10,6 +12,7 @@ import { ViewPage } from "@/components/view-page"
 import { useProjectActions } from "@/hooks/use-project-actions"
 import { useViewData } from "@/hooks/use-view-data"
 import { labels } from "@/lib/labels"
+import { useSections } from "@/lib/queries"
 
 export const Route = createFileRoute("/_app/project/$projectId")({
   component: ProjectPage,
@@ -35,6 +38,7 @@ function ProjectPage() {
   const { projectId } = Route.useParams()
   const navigate = useNavigate()
   const { today, ready, projects, openTasks } = useViewData()
+  const { data: allSections = [] } = useSections()
   const { rename, archive } = useProjectActions()
   const [editing, setEditing] = useState(false)
   const project = projects.find((candidate) => candidate.id === projectId)
@@ -43,6 +47,9 @@ function ProjectPage() {
   if (!project) return ready ? <ProjectNotFound /> : null
 
   const items = sortTasks(openTasks.filter((task) => task.projectId === project.id))
+  const sections = allSections.filter((section) => section.projectId === project.id)
+  const sectionIds = new Set(sections.map((section) => section.id))
+  const unsectioned = items.filter((task) => task.sectionId === null || !sectionIds.has(task.sectionId))
 
   const archiveProject = async () => {
     if (await archive(project.id)) void navigate({ to: "/inbox" })
@@ -64,13 +71,25 @@ function ProjectPage() {
       actions={<ProjectMenu onRename={() => setEditing(true)} onArchive={() => void archiveProject()} />}
     >
       <QuickAdd context={{ due: null, project }} placeholder={labels.quickAdd.placeholderProject(project.name)} />
-      <TaskSection
-        title={text.section}
-        tasks={items}
-        today={today}
-        empty={text.empty}
-        projectNameOf={NO_PROJECT_NAME}
-      />
+      {(sections.length === 0 || unsectioned.length > 0) && (
+        <TaskSection
+          title={text.section}
+          tasks={unsectioned}
+          today={today}
+          empty={text.empty}
+          projectNameOf={NO_PROJECT_NAME}
+        />
+      )}
+      {sections.map((section) => (
+        <ProjectSection
+          key={section.id}
+          project={project}
+          section={section}
+          tasks={items.filter((task) => task.sectionId === section.id)}
+          today={today}
+        />
+      ))}
+      <NewSectionForm key={project.id} projectId={project.id} />
     </ViewPage>
   )
 }

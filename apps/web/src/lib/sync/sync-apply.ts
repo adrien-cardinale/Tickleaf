@@ -1,6 +1,6 @@
-import { type Db, projects, tasks } from "@tickleaf/db"
+import { type Db, projects, sections, tasks } from "@tickleaf/db"
 import { eq, sql } from "@tickleaf/db/orm"
-import type { ProjectRowPayload, SyncPayload, TaskRowPayload } from "./sync-schemas"
+import type { ProjectRowPayload, SectionRowPayload, SyncPayload, TaskRowPayload } from "./sync-schemas"
 import type { SyncTableEntry } from "./sync-tables"
 
 export type LocalVersion = { updatedAt: string; syncVersion: number | null }
@@ -19,6 +19,14 @@ async function applyProject(db: Db, row: ProjectRowPayload, seq: number): Promis
   return true
 }
 
+async function applySection(db: Db, row: SectionRowPayload, seq: number): Promise<boolean> {
+  const [local] = await db.select().from(sections).where(eq(sections.id, row.id))
+  if (local && keepsLocal(local, row, seq)) return false
+  const values = { ...row, syncVersion: seq }
+  await db.insert(sections).values(values).onConflictDoUpdate({ target: sections.id, set: values })
+  return true
+}
+
 async function applyTask(db: Db, row: TaskRowPayload, seq: number): Promise<boolean> {
   const [local] = await db.select().from(tasks).where(eq(tasks.id, row.id))
   if (local && keepsLocal(local, row, seq)) return false
@@ -30,6 +38,7 @@ async function applyTask(db: Db, row: TaskRowPayload, seq: number): Promise<bool
 export async function applyPayload(db: Db, payload: SyncPayload, seq: number): Promise<number> {
   let applied = 0
   for (const row of payload.projects) if (await applyProject(db, row, seq)) applied += 1
+  for (const row of payload.sections) if (await applySection(db, row, seq)) applied += 1
   for (const row of payload.tasks) if (await applyTask(db, row, seq)) applied += 1
   return applied
 }
