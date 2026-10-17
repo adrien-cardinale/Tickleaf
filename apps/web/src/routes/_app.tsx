@@ -3,6 +3,7 @@ import { RotateCw } from "lucide-react"
 import type { ReactNode } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { BrandMark } from "@/components/brand-mark"
+import { ReminderScheduler } from "@/components/reminder-scheduler"
 import { SearchField } from "@/components/search-field"
 import { TaskDetailSheet } from "@/components/tasks/task-detail-sheet"
 import { Button } from "@/components/ui/button"
@@ -12,6 +13,7 @@ import { WorkspaceProvider } from "@/components/workspace-context"
 import { usePageTitle } from "@/hooks/use-page-title"
 import { labels } from "@/lib/labels"
 import { projectsQuery, tasksQuery } from "@/lib/queries"
+import { isTauri } from "@/lib/runtime"
 
 export const Route = createFileRoute("/_app")({
   loader: ({ context }) =>
@@ -37,6 +39,7 @@ function AppShell({ children }: { children: ReactNode }) {
           <div className="flex-1 px-4 pt-6 pb-[calc(3rem+env(safe-area-inset-bottom))] text-sm sm:px-6">{children}</div>
         </SidebarInset>
         <TaskDetailSheet />
+        {isTauri() && <ReminderScheduler />}
       </SidebarProvider>
     </WorkspaceProvider>
   )

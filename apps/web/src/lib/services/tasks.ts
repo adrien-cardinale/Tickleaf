@@ -12,7 +12,9 @@ export type NewTask = {
   sectionId?: string | null
 }
 
-export type TaskPatch = Partial<Pick<Task, "title" | "description" | "due" | "priority" | "projectId" | "sectionId">>
+export type TaskPatch = Partial<
+  Pick<Task, "title" | "description" | "due" | "reminderAt" | "priority" | "projectId" | "sectionId">
+>
 
 const notDeleted = isNull(tasks.deletedAt)
 
@@ -59,6 +61,7 @@ export async function createTask(db: Db, input: NewTask): Promise<Task> {
     title: input.title,
     description: input.description ?? "",
     due: input.due,
+    reminderAt: null,
     priority: input.priority ?? DEFAULT_PRIORITY,
     projectId: input.projectId,
     sectionId: input.projectId === null ? null : (input.sectionId ?? null),

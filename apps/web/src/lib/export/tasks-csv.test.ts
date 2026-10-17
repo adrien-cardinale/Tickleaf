@@ -17,6 +17,7 @@ function task(overrides: Partial<Task>): Task {
     title: "Tâche",
     description: "",
     due: null,
+    reminderAt: null,
     priority: 4,
     projectId: null,
     sectionId: null,
@@ -40,6 +41,7 @@ describe("export CSV des tâches", () => {
       title: "Payer",
       projectId: "p1",
       due: "2026-10-05",
+      reminderAt: null,
       priority: 1,
       completedAt: "2026-10-04T08:00:00.000Z",
     })

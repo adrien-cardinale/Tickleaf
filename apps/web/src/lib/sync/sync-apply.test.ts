@@ -14,6 +14,7 @@ function taskRow(changes: Partial<TaskRowPayload> = {}): TaskRowPayload {
     title: "Arroser les plantes",
     description: "",
     due: null,
+    reminderAt: null,
     priority: 4,
     projectId: null,
     sectionId: null,

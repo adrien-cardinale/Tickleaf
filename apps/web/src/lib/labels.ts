@@ -126,6 +126,8 @@ export const labels = {
     descriptionPlaceholder: "Notes, liens, contexte…",
     fieldDue: "Échéance",
     fieldPriority: "Priorité",
+    fieldReminder: "Rappel",
+    reminderWebHint: "Le rappel sonne sur les apps ordinateur et Android.",
     fieldProject: "Projet",
     fieldSection: "Section",
     noSection: "Sans section",
@@ -134,6 +136,11 @@ export const labels = {
     completed: (date: string) => `Terminée le ${date}`,
     delete: "Supprimer la tâche",
     confirm: "Valider",
+  },
+  reminders: {
+    body: "Rappel Tickleaf",
+    permissionDenied: "Notifications désactivées",
+    permissionHint: "Autorisez les notifications de Tickleaf dans les réglages de l’appareil.",
   },
   priority: {
     1: "P1 · Urgent",

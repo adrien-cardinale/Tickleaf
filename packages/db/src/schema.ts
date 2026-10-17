@@ -36,6 +36,7 @@ export const tasks = sqliteTable(
     title: text("title").notNull(),
     description: text("description").notNull().default(""),
     due: text("due").$type<IsoDate>(),
+    reminderAt: text("reminder_at"),
     priority: integer("priority").$type<Priority>().notNull().default(4),
     projectId: text("project_id").references(() => projects.id),
     sectionId: text("section_id").references(() => sections.id),

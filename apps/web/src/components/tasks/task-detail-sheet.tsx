@@ -1,6 +1,7 @@
 import { isPriority, PRIORITIES, type Project, type Section, type Task } from "@tickleaf/core"
 import { Trash2 } from "lucide-react"
 import { useState } from "react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,9 +11,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/components/workspace-context"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useTaskActions } from "@/hooks/use-task-actions"
-import { formatTimestamp } from "@/lib/format"
+import { formatTimestamp, fromDateTimeInput, toDateTimeInput } from "@/lib/format"
 import { labels } from "@/lib/labels"
 import { useProjects, useSections, useTasks } from "@/lib/queries"
+import { ensureNotificationPermission } from "@/lib/reminders/reminder-notifications"
+import { isTauri } from "@/lib/runtime"
 
 const INBOX_VALUE = "inbox"
 const NO_SECTION_VALUE = "none"
@@ -55,6 +58,36 @@ function SectionField({ task, sections }: SectionFieldProps) {
           ))}
         </SelectContent>
       </Select>
+    </div>
+  )
+}
+
+async function warnIfNotificationsBlocked(): Promise<void> {
+  if (await ensureNotificationPermission()) return
+  toast.error(labels.reminders.permissionDenied, { description: labels.reminders.permissionHint })
+}
+
+function ReminderField({ task }: { task: Task }) {
+  const { update } = useTaskActions()
+
+  const changeReminder = (value: string) => {
+    const reminderAt = fromDateTimeInput(value)
+    void update(task.id, { reminderAt })
+    if (reminderAt !== null && isTauri()) void warnIfNotificationsBlocked()
+  }
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label htmlFor="task-reminder" className="text-xs text-muted-foreground">
+        {labels.detail.fieldReminder}
+      </Label>
+      <Input
+        id="task-reminder"
+        type="datetime-local"
+        value={toDateTimeInput(task.reminderAt)}
+        onChange={(event) => changeReminder(event.target.value)}
+      />
+      {!isTauri() && <p className="text-xs text-muted-foreground">{labels.detail.reminderWebHint}</p>}
     </div>
   )
 }
@@ -134,6 +167,7 @@ function TaskDetailForm({ task, projects, sections }: TaskDetailFormProps) {
           </Select>
         </div>
       </div>
+      <ReminderField task={task} />
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="task-project" className="text-xs text-muted-foreground">
           {labels.detail.fieldProject}

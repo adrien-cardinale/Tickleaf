@@ -19,6 +19,14 @@ export function formatTimestamp(timestamp: string): string {
   return format(new Date(timestamp), "EEE d MMM", { locale: fr })
 }
 
+export function toDateTimeInput(timestamp: string | null): string {
+  return timestamp === null ? "" : format(new Date(timestamp), "yyyy-MM-dd'T'HH:mm")
+}
+
+export function fromDateTimeInput(value: string): string | null {
+  return value === "" ? null : new Date(value).toISOString()
+}
+
 export function dueLabel(due: IsoDate, today: IsoDate): string {
   if (due === today) return labels.due.today
   if (due === addDays(today, 1)) return labels.due.tomorrow

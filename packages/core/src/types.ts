@@ -29,6 +29,7 @@ export type Task = {
   title: string
   description: string
   due: IsoDate | null
+  reminderAt: string | null
   priority: Priority
   projectId: string | null
   sectionId: string | null

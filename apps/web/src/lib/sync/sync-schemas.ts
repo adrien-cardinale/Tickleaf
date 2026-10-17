@@ -1,7 +1,7 @@
 import { PRIORITIES } from "@tickleaf/core"
 import { z } from "zod"
 
-export const PAYLOAD_VERSION = 2
+export const PAYLOAD_VERSION = 3
 
 const timestamp = z.iso.datetime()
 
@@ -31,6 +31,7 @@ export const taskRowSchema = z.object({
   title: z.string(),
   description: z.string(),
   due: z.string().nullable(),
+  reminderAt: timestamp.nullable().default(null),
   priority: z.literal(PRIORITIES),
   projectId: z.string().nullable(),
   sectionId: z.string().nullable().default(null),

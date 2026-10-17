@@ -16,4 +16,9 @@ export const GENERATED_MIGRATIONS: readonly Migration[] = [
     when: 1792241616083,
     sql: "CREATE TABLE `sections` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`project_id` text NOT NULL,\n\t`name` text NOT NULL,\n\t`position` integer DEFAULT 0 NOT NULL,\n\t`created_at` text NOT NULL,\n\t`updated_at` text NOT NULL,\n\t`deleted_at` text,\n\t`sync_version` integer,\n\tFOREIGN KEY (`project_id`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE no action\n);\n--> statement-breakpoint\nCREATE INDEX `sections_project_id_idx` ON `sections` (`project_id`);--> statement-breakpoint\nALTER TABLE `tasks` ADD `section_id` text REFERENCES sections(id);--> statement-breakpoint\nCREATE INDEX `tasks_section_id_idx` ON `tasks` (`section_id`);",
   },
+  {
+    tag: "0003_reminders",
+    when: 1792243076924,
+    sql: "ALTER TABLE `tasks` ADD `reminder_at` text;",
+  },
 ]
