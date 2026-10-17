@@ -153,7 +153,7 @@ Account names and relay addresses are stored in clear text in IndexedDB.
 
 ## Export
 
-**Settings › Export** downloads every task of the open account as CSV: `;` separator, UTF-8 with BOM, one row per task. The Android app saves the file in its Download folder and shows the path.
+**Settings › Export** downloads every task of the open account as CSV: `;` separator, UTF-8 with BOM, one row per task, subtasks included with the title of their parent task. The Android app saves the file in its Download folder and shows the path.
 
 ## Reminders
 
