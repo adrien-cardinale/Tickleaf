@@ -132,7 +132,8 @@ export const labels = {
     inbox: "Boîte de réception",
     created: (date: string) => `Créée le ${date}`,
     completed: (date: string) => `Terminée le ${date}`,
-    delete: "Supprimer",
+    delete: "Supprimer la tâche",
+    confirm: "Valider",
   },
   priority: {
     1: "P1 · Urgent",

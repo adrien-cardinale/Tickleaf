@@ -1,10 +1,11 @@
 import { isPriority, PRIORITIES, type Project, type Section, type Task } from "@tickleaf/core"
+import { Trash2 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/components/workspace-context"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -20,7 +21,6 @@ type TaskDetailFormProps = {
   task: Task
   projects: readonly Project[]
   sections: readonly Section[]
-  onDeleted: () => void
 }
 
 type SectionFieldProps = {
@@ -59,8 +59,8 @@ function SectionField({ task, sections }: SectionFieldProps) {
   )
 }
 
-function TaskDetailForm({ task, projects, sections, onDeleted }: TaskDetailFormProps) {
-  const { update, remove } = useTaskActions()
+function TaskDetailForm({ task, projects, sections }: TaskDetailFormProps) {
+  const { update } = useTaskActions()
   const [title, setTitle] = useState(task.title)
   const [description, setDescription] = useState(task.description)
   const projectValue = task.projectId ?? INBOX_VALUE
@@ -82,11 +82,6 @@ function TaskDetailForm({ task, projects, sections, onDeleted }: TaskDetailFormP
   const changePriority = (value: string) => {
     const priority = Number(value)
     if (isPriority(priority)) void update(task.id, { priority })
-  }
-
-  const deleteCurrent = () => {
-    onDeleted()
-    void remove(task.id)
   }
 
   return (
@@ -163,9 +158,9 @@ function TaskDetailForm({ task, projects, sections, onDeleted }: TaskDetailFormP
       <SectionField task={task} sections={sections} />
       <div className="flex items-center justify-between gap-2 pt-1">
         <span className="text-xs text-muted-foreground">{footnote}</span>
-        <Button variant="outline" size="sm" className="text-destructive" onClick={deleteCurrent}>
-          {labels.detail.delete}
-        </Button>
+        <SheetClose asChild>
+          <Button size="sm">{labels.detail.confirm}</Button>
+        </SheetClose>
       </div>
     </div>
   )
@@ -173,22 +168,38 @@ function TaskDetailForm({ task, projects, sections, onDeleted }: TaskDetailFormP
 
 export function TaskDetailSheet() {
   const { selectedTaskId, closeTask } = useWorkspace()
+  const { remove } = useTaskActions()
   const { data: tasks = [] } = useTasks()
   const { data: projects = [] } = useProjects()
   const { data: sections = [] } = useSections()
   const isMobile = useIsMobile()
   const task = tasks.find((candidate) => candidate.id === selectedTaskId) ?? null
 
+  const deleteTask = (id: string) => {
+    closeTask()
+    void remove(id)
+  }
+
   return (
     <Sheet open={task !== null} onOpenChange={(open) => !open && closeTask()}>
       <SheetContent side={isMobile ? "bottom" : "right"} className={isMobile ? "gap-0" : "gap-0 sm:max-w-[360px]"}>
-        <SheetHeader>
+        <SheetHeader className="flex-row items-center justify-between gap-2 pr-12 pointer-coarse:pr-15">
           <SheetTitle className="tracking-tight">{labels.detail.title}</SheetTitle>
           <SheetDescription className="sr-only">{labels.detail.description}</SheetDescription>
+          {task && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="text-destructive hover:text-destructive"
+              title={labels.detail.delete}
+              aria-label={labels.detail.delete}
+              onClick={() => deleteTask(task.id)}
+            >
+              <Trash2 />
+            </Button>
+          )}
         </SheetHeader>
-        {task && (
-          <TaskDetailForm key={task.id} task={task} projects={projects} sections={sections} onDeleted={closeTask} />
-        )}
+        {task && <TaskDetailForm key={task.id} task={task} projects={projects} sections={sections} />}
       </SheetContent>
     </Sheet>
   )
