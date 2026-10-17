@@ -1,13 +1,14 @@
 import type { QueryClient } from "@tanstack/react-query"
 import { useSyncExternalStore } from "react"
+import { changeAccount } from "@/lib/account/accounts"
+import { getCurrentAccount, setCurrentAccount } from "@/lib/account/current-account"
 import { getVault } from "@/lib/crypto/current-vault"
-import { clearMasterKey } from "@/lib/crypto/key-store"
 import { labels } from "@/lib/labels"
 import { getLocalDatabase } from "@/lib/local-db/current-database"
 import { invalidateData, onLocalWrite } from "@/lib/queries"
 import { runtimeFetch } from "@/lib/runtime"
-import { resolveServerUrl, storeServerUrl } from "./server-url"
-import { type SyncConfig, SyncError, type SyncReport, synchronize } from "./sync-client"
+import { resolveServerUrl } from "./server-url"
+import { deleteRemoteAccount, type SyncConfig, SyncError, type SyncReport, synchronize } from "./sync-client"
 import { readSyncSettings, writeSyncSetting } from "./sync-settings"
 import { countPendingRows, markAllRowsPending } from "./sync-tables"
 
@@ -32,6 +33,7 @@ let running: Promise<SyncOutcome> | null = null
 let queryClient: QueryClient | null = null
 let writeTimer: ReturnType<typeof setTimeout> | null = null
 let started = false
+let paused = false
 
 function setState(changes: Partial<SyncState>): void {
   state = { ...state, ...changes }
@@ -116,7 +118,7 @@ export function syncNow(): Promise<SyncOutcome> {
 }
 
 function syncInBackground(): void {
-  if (isSyncConfigured()) void syncNow()
+  if (!paused && isSyncConfigured()) void syncNow()
 }
 
 function scheduleAfterWrite(): void {
@@ -129,7 +131,9 @@ function scheduleAfterWrite(): void {
 }
 
 export async function changeServerUrl(serverUrl: string | null): Promise<SyncOutcome> {
-  storeServerUrl(serverUrl)
+  const account = getCurrentAccount()
+  await changeAccount(account.id, { serverUrl })
+  setCurrentAccount({ ...account, serverUrl })
   await getLocalDatabase().run(async (db) => {
     await writeSyncSetting(db, "cursor", 0)
     await markAllRowsPending(db)
@@ -138,22 +142,36 @@ export async function changeServerUrl(serverUrl: string | null): Promise<SyncOut
   return syncNow()
 }
 
-export async function forgetDevice(): Promise<void> {
-  stopTimers()
-  await running?.catch(() => undefined)
-  await getLocalDatabase().erase()
-  await clearMasterKey()
-  storeServerUrl(null)
-  window.location.reload()
-}
-
 let intervalTimer: ReturnType<typeof setInterval> | null = null
+
+function startTimers(): void {
+  intervalTimer ??= setInterval(syncInBackground, SYNC_INTERVAL_MS)
+}
 
 function stopTimers(): void {
   if (intervalTimer !== null) clearInterval(intervalTimer)
   if (writeTimer !== null) clearTimeout(writeTimer)
   intervalTimer = null
   writeTimer = null
+}
+
+export async function stopSync(): Promise<void> {
+  paused = true
+  stopTimers()
+  await running?.catch(() => undefined)
+}
+
+export async function deleteServerAccount(): Promise<void> {
+  const serverUrl = resolveServerUrl()
+  if (serverUrl === null) throw new Error(labels.sync.state.local)
+  await stopSync()
+  try {
+    await deleteRemoteAccount(syncConfigFor(serverUrl))
+  } catch (error) {
+    paused = false
+    startTimers()
+    throw error
+  }
 }
 
 function syncWhenVisible(): void {
@@ -165,7 +183,7 @@ export function startSyncScheduler(client: QueryClient): void {
   if (started) return
   started = true
   onLocalWrite(scheduleAfterWrite)
-  intervalTimer = setInterval(syncInBackground, SYNC_INTERVAL_MS)
+  startTimers()
   document.addEventListener("visibilitychange", syncWhenVisible)
   window.addEventListener("online", syncInBackground)
   void refreshSyncState()

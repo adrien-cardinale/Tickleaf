@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { AccountsCard } from "@/components/settings/accounts-card"
 import { DeviceCard } from "@/components/settings/device-card"
+import { ExportCard } from "@/components/settings/export-card"
 import { RecoveryKeyCard } from "@/components/settings/recovery-key-card"
 import { SyncCard } from "@/components/settings/sync-card"
 import { UpdateCard } from "@/components/settings/update-card"
 import { ViewPage } from "@/components/view-page"
 import { labels } from "@/lib/labels"
-import { useSyncState } from "@/lib/sync/sync-store"
+import { isSyncConfigured, useSyncState } from "@/lib/sync/sync-store"
 
 export const Route = createFileRoute("/_app/settings")({
   component: SettingsPage,
@@ -19,8 +21,10 @@ function SettingsPage() {
       <div className="space-y-4">
         <SyncCard state={state} />
         <RecoveryKeyCard serverUrl={state.serverUrl} />
+        <AccountsCard />
+        <ExportCard />
         <UpdateCard />
-        <DeviceCard pendingCount={state.pendingCount} />
+        <DeviceCard pendingCount={state.pendingCount} syncConfigured={isSyncConfigured(state)} />
       </div>
     </ViewPage>
   )

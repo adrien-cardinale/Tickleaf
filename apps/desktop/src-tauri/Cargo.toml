@@ -21,8 +21,10 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
 # Scanner de QR code : plugin uniquement disponible sur mobile.
+# Fichiers : la WebView Android ignore les téléchargements, l'export écrit dans le dossier Download.
 [target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
 tauri-plugin-barcode-scanner = "2"
+tauri-plugin-fs = "2"
 
 # Mise à jour automatique : le plugin updater ne gère pas mobile, un APK se remplace par réinstallation.
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]

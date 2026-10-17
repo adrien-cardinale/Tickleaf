@@ -2,7 +2,7 @@ import { createProxyDb, type Db, runMigrations } from "@tickleaf/db"
 import type { Database } from "sql.js"
 import type { Vault } from "@/lib/crypto/envelope"
 import { labels } from "@/lib/labels"
-import { createAutoSaver, createPersistence, withEncryption } from "./persistence"
+import { createAutoSaver, createPersistence, databaseEntry, withEncryption } from "./persistence"
 import { createSerialQueue } from "./serial-queue"
 import { openSqlJsDatabase } from "./sqljs-db"
 import { applyConnectionPragmas, createSqlJsExecutor, isWriteStatement } from "./sqljs-executor"
@@ -30,9 +30,9 @@ function flushWhenHidden(flush: () => Promise<void>): void {
   })
 }
 
-export async function openLocalDb(vault: Vault): Promise<LocalDatabase> {
+export async function openLocalDb(accountId: string, vault: Vault): Promise<LocalDatabase> {
   if (typeof indexedDB === "undefined") throw new Error(labels.boot.noIndexedDb)
-  const persistence = withEncryption(createPersistence(), vault)
+  const persistence = withEncryption(createPersistence(databaseEntry(accountId)), vault)
   const initialBytes = await persistence.load()
   const database = await openSqlJsDatabase(initialBytes)
   const queue = createSerialQueue()

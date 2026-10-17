@@ -1,13 +1,19 @@
 {
   "$schema": "../gen/schemas/mobile-schema.json",
   "identifier": "mobile",
-  "description": "Permissions supplémentaires de Tickleaf sur mobile : scan du QR code d'appairage",
+  "description": "Permissions supplémentaires de Tickleaf sur mobile : scan du QR code d'appairage et export dans le dossier Download",
   "platforms": ["android", "iOS"],
   "windows": ["main"],
   "permissions": [
     "barcode-scanner:allow-check-permissions",
     "barcode-scanner:allow-request-permissions",
     "barcode-scanner:allow-open-app-settings",
-    "barcode-scanner:allow-scan"
+    "barcode-scanner:allow-scan",
+    "fs:allow-mkdir",
+    "fs:allow-write-file",
+    {
+      "identifier": "fs:scope",
+      "allow": [{ "path": "$DOWNLOAD" }, { "path": "$DOWNLOAD/**" }]
+    }
   ]
 }

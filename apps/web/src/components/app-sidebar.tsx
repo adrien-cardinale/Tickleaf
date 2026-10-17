@@ -2,6 +2,7 @@ import { Link, useMatchRoute } from "@tanstack/react-router"
 import { countTasks } from "@tickleaf/core"
 import { Plus } from "lucide-react"
 import { useState } from "react"
+import { AccountSwitcher } from "@/components/account-switcher"
 import { BrandMark } from "@/components/brand-mark"
 import { navigationItems, settingsItem } from "@/components/navigation"
 import { NewProjectForm } from "@/components/new-project-form"
@@ -158,6 +159,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SyncIndicator />
           </SidebarMenuItem>
+          <AccountSwitcher />
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>

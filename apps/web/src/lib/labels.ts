@@ -279,17 +279,54 @@ export const labels = {
       openRelease: "Voir la version sur GitHub",
       openFailed: "Impossible d’ouvrir le lien",
     },
+    accounts: {
+      title: "Comptes",
+      description: "Chaque compte a sa propre clé et ses propres tâches. Un seul compte est ouvert à la fois.",
+      active: "Ouvert",
+      open: "Ouvrir",
+      rename: "Renommer",
+      renameTitle: "Renommer le compte",
+      renameLabel: "Nom du compte",
+      save: "Enregistrer",
+      renamed: "Compte renommé",
+      add: "Ajouter un compte",
+      addDescription:
+        "Créez une nouvelle clé ou entrez celle d’un compte existant. L’application s’ouvre ensuite sur ce compte.",
+      failed: "Action sur le compte impossible",
+    },
+    export: {
+      title: "Export",
+      description: "Téléchargez toutes les tâches de ce compte dans un fichier CSV, lisible par un tableur.",
+      action: "Exporter en CSV",
+      done: "Export terminé",
+      saved: "Fichier enregistré",
+      failed: "Export impossible",
+    },
     device: {
-      title: "Cet appareil",
-      description: "La base locale et la clé restent sur cet appareil. Les oublier efface vos tâches de ce navigateur.",
-      forget: "Oublier cet appareil",
-      forgetTitle: "Oublier cet appareil ?",
+      title: "Ce compte",
+      description: "La base locale et la clé de ce compte restent sur cet appareil.",
+      forget: "Retirer de cet appareil",
+      forgetTitle: "Retirer ce compte de cet appareil ?",
       forgetDescription: (pending: number) =>
         pending > 0
-          ? `${pending} ${plural(pending, "modification n’est", "modifications ne sont")} pas encore ${plural(pending, "synchronisée", "synchronisées")} et ${plural(pending, "sera perdue", "seront perdues")}. La base locale et la clé seront effacées de cet appareil.`
-          : "La base locale et la clé seront effacées de cet appareil. Sans votre clé de récupération, vos tâches seront perdues.",
-      forgetConfirm: "Oublier",
+          ? `${pending} ${plural(pending, "modification n’est", "modifications ne sont")} pas encore ${plural(pending, "synchronisée", "synchronisées")} et ${plural(pending, "sera perdue", "seront perdues")}. La base locale et la clé de ce compte seront effacées de cet appareil.`
+          : "La base locale et la clé de ce compte seront effacées de cet appareil. Sans votre clé de récupération, ses tâches seront perdues.",
+      forgetConfirm: "Retirer",
+      deleteServer: "Supprimer sur le serveur",
+      deleteServerTitle: "Supprimer ce compte sur le serveur ?",
+      deleteServerDescription:
+        "Toutes les tâches de ce compte seront effacées du serveur et de cet appareil. Vos autres appareils ne pourront plus les synchroniser. Cette action est définitive.",
+      deleteServerConfirm: "Supprimer partout",
     },
+  },
+  accounts: {
+    defaultLabel: (n: number) => `Compte ${n}`,
+    switcher: "Changer de compte",
+  },
+  export: {
+    columns: ["Titre", "Description", "Projet", "Échéance", "Priorité", "Statut", "Terminée le", "Créée le"],
+    open: "Ouverte",
+    done: "Terminée",
   },
   seed: {
     projects: ["Travail", "Maison", "Perso"],

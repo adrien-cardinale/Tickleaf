@@ -13,8 +13,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import { removeAccountFromDevice } from "@/lib/account/account-actions"
 import { labels } from "@/lib/labels"
-import { forgetDevice } from "@/lib/sync/sync-store"
 
 export function ForgetDeviceButton({ pendingCount }: { pendingCount: number }) {
   const [pending, setPending] = useState(false)
@@ -22,7 +22,7 @@ export function ForgetDeviceButton({ pendingCount }: { pendingCount: number }) {
   const forget = async () => {
     setPending(true)
     try {
-      await forgetDevice()
+      await removeAccountFromDevice()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : labels.boot.unexpected)
       setPending(false)

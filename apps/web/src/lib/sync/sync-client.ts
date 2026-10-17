@@ -218,6 +218,10 @@ async function pushAll(config: SyncConfig, cursor: number): Promise<PushSummary>
   }
 }
 
+export async function deleteRemoteAccount(config: SyncConfig): Promise<void> {
+  await ensureOk(await send(config, "/api/account", { method: "DELETE" }))
+}
+
 export async function synchronize(config: SyncConfig): Promise<SyncReport> {
   const { cursor: storedCursor } = await config.access(readSyncSettings)
   const pulled = await pullAll(config, storedCursor)

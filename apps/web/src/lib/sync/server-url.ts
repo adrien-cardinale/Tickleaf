@@ -1,6 +1,6 @@
+import { getCurrentAccount } from "@/lib/account/current-account"
 import { asksForServerUrl } from "@/lib/runtime"
 
-const STORAGE_KEY = "tickleaf.serverUrl"
 const SAME_ORIGIN = ""
 
 export function normalizeServerUrl(serverUrl: string): string {
@@ -18,22 +18,6 @@ export function parseServerUrl(value: string): string | null {
   }
 }
 
-function readStoredServerUrl(): string | null {
-  try {
-    return localStorage.getItem(STORAGE_KEY)
-  } catch {
-    return null
-  }
-}
-
-export function storeServerUrl(serverUrl: string | null): void {
-  if (!asksForServerUrl()) return
-  try {
-    if (serverUrl === null) localStorage.removeItem(STORAGE_KEY)
-    else localStorage.setItem(STORAGE_KEY, serverUrl)
-  } catch {}
-}
-
 export function resolveServerUrl(): string | null {
-  return asksForServerUrl() ? readStoredServerUrl() : SAME_ORIGIN
+  return asksForServerUrl() ? getCurrentAccount().serverUrl : SAME_ORIGIN
 }

@@ -135,12 +135,27 @@ Synchronization runs at startup, every 5 minutes, 5 seconds after each change, w
 
 1. On first launch the app asks for a key: **create a key** (write down the displayed recovery key) or **enter an existing key** to join your data.
 2. In the browser, the server is the one that served the page: synchronization starts on its own. The static build (GitHub Pages) and the desktop and Android apps ask for the relay address. For the static build, the relay must list its origin in `ALLOWED_ORIGINS`. Without an address, the app stays local.
-3. The **Settings** page (`/settings`) shows the synchronization status, reveals the recovery key behind a warning, checks for updates, and lets you **forget this device** (erases the local database and the key).
+3. The **Settings** page (`/settings`) shows the synchronization status, reveals the recovery key behind a warning, exports the tasks and checks for updates.
 
 A device that already had data before this version goes through "Create a key" and keeps its data; it is then sent to the relay.
 
+## Accounts
+
+A device can hold several accounts. Each account has its own key, its own encrypted database and its own relay address.
+
+- **Settings › Accounts** lists the accounts, renames them, opens another one (the app reloads) and adds one with the same create, restore or scan steps as the first launch.
+- With two accounts or more, an account switcher appears at the bottom of the sidebar.
+- **Settings › This account** offers **Remove from this device**: it erases the key and the local database of the open account, then opens the next account or the welcome screen. Server data stays available to other devices.
+- With a relay, **Delete on the server** also calls `DELETE /api/account`: every device loses the data of this account.
+
+Account names and relay addresses are stored in clear text in IndexedDB.
+
+## Export
+
+**Settings › Export** downloads every task of the open account as CSV: `;` separator, UTF-8 with BOM, one row per task. The Android app saves the file in its Download folder and shows the path.
+
 ## Where the data lives
 
-The SQLite database runs in memory with sql.js. It is saved encrypted in IndexedDB (database `tickleaf`, entry `database`, key in the entry `master-key`) 500 ms after each write, and when the page closes.
+The SQLite database runs in memory with sql.js. It is saved encrypted in IndexedDB (database `tickleaf`, entry `database:<id>`, key in the entry `master-key:<id>`) 500 ms after each write, and when the page closes. `<id>` is the public user id derived from the key. The entry `accounts` lists the accounts and the open one. The `database` and `master-key` entries of an earlier version move under the new names on the next launch.
 
 The browser may clear this storage: site data cleanup, private browsing, storage pressure, or long inactivity on Safari. With a relay configured, the data comes back on another device with the recovery key. Without a relay, do not trust Tickleaf with data you cannot afford to lose.

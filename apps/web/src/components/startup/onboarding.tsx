@@ -211,7 +211,7 @@ function ChooseStep({ onChoose, onDone }: { onChoose: (mode: Mode) => void; onDo
   )
 }
 
-function OnboardingSteps({ onDone }: { onDone: () => void }) {
+export function OnboardingSteps({ onDone }: { onDone: () => void }) {
   const [mode, setMode] = useState<Mode>("choose")
   const back = () => setMode("choose")
   if (mode === "create") return <CreateKeyStep onDone={onDone} onBack={back} />

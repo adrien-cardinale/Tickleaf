@@ -1,7 +1,7 @@
 import { isSealed, type Vault } from "@/lib/crypto/envelope"
 import { idbDelete, idbGet, idbSet } from "./idb"
 
-const DATABASE_ENTRY = "database"
+export const LEGACY_DATABASE_ENTRY = "database"
 const SQLITE_HEADER = "SQLite format 3\0"
 const UNKNOWN_FORMAT = "Base locale illisible : format inconnu"
 
@@ -11,7 +11,11 @@ export type Persistence = {
   remove(): Promise<void>
 }
 
-export function createPersistence(entry: string = DATABASE_ENTRY): Persistence {
+export function databaseEntry(accountId: string): string {
+  return `${LEGACY_DATABASE_ENTRY}:${accountId}`
+}
+
+export function createPersistence(entry: string): Persistence {
   return {
     load: () => idbGet(entry),
     save: (bytes) => idbSet(entry, bytes),
