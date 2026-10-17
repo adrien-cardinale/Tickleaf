@@ -107,7 +107,7 @@ describe("applyPayload", () => {
 })
 
 describe("stampAcceptedRow", () => {
-  const entry = SYNC_TABLES[1]
+  const entry = SYNC_TABLES[2]
 
   test("tamponne une ligne inchangée depuis l'envoi", async () => {
     await db.insert(tasks).values(taskRow())
