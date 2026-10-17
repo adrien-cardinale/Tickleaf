@@ -36,6 +36,13 @@
       "when": 1792266814603,
       "tag": "0004_recurrence",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1792267552656,
+      "tag": "0005_subtasks",
+      "breakpoints": true
     }
   ]
 }

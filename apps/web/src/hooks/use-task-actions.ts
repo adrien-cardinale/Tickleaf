@@ -8,10 +8,10 @@ import { removeProject } from "@/lib/services/projects"
 import { addQuickTask } from "@/lib/services/quick-add"
 import {
   completeTask,
+  createSubtask,
   deleteTask,
   reopenTask,
   rescheduleOverdue,
-  restoreTask,
   restoreTasks,
   type TaskPatch,
   updateTask,
@@ -40,9 +40,20 @@ export function useTaskActions() {
   return {
     toggle: async (task: Task) => {
       const done = task.completedAt !== null
-      const previous = await execute((db) => (done ? reopenTask(db, task.id) : completeTask(db, task.id)))
+      const previous = await execute(async (db) =>
+        done ? [await reopenTask(db, task.id)] : await completeTask(db, task.id),
+      )
       if (!previous) return
-      showUndo({ message: toggleMessage(task), undo: (db) => restoreTask(db, previous) })
+      showUndo({ message: toggleMessage(task), undo: (db) => restoreTasks(db, previous) })
+    },
+
+    toggleSubtask: async (subtask: Task) => {
+      const done = subtask.completedAt !== null
+      await execute((db): Promise<unknown> => (done ? reopenTask(db, subtask.id) : completeTask(db, subtask.id)))
+    },
+
+    addSubtask: async (parentId: string, title: string) => {
+      await execute((db) => createSubtask(db, parentId, title))
     },
 
     add: async (input: string, context: QuickAddContext, today: IsoDate): Promise<boolean> => {
@@ -74,8 +85,8 @@ export function useTaskActions() {
 
     remove: async (id: string) => {
       const previous = await execute((db) => deleteTask(db, id))
-      if (!previous) return
-      showUndo({ message: labels.toast.deleted, undo: (db) => restoreTask(db, previous) })
+      if (!previous || previous.length === 0) return
+      showUndo({ message: labels.toast.deleted, undo: (db) => restoreTasks(db, previous) })
     },
 
     rescheduleOverdue: async (today: IsoDate) => {

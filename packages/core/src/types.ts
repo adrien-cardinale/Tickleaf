@@ -36,6 +36,7 @@ export type Task = {
   priority: Priority
   projectId: string | null
   sectionId: string | null
+  parentId: string | null
   position: number
   completedAt: string | null
   createdAt: string

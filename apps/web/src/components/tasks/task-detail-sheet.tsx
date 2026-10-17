@@ -6,12 +6,14 @@ import {
   type Recurrence,
   type RecurrenceUnit,
   type Section,
+  subtaskProgress,
   type Task,
 } from "@tickleaf/core"
-import { Trash2 } from "lucide-react"
-import { useState } from "react"
+import { Trash2, X } from "lucide-react"
+import { type FormEvent, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -23,9 +25,10 @@ import { useTaskActions } from "@/hooks/use-task-actions"
 import { useToday } from "@/hooks/use-today"
 import { formatTimestamp, fromDateTimeInput, recurrenceLabel, toDateTimeInput } from "@/lib/format"
 import { labels } from "@/lib/labels"
-import { useProjects, useSections, useTasks } from "@/lib/queries"
+import { useProjects, useSections, useSubtasks, useTasks } from "@/lib/queries"
 import { ensureNotificationPermission } from "@/lib/reminders/reminder-notifications"
 import { isTauri } from "@/lib/runtime"
+import { cn } from "@/lib/utils"
 
 const INBOX_VALUE = "inbox"
 const NO_SECTION_VALUE = "none"
@@ -70,6 +73,85 @@ function SectionField({ task, sections }: SectionFieldProps) {
           ))}
         </SelectContent>
       </Select>
+    </div>
+  )
+}
+
+function SubtaskItem({ subtask }: { subtask: Task }) {
+  const { update, toggleSubtask, remove } = useTaskActions()
+  const [title, setTitle] = useState(subtask.title)
+  const done = subtask.completedAt !== null
+
+  const changeTitle = (value: string) => {
+    setTitle(value)
+    void update(subtask.id, { title: value.trim() || labels.task.untitled })
+  }
+
+  return (
+    <li className="flex items-center gap-2">
+      <Checkbox
+        checked={done}
+        onCheckedChange={() => void toggleSubtask(subtask)}
+        aria-label={done ? labels.task.reopen(subtask.title) : labels.task.complete(subtask.title)}
+      />
+      <Input
+        value={title}
+        onChange={(event) => changeTitle(event.target.value)}
+        aria-label={labels.detail.subtaskTitle}
+        className={cn("h-8 border-transparent px-1.5 shadow-none", done && "text-muted-foreground line-through")}
+      />
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        title={labels.detail.deleteSubtask(subtask.title)}
+        aria-label={labels.detail.deleteSubtask(subtask.title)}
+        onClick={() => void remove(subtask.id)}
+      >
+        <X />
+      </Button>
+    </li>
+  )
+}
+
+function SubtasksField({ task }: { task: Task }) {
+  const { addSubtask } = useTaskActions()
+  const { data: subtasks = [] } = useSubtasks(task.id)
+  const [draft, setDraft] = useState("")
+  const progress = subtaskProgress(subtasks)
+
+  const submit = (event: FormEvent) => {
+    event.preventDefault()
+    const title = draft.trim()
+    if (title === "") return
+    setDraft("")
+    void addSubtask(task.id, title)
+  }
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label htmlFor="task-subtask-new" className="text-xs text-muted-foreground">
+        {labels.detail.fieldSubtasks}
+        {progress.total > 0 && (
+          <span>
+            {progress.done}/{progress.total}
+          </span>
+        )}
+      </Label>
+      {subtasks.length > 0 && (
+        <ul className="flex flex-col gap-0.5">
+          {subtasks.map((subtask) => (
+            <SubtaskItem key={subtask.id} subtask={subtask} />
+          ))}
+        </ul>
+      )}
+      <form onSubmit={submit}>
+        <Input
+          id="task-subtask-new"
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          placeholder={labels.detail.subtaskPlaceholder}
+        />
+      </form>
     </div>
   )
 }
@@ -195,6 +277,7 @@ function TaskDetailForm({ task, projects, sections }: TaskDetailFormProps) {
           className="min-h-[72px]"
         />
       </div>
+      {task.parentId === null && <SubtasksField task={task} />}
       <div className="grid grid-cols-2 gap-2">
         <div className="flex min-w-0 flex-col gap-1.5">
           <Label htmlFor="task-due" className="text-xs text-muted-foreground">

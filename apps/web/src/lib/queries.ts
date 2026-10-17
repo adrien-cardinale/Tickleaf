@@ -1,5 +1,7 @@
 import { type QueryClient, queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { subtasksOf, type Task } from "@tickleaf/core"
 import type { Db } from "@tickleaf/db"
+import { useCallback } from "react"
 import { toast } from "sonner"
 import { labels } from "@/lib/labels"
 import { getLocalDatabase } from "@/lib/local-db/current-database"
@@ -53,6 +55,11 @@ export const sectionsQuery = queryOptions({
 
 export function useTasks() {
   return useQuery(tasksQuery)
+}
+
+export function useSubtasks(parentId: string) {
+  const select = useCallback((tasks: Task[]) => subtasksOf(tasks, parentId), [parentId])
+  return useQuery({ ...tasksQuery, select })
 }
 
 export function useProjects() {

@@ -1,5 +1,6 @@
 import { addDays } from "./dates"
 import { compareOverdue, compareTasks } from "./sort"
+import { isSubtask } from "./subtasks"
 import type { IsoDate, Task } from "./types"
 
 export const UPCOMING_DAYS = 7
@@ -30,6 +31,7 @@ export function isOverdue(task: Pick<Task, "due" | "completedAt">, today: IsoDat
 export function countTasks(tasks: readonly Task[], today: IsoDate): TaskCounts {
   const counts: TaskCounts = { inbox: 0, today: 0, upcoming: 0, completed: 0, byProject: {} }
   for (const task of tasks) {
+    if (isSubtask(task)) continue
     if (!isOpen(task)) {
       counts.completed += 1
       continue

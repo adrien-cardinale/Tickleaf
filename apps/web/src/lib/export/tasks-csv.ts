@@ -11,13 +11,14 @@ function escapeCell(value: string): string {
   return NEEDS_QUOTES.test(value) ? `"${value.replaceAll('"', '""')}"` : value
 }
 
-function taskRow(task: Task, projectNames: Map<string, string>): string[] {
+function taskRow(task: Task, projectNames: Map<string, string>, taskTitles: Map<string, string>): string[] {
   const project =
     task.projectId === null ? labels.detail.inbox : (projectNames.get(task.projectId) ?? labels.detail.inbox)
   return [
     task.title,
     task.description,
     project,
+    task.parentId === null ? "" : (taskTitles.get(task.parentId) ?? ""),
     task.due ?? "",
     task.recurrence === null ? "" : recurrenceLabel(task.recurrence),
     `P${task.priority}`,
@@ -29,8 +30,9 @@ function taskRow(task: Task, projectNames: Map<string, string>): string[] {
 
 export function tasksToCsv(tasks: readonly Task[], projects: readonly Project[]): string {
   const projectNames = new Map(projects.map((project) => [project.id, project.name]))
+  const taskTitles = new Map(tasks.map((task) => [task.id, task.title]))
   const sorted = [...tasks].sort((left, right) => left.createdAt.localeCompare(right.createdAt))
-  const rows = [labels.export.columns, ...sorted.map((task) => taskRow(task, projectNames))]
+  const rows = [labels.export.columns, ...sorted.map((task) => taskRow(task, projectNames, taskTitles))]
   return BYTE_ORDER_MARK + rows.map((row) => row.map(escapeCell).join(SEPARATOR)).join(LINE_BREAK) + LINE_BREAK
 }
 

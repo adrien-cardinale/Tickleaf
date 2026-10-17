@@ -16,7 +16,7 @@
 <button id="theme" type="button" aria-label="Toggle theme">◐</button></nav></div></header>
 <div class="wrap docs"><aside class="side"><p class="side-title">Documentation</p><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="tasks.html" aria-current="page">Tasks and projects</a></li><li><a href="reminders.html">Reminders</a></li><li><a href="accounts.html">Accounts and devices</a></li><li><a href="self-hosting.html">Self-hosting</a></li><li><a href="apps.html">Desktop and Android apps</a></li><li><a href="encryption.html">Encryption and sync</a></li><li><a href="api.html">Relay API</a></li></ul></aside>
 <main class="prose"><h1>Tasks and projects</h1>
-<p>Tasks live in an inbox or in a project. A project can be split into sections. Each task has a title, notes, a due date, a priority, an optional repetition and an optional reminder.</p>
+<p>Tasks live in an inbox or in a project. A project can be split into sections. Each task has a title, notes, subtasks, a due date, a priority, an optional repetition and an optional reminder.</p>
 <h2 id="quick-add">Quick add</h2>
 <p>The field at the top of each view adds a task. Press <kbd>/</kbd> anywhere to jump to it. Tickleaf reads the date, the repetition, the priority and the project from the sentence, then removes them from the title.</p>
 <table><thead><tr><th>Type</th><th>Result</th></tr></thead><tbody>
@@ -40,6 +40,14 @@
 <li>A reminder moves by the same number of days, at the same time.</li>
 <li><strong>Annuler</strong> in the notification puts the previous date back.</li>
 <li>To stop the repetition, choose <strong>Ne se répète pas</strong> in the task detail.</li></ul>
+<h2 id="subtasks">Subtasks</h2>
+<p>The <strong>Sous-tâches</strong> field in the task detail splits a task into steps. Type a step and press <kbd>Enter</kbd>.</p>
+<ul><li>Tick a step to mark it done. Edit its text in place, or remove it with the cross.</li>
+<li>In the list, the task shows how many steps are done, for example <code>2/5</code>.</li>
+<li>Subtasks only appear in the detail of their task, not in the views.</li>
+<li>Completing the task completes its open subtasks. Deleting the task deletes its subtasks. <strong>Annuler</strong> brings both back.</li>
+<li>When a recurring task moves to its next occurrence, its subtasks are reopened.</li>
+<li>The CSV export lists subtasks with the title of their parent task.</li></ul>
 <h2>Views</h2>
 <ul><li><strong>Aujourd’hui</strong>: overdue tasks first, with a button to move them to today, then the tasks due today.</li>
 <li><strong>À venir</strong>: the next seven days, day by day, then everything later.</li>
@@ -59,7 +67,7 @@
 <img class="light" src="../screenshots/task-light.webp" alt="The task detail: due date, priority, reminder, project and section" width="1512" height="920" loading="lazy">
 <img class="dark" src="../screenshots/task-dark.webp" alt="The task detail: due date, priority, reminder, project and section (dark mode)" width="1512" height="920" loading="lazy">
 </figure>
-<p>Click a task to open its detail. There you change the title, the notes, the due date, the priority, the repetition, the <a href="reminders.html">reminder</a>, the project and the section. The trash icon in the header deletes the task.</p>
+<p>Click a task to open its detail. There you change the title, the notes, the subtasks, the due date, the priority, the repetition, the <a href="reminders.html">reminder</a>, the project and the section. The trash icon in the header deletes the task.</p>
 <nav class="pager"><a href="getting-started.html">← Getting started</a><a href="reminders.html">Reminders →</a></nav></main></div>
 <footer class="foot"><div class="wrap">Tickleaf is a personal project. <a href="https://github.com/adrien-cardinale/Tickleaf">Source on GitHub</a>.</div></footer>
 <script src="../site.js"></script>

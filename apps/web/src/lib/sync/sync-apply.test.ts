@@ -19,6 +19,7 @@ function taskRow(changes: Partial<TaskRowPayload> = {}): TaskRowPayload {
     priority: 4,
     projectId: null,
     sectionId: null,
+    parentId: null,
     position: 0,
     completedAt: null,
     createdAt: "2026-01-01T08:00:00.000Z",

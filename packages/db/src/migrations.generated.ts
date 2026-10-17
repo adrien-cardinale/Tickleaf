@@ -26,4 +26,9 @@ export const GENERATED_MIGRATIONS: readonly Migration[] = [
     when: 1792266814603,
     sql: "ALTER TABLE `tasks` ADD `recurrence` text;",
   },
+  {
+    tag: "0005_subtasks",
+    when: 1792267552656,
+    sql: "ALTER TABLE `tasks` ADD `parent_id` text;--> statement-breakpoint\nCREATE INDEX `tasks_parent_id_idx` ON `tasks` (`parent_id`);",
+  },
 ]

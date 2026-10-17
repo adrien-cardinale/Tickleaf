@@ -112,6 +112,8 @@ export const labels = {
     complete: (title: string) => `Terminer : ${title}`,
     reopen: (title: string) => `Rouvrir : ${title}`,
     untitled: "Sans titre",
+    subtaskProgress: (done: number, total: number) =>
+      `${done} sur ${total} ${plural(total, "sous-tâche terminée", "sous-tâches terminées")}`,
   },
   due: {
     today: "Aujourd’hui",
@@ -124,6 +126,10 @@ export const labels = {
     fieldTitle: "Titre",
     fieldDescription: "Description",
     descriptionPlaceholder: "Notes, liens, contexte…",
+    fieldSubtasks: "Sous-tâches",
+    subtaskPlaceholder: "Ajouter une sous-tâche, puis Entrée",
+    subtaskTitle: "Titre de la sous-tâche",
+    deleteSubtask: (title: string) => `Supprimer la sous-tâche : ${title}`,
     fieldDue: "Échéance",
     fieldPriority: "Priorité",
     fieldRecurrence: "Répétition",
@@ -360,6 +366,7 @@ export const labels = {
       "Titre",
       "Description",
       "Projet",
+      "Tâche parente",
       "Échéance",
       "Répétition",
       "Priorité",

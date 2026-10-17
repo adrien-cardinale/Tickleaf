@@ -41,6 +41,7 @@ export const tasks = sqliteTable(
     priority: integer("priority").$type<Priority>().notNull().default(4),
     projectId: text("project_id").references(() => projects.id),
     sectionId: text("section_id").references(() => sections.id),
+    parentId: text("parent_id"),
     position: integer("position").notNull().default(0),
     completedAt: text("completed_at"),
     createdAt: text("created_at").notNull(),
@@ -51,6 +52,7 @@ export const tasks = sqliteTable(
   (table) => [
     index("tasks_project_id_idx").on(table.projectId),
     index("tasks_section_id_idx").on(table.sectionId),
+    index("tasks_parent_id_idx").on(table.parentId),
     index("tasks_due_idx").on(table.due),
     index("tasks_completed_at_idx").on(table.completedAt),
   ],

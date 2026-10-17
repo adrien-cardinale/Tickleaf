@@ -1,10 +1,11 @@
-import type { IsoDate, Task } from "@tickleaf/core"
-import { Repeat } from "lucide-react"
+import { type IsoDate, subtaskProgress, type Task } from "@tickleaf/core"
+import { ListChecks, Repeat } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useWorkspace } from "@/components/workspace-context"
 import { useTaskActions } from "@/hooks/use-task-actions"
 import { dueLabel, recurrenceLabel } from "@/lib/format"
 import { labels } from "@/lib/labels"
+import { useSubtasks } from "@/lib/queries"
 import { cn } from "@/lib/utils"
 import { PriorityCheck } from "./priority-check"
 
@@ -24,8 +25,10 @@ function dueClass(task: Task, today: IsoDate): string {
 export function TaskRow({ task, today, projectName }: TaskRowProps) {
   const { selectedTaskId, openTask } = useWorkspace()
   const { toggle } = useTaskActions()
+  const { data: subtasks = [] } = useSubtasks(task.id)
+  const progress = subtaskProgress(subtasks)
   const done = task.completedAt !== null
-  const hasMeta = task.due !== null || projectName !== null || task.description !== ""
+  const hasMeta = task.due !== null || projectName !== null || task.description !== "" || progress.total > 0
 
   return (
     <div
@@ -58,6 +61,16 @@ export function TaskRow({ task, today, projectName }: TaskRowProps) {
                 {task.recurrence !== null && (
                   <Repeat className="size-3" role="img" aria-label={recurrenceLabel(task.recurrence)} />
                 )}
+              </span>
+            )}
+            {progress.total > 0 && (
+              <span
+                className="inline-flex items-center gap-1"
+                role="img"
+                aria-label={labels.task.subtaskProgress(progress.done, progress.total)}
+              >
+                <ListChecks className="size-3" aria-hidden="true" />
+                {progress.done}/{progress.total}
               </span>
             )}
             {projectName !== null && (

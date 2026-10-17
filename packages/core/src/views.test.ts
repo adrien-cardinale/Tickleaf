@@ -16,6 +16,7 @@ function task(overrides: Partial<Task>): Task {
     priority: 4,
     projectId: null,
     sectionId: null,
+    parentId: null,
     position: 0,
     completedAt: null,
     createdAt: "2026-10-01T00:00:00.000Z",
@@ -52,5 +53,10 @@ describe("views", () => {
       TODAY,
     )
     expect(counts).toEqual({ inbox: 1, today: 1, upcoming: 1, completed: 1, byProject: { p: 1 } })
+  })
+
+  test("leaves subtasks out of the counts", () => {
+    const counts = countTasks([task({ due: TODAY }), task({ parentId: "parent" })], TODAY)
+    expect(counts).toEqual({ inbox: 1, today: 1, upcoming: 0, completed: 0, byProject: {} })
   })
 })

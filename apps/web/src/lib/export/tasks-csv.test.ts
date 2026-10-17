@@ -22,6 +22,7 @@ function task(overrides: Partial<Task>): Task {
     priority: 4,
     projectId: null,
     sectionId: null,
+    parentId: null,
     position: 0,
     completedAt: null,
     createdAt: "2026-10-02T08:00:00.000Z",
@@ -33,7 +34,9 @@ function task(overrides: Partial<Task>): Task {
 describe("export CSV des tâches", () => {
   test("commence par le BOM et l'en-tête", () => {
     const [header] = tasksToCsv([], []).split("\r\n")
-    expect(header).toBe("﻿Titre;Description;Projet;Échéance;Répétition;Priorité;Statut;Terminée le;Créée le")
+    expect(header).toBe(
+      "﻿Titre;Description;Projet;Tâche parente;Échéance;Répétition;Priorité;Statut;Terminée le;Créée le",
+    )
   })
 
   test("écrit une ligne par tâche, triée par création", () => {
@@ -49,9 +52,16 @@ describe("export CSV des tâches", () => {
     })
     const lines = tasksToCsv([later, done], [project]).split("\r\n")
     expect(lines[1]).toBe(
-      "Payer;;Maison;2026-10-05;Toutes les 2 semaines;P1;Terminée;2026-10-04T08:00:00.000Z;2026-10-02T08:00:00.000Z",
+      "Payer;;Maison;;2026-10-05;Toutes les 2 semaines;P1;Terminée;2026-10-04T08:00:00.000Z;2026-10-02T08:00:00.000Z",
     )
-    expect(lines[2]).toBe("Après;;Boîte de réception;;;P4;Ouverte;;2026-10-03T08:00:00.000Z")
+    expect(lines[2]).toBe("Après;;Boîte de réception;;;;P4;Ouverte;;2026-10-03T08:00:00.000Z")
+  })
+
+  test("indique le titre de la tâche parente d'une sous-tâche", () => {
+    const parent = task({ id: "parent", title: "Déménager" })
+    const subtask = task({ id: "sub", title: "Cartons", parentId: "parent", createdAt: "2026-10-03T08:00:00.000Z" })
+    const lines = tasksToCsv([parent, subtask], []).split("\r\n")
+    expect(lines[2]).toBe("Cartons;;Boîte de réception;Déménager;;;P4;Ouverte;;2026-10-03T08:00:00.000Z")
   })
 
   test("met entre guillemets les cellules avec séparateur, guillemet ou saut de ligne", () => {

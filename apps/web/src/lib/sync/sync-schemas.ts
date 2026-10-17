@@ -1,7 +1,7 @@
 import { MAX_RECURRENCE_INTERVAL, PRIORITIES, RECURRENCE_UNITS } from "@tickleaf/core"
 import { z } from "zod"
 
-export const PAYLOAD_VERSION = 4
+export const PAYLOAD_VERSION = 5
 
 const timestamp = z.iso.datetime()
 
@@ -41,6 +41,7 @@ export const taskRowSchema = z.object({
   priority: z.literal(PRIORITIES),
   projectId: z.string().nullable(),
   sectionId: z.string().nullable().default(null),
+  parentId: z.string().nullable().default(null),
   position: z.number().int(),
   completedAt: timestamp.nullable(),
 })

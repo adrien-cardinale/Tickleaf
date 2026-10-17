@@ -1,4 +1,4 @@
-import { isOpen, matchesSearch, type Task } from "@tickleaf/core"
+import { isOpen, isSubtask, matchesSearch, type Task } from "@tickleaf/core"
 import { useMemo } from "react"
 import { useWorkspace } from "@/components/workspace-context"
 import { useToday } from "@/hooks/use-today"
@@ -13,7 +13,7 @@ export function useViewData() {
   const projects = projectsQuery.data
 
   return useMemo(() => {
-    const visible = (tasks ?? []).filter((task) => matchesSearch(task, search))
+    const visible = (tasks ?? []).filter((task) => !isSubtask(task) && matchesSearch(task, search))
     const names = new Map((projects ?? []).map((project) => [project.id, project.name]))
     return {
       today,
