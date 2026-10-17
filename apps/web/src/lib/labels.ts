@@ -21,6 +21,7 @@ export const labels = {
     inbox: "Boîte de réception",
     today: "Aujourd’hui",
     upcoming: "À venir",
+    matrix: "Matrice",
     completed: "Terminées",
     projects: "Projets",
     newProject: "Nouveau projet",
@@ -67,6 +68,7 @@ export const labels = {
     goInbox: "Aller à la boîte de réception",
     goToday: "Aller à Aujourd’hui",
     goUpcoming: "Aller à À venir",
+    goMatrix: "Aller à la matrice d’Eisenhower",
     goCompleted: "Aller aux tâches terminées",
     goSettings: "Aller aux paramètres",
     focusQuickAdd: "Ajouter une tâche",
@@ -112,6 +114,16 @@ export const labels = {
       emptyDay: "Rien de prévu.",
       later: "Plus tard",
       empty: "Aucune échéance à venir.",
+    },
+    matrix: {
+      title: "Matrice d’Eisenhower",
+      description: "Important : priorité P1 ou P2. Urgent : échéance dans les 2 jours ou en retard.",
+      quadrants: {
+        doFirst: { title: "Urgent et important", action: "Faire", empty: "Rien à faire tout de suite." },
+        schedule: { title: "Important, pas urgent", action: "Planifier", empty: "Rien à planifier." },
+        delegate: { title: "Urgent, pas important", action: "Déléguer", empty: "Rien à déléguer." },
+        eliminate: { title: "Ni urgent ni important", action: "Éliminer", empty: "Rien à éliminer." },
+      },
     },
     completed: {
       title: "Terminées",

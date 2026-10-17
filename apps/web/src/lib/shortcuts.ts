@@ -18,7 +18,7 @@ export type Shortcut = {
   bindings: readonly KeyBinding[]
 }
 
-export type GoToPath = "/inbox" | "/today" | "/upcoming" | "/completed" | "/settings"
+export type GoToPath = "/inbox" | "/today" | "/upcoming" | "/matrix" | "/completed" | "/settings"
 
 type GoToShortcut = {
   key: string
@@ -32,6 +32,7 @@ export const goToShortcuts: readonly GoToShortcut[] = [
   { key: "i", to: "/inbox", description: text.goInbox },
   { key: "t", to: "/today", description: text.goToday },
   { key: "u", to: "/upcoming", description: text.goUpcoming },
+  { key: "m", to: "/matrix", description: text.goMatrix },
   { key: "c", to: "/completed", description: text.goCompleted },
   { key: "s", to: "/settings", description: text.goSettings },
 ]

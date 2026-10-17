@@ -52,11 +52,11 @@ describe("views", () => {
       [task({ due: "2026-10-10" }), task({ due: "2026-10-20", projectId: "p" }), task({ completedAt: TODAY })],
       TODAY,
     )
-    expect(counts).toEqual({ inbox: 1, today: 1, upcoming: 1, completed: 1, byProject: { p: 1 } })
+    expect(counts).toEqual({ inbox: 1, today: 1, upcoming: 1, matrix: 0, completed: 1, byProject: { p: 1 } })
   })
 
   test("leaves subtasks out of the counts", () => {
     const counts = countTasks([task({ due: TODAY }), task({ parentId: "parent" })], TODAY)
-    expect(counts).toEqual({ inbox: 1, today: 1, upcoming: 0, completed: 0, byProject: {} })
+    expect(counts).toEqual({ inbox: 1, today: 1, upcoming: 0, matrix: 0, completed: 0, byProject: {} })
   })
 })
