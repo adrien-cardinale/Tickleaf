@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Relay API — Tickleaf docs</title>
+<meta name="description" content="Relay API">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<script>try{const t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch{}</script>
+</head>
+<body>
+<header class="top"><div class="wrap bar">
+<a class="brand" href="../index.html"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 19.5C4.5 10.5 10 4.5 19.5 4.5c0 9.5-6 15-15 15z"/><path d="M9 12.5l2.2 2.2 4.3-4.6"/></svg>tickleaf</a>
+<nav><a href="../docs/index.html" aria-current="page">Docs</a><a href="../download.html">Download</a><a href="https://github.com/adrien-cardinale/Tickleaf">GitHub</a><a class="btn primary" href="../app/">Open the app</a>
+<button id="theme" type="button" aria-label="Toggle theme">◐</button></nav></div></header>
+<div class="wrap docs"><aside class="side"><p class="side-title">Documentation</p><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="tasks.html">Tasks and projects</a></li><li><a href="reminders.html">Reminders</a></li><li><a href="accounts.html">Accounts and devices</a></li><li><a href="self-hosting.html">Self-hosting</a></li><li><a href="apps.html">Desktop and Android apps</a></li><li><a href="encryption.html">Encryption and sync</a></li><li><a href="api.html" aria-current="page">Relay API</a></li></ul></aside>
+<main class="prose"><h1>Relay API</h1>
+<p>All routes live under <code>/api</code>. <code>data</code> is the base64 of a sealed blob: 8 MiB max per entry, 9 MiB max per request. Errors are JSON: <code>{ "error": "…" }</code>.</p>
+<table><thead><tr><th>Route</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>GET /api/health</code></td><td>Returns <code>{ "status": "ok" }</code>.</td></tr>
+<tr><td><code>POST /api/log</code></td><td>Appends <code>{ "data" }</code> to the log and returns <code>{ "seq" }</code> (201). The first append from an unknown user id creates the account (403 if signups are closed). Later appends need the matching secret (401 otherwise). 413 when the quota is reached.</td></tr>
+<tr><td><code>GET /api/log?since=&lt;seq&gt;&amp;limit=&lt;n&gt;</code></td><td>Returns <code>{ entries: [{ seq, data }], cursor, hasMore }</code> for entries after <code>since</code>. <code>limit</code> defaults to 200, max 500. A page is also capped at 8 MiB. Call again with <code>cursor</code> while <code>hasMore</code> is <code>true</code>.</td></tr>
+<tr><td><code>DELETE /api/account</code></td><td>Deletes the account and its whole log (204).</td></tr>
+</tbody></table>
+<p>The log is append-only, numbered per account with a gapless sequence, and stored in SQLite in WAL mode.</p>
+<nav class="pager"><a href="encryption.html">← Encryption and sync</a><span></span></nav></main></div>
+<footer class="foot"><div class="wrap">Tickleaf is a personal project. <a href="https://github.com/adrien-cardinale/Tickleaf">Source on GitHub</a>.</div></footer>
+<script src="../site.js"></script>
+</body></html>

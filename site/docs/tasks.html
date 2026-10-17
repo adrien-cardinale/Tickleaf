@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tasks and projects — Tickleaf docs</title>
+<meta name="description" content="Tasks and projects">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<script>try{const t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch{}</script>
+</head>
+<body>
+<header class="top"><div class="wrap bar">
+<a class="brand" href="../index.html"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 19.5C4.5 10.5 10 4.5 19.5 4.5c0 9.5-6 15-15 15z"/><path d="M9 12.5l2.2 2.2 4.3-4.6"/></svg>tickleaf</a>
+<nav><a href="../docs/index.html" aria-current="page">Docs</a><a href="../download.html">Download</a><a href="https://github.com/adrien-cardinale/Tickleaf">GitHub</a><a class="btn primary" href="../app/">Open the app</a>
+<button id="theme" type="button" aria-label="Toggle theme">◐</button></nav></div></header>
+<div class="wrap docs"><aside class="side"><p class="side-title">Documentation</p><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="tasks.html" aria-current="page">Tasks and projects</a></li><li><a href="reminders.html">Reminders</a></li><li><a href="accounts.html">Accounts and devices</a></li><li><a href="self-hosting.html">Self-hosting</a></li><li><a href="apps.html">Desktop and Android apps</a></li><li><a href="encryption.html">Encryption and sync</a></li><li><a href="api.html">Relay API</a></li></ul></aside>
+<main class="prose"><h1>Tasks and projects</h1>
+<p>Tasks live in an inbox or in a project. A project can be split into sections. Each task has a title, notes, a due date, a priority and an optional reminder.</p>
+<h2 id="quick-add">Quick add</h2>
+<p>The field at the top of each view adds a task. Press <kbd>/</kbd> anywhere to jump to it. Tickleaf reads the date, the priority and the project from the sentence, then removes them from the title.</p>
+<table><thead><tr><th>Type</th><th>Result</th></tr></thead><tbody>
+<tr><td><code>aujourd'hui</code>, <code>demain</code>, <code>après-demain</code></td><td>Due today, tomorrow or the day after.</td></tr>
+<tr><td><code>lundi</code> … <code>dimanche</code></td><td>Due on the next such weekday.</td></tr>
+<tr><td><code>dans 3 jours</code></td><td>Due in 3 days.</td></tr>
+<tr><td><code>24.12</code>, <code>24/12</code>, <code>2026-12-24</code></td><td>Due on that date. Without a year, the next occurrence.</td></tr>
+<tr><td><code>p1</code> … <code>p4</code>, or <code>!1</code> … <code>!4</code></td><td>Priority, from urgent to low. The default is <code>p4</code>.</td></tr>
+<tr><td><code>#Project</code></td><td>Files the task in that project.</td></tr>
+</tbody></table>
+<p>Example: <code>Appeler la banque demain p1 #Admin</code> creates “Appeler la banque”, due tomorrow, urgent, in the Admin project.</p>
+<h2>Views</h2>
+<ul><li><strong>Aujourd’hui</strong>: overdue tasks first, with a button to move them to today, then the tasks due today.</li>
+<li><strong>À venir</strong>: the next seven days, day by day, then everything later.</li>
+<li><strong>Boîte de réception</strong>: tasks without a project, waiting to be sorted.</li>
+<li><strong>Terminées</strong>: completed tasks. <strong>Restaurer</strong> reopens one.</li></ul>
+<p>The search field filters the open view. <kbd>Ctrl</kbd>+<kbd>B</kbd> (<kbd>⌘</kbd>+<kbd>B</kbd> on a Mac) hides the sidebar.</p>
+<h2>Projects and sections</h2>
+<figure class="shot">
+<img class="light" src="../screenshots/project-light.webp" alt="A project split into sections, each with its own tasks" width="1512" height="920" loading="lazy">
+<img class="dark" src="../screenshots/project-dark.webp" alt="A project split into sections, each with its own tasks (dark mode)" width="1512" height="920" loading="lazy">
+</figure>
+<ul><li>Add a project from the sidebar. Its menu renames or archives it. Archiving sends its open tasks back to the inbox.</li>
+<li>Inside a project, <strong>Ajouter une section</strong> creates a section. Each section has its own add field.</li>
+<li>A section menu renames or deletes it. Deleting a section keeps its tasks in the project, without a section.</li></ul>
+<h2>Task detail</h2>
+<figure class="shot">
+<img class="light" src="../screenshots/task-light.webp" alt="The task detail: due date, priority, reminder, project and section" width="1512" height="920" loading="lazy">
+<img class="dark" src="../screenshots/task-dark.webp" alt="The task detail: due date, priority, reminder, project and section (dark mode)" width="1512" height="920" loading="lazy">
+</figure>
+<p>Click a task to open its detail. There you change the title, the notes, the due date, the priority, the <a href="reminders.html">reminder</a>, the project and the section. The trash icon in the header deletes the task.</p>
+<nav class="pager"><a href="getting-started.html">← Getting started</a><a href="reminders.html">Reminders →</a></nav></main></div>
+<footer class="foot"><div class="wrap">Tickleaf is a personal project. <a href="https://github.com/adrien-cardinale/Tickleaf">Source on GitHub</a>.</div></footer>
+<script src="../site.js"></script>
+</body></html>

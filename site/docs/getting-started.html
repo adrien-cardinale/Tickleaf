@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Getting started — Tickleaf docs</title>
+<meta name="description" content="Getting started">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<script>try{const t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch{}</script>
+</head>
+<body>
+<header class="top"><div class="wrap bar">
+<a class="brand" href="../index.html"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 19.5C4.5 10.5 10 4.5 19.5 4.5c0 9.5-6 15-15 15z"/><path d="M9 12.5l2.2 2.2 4.3-4.6"/></svg>tickleaf</a>
+<nav><a href="../docs/index.html" aria-current="page">Docs</a><a href="../download.html">Download</a><a href="https://github.com/adrien-cardinale/Tickleaf">GitHub</a><a class="btn primary" href="../app/">Open the app</a>
+<button id="theme" type="button" aria-label="Toggle theme">◐</button></nav></div></header>
+<div class="wrap docs"><aside class="side"><p class="side-title">Documentation</p><ul><li><a href="getting-started.html" aria-current="page">Getting started</a></li><li><a href="tasks.html">Tasks and projects</a></li><li><a href="reminders.html">Reminders</a></li><li><a href="accounts.html">Accounts and devices</a></li><li><a href="self-hosting.html">Self-hosting</a></li><li><a href="apps.html">Desktop and Android apps</a></li><li><a href="encryption.html">Encryption and sync</a></li><li><a href="api.html">Relay API</a></li></ul></aside>
+<main class="prose"><h1>Getting started</h1>
+<p>Tickleaf runs in the browser, as a desktop app or on Android. All of them use the same interface and the same encrypted format, so devices can share the same tasks.</p>
+<div class="note">The interface is in French. This documentation names the buttons and pages as the app shows them.</div>
+<h2>Choose how to run it</h2>
+<ul><li><strong>In the browser</strong>: <a href="../app/">open the app</a>. Nothing to install, and it installs as a PWA if you want.</li>
+<li><strong>Native apps</strong>: Windows, macOS, Linux and Android, from the <a href="../download.html">download page</a>. They ring reminders. See <a href="apps.html">Desktop and Android apps</a>.</li>
+<li><strong>Your own server</strong>: one Docker container serves the app and relays the sync. See <a href="self-hosting.html">Self-hosting</a>.</li></ul>
+<h2>First launch</h2>
+<figure class="shot">
+<img class="light" src="../screenshots/onboarding-light.webp" alt="First launch: Tickleaf creates a key and shows it as a recovery key to store safely" width="1512" height="920" loading="lazy">
+<img class="dark" src="../screenshots/onboarding-dark.webp" alt="First launch: Tickleaf creates a key and shows it as a recovery key to store safely (dark mode)" width="1512" height="920" loading="lazy">
+</figure>
+<ol><li>Choose <strong>Créer une clé</strong> and store the recovery key somewhere safe, or <strong>Entrer une clé existante</strong> to join your tasks from another device.</li>
+<li>Enter the address of your sync server, or skip it to stay local. The app hosted on this site and the native apps ask for it. On your own server, sync starts on its own.</li>
+<li>Add a first task in the field at the top: see <a href="tasks.html">Tasks and projects</a>.</li></ol>
+<p>On Android, the first screen also offers <strong>Scanner un QR code</strong>: a device already set up hands over the key and the server address, so there is nothing to type. See <a href="accounts.html#pairing">Pair a phone</a>.</p>
+<div class="note"><strong>Keep your recovery key.</strong> Anyone holding it can read your tasks, and losing it makes them unrecoverable. The server cannot help you.</div>
+<h2>Run from source</h2>
+<p>You need <a href="https://bun.sh/docs/installation">Bun</a>.</p>
+<pre class="code"><code>git clone https://github.com/adrien-cardinale/Tickleaf.git
+cd Tickleaf
+bun install
+bun run dev</code></pre>
+<ul><li>Relay: <code>http://localhost:3000</code></li><li>UI: <code>http://localhost:5173</code> (proxies <code>/api</code> to the relay)</li></ul>
+<nav class="pager"><span></span><a href="tasks.html">Tasks and projects →</a></nav></main></div>
+<footer class="foot"><div class="wrap">Tickleaf is a personal project. <a href="https://github.com/adrien-cardinale/Tickleaf">Source on GitHub</a>.</div></footer>
+<script src="../site.js"></script>
+</body></html>

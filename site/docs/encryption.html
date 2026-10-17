@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Encryption and sync — Tickleaf docs</title>
+<meta name="description" content="Encryption and sync">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<script>try{const t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch{}</script>
+</head>
+<body>
+<header class="top"><div class="wrap bar">
+<a class="brand" href="../index.html"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 19.5C4.5 10.5 10 4.5 19.5 4.5c0 9.5-6 15-15 15z"/><path d="M9 12.5l2.2 2.2 4.3-4.6"/></svg>tickleaf</a>
+<nav><a href="../docs/index.html" aria-current="page">Docs</a><a href="../download.html">Download</a><a href="https://github.com/adrien-cardinale/Tickleaf">GitHub</a><a class="btn primary" href="../app/">Open the app</a>
+<button id="theme" type="button" aria-label="Toggle theme">◐</button></nav></div></header>
+<div class="wrap docs"><aside class="side"><p class="side-title">Documentation</p><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="tasks.html">Tasks and projects</a></li><li><a href="reminders.html">Reminders</a></li><li><a href="accounts.html">Accounts and devices</a></li><li><a href="self-hosting.html">Self-hosting</a></li><li><a href="apps.html">Desktop and Android apps</a></li><li><a href="encryption.html" aria-current="page">Encryption and sync</a></li><li><a href="api.html">Relay API</a></li></ul></aside>
+<main class="prose"><h1>Encryption and sync</h1>
+<p>Each device keeps its own SQLite database with all your tasks. The server only relays encrypted blobs and never sees anything in clear text.</p>
+<h2>Keys</h2>
+<ul><li><strong>Master key</strong>: 32 random bytes created on the device. It is shown as a recovery key in Crockford base32, in groups of four characters, with a checksum that catches typos. The master key never leaves the device.</li>
+<li><strong>Derived values</strong> (HKDF-SHA-256): a public <strong>user id</strong>, an <strong>auth secret</strong> and an <strong>AES-256-GCM key</strong>.</li>
+<li><strong>Sealed blobs</strong>: each entry is encrypted with a random 12-byte IV, prefixed by a format version, with the user id bound as additional data.</li>
+<li><strong>Authentication</strong>: <code>Authorization: Bearer &lt;userId&gt;.&lt;secret&gt;</code>. The server stores only the SHA-256 hash of the secret. No password, no session.</li></ul>
+<h2>Local storage</h2>
+<p>The database runs in memory with sql.js. It is saved encrypted in IndexedDB 500 ms after each change and when the page closes, one entry per account. The browser may clear this storage: site data cleanup, private browsing, storage pressure, or long inactivity on Safari. With a server, your tasks come back on another device with the recovery key.</p>
+<h2>Synchronization</h2>
+<p>The server is a blind, ordered log. Clients do the merging.</p>
+<ol><li><strong>Pull</strong>: the client reads the log from its cursor, decrypts each entry and applies its rows. An unreadable entry stops the sync without moving the cursor.</li>
+<li><strong>Push</strong>: local changes not yet sent go out in batches of 200, each sealed and appended to the log.</li>
+<li><strong>Conflicts</strong>: the most recent change wins. Deletions are soft, so they reach every device.</li></ol>
+<p>Sync runs at startup, every 5 minutes, 5 seconds after each change, when the app comes back to the foreground, when the network comes back, and on demand from the sidebar.</p>
+<nav class="pager"><a href="apps.html">← Desktop and Android apps</a><a href="api.html">Relay API →</a></nav></main></div>
+<footer class="foot"><div class="wrap">Tickleaf is a personal project. <a href="https://github.com/adrien-cardinale/Tickleaf">Source on GitHub</a>.</div></footer>
+<script src="../site.js"></script>
+</body></html>

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Desktop and Android apps — Tickleaf docs</title>
+<meta name="description" content="Desktop and Android apps">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<script>try{const t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch{}</script>
+</head>
+<body>
+<header class="top"><div class="wrap bar">
+<a class="brand" href="../index.html"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 19.5C4.5 10.5 10 4.5 19.5 4.5c0 9.5-6 15-15 15z"/><path d="M9 12.5l2.2 2.2 4.3-4.6"/></svg>tickleaf</a>
+<nav><a href="../docs/index.html" aria-current="page">Docs</a><a href="../download.html">Download</a><a href="https://github.com/adrien-cardinale/Tickleaf">GitHub</a><a class="btn primary" href="../app/">Open the app</a>
+<button id="theme" type="button" aria-label="Toggle theme">◐</button></nav></div></header>
+<div class="wrap docs"><aside class="side"><p class="side-title">Documentation</p><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="tasks.html">Tasks and projects</a></li><li><a href="reminders.html">Reminders</a></li><li><a href="accounts.html">Accounts and devices</a></li><li><a href="self-hosting.html">Self-hosting</a></li><li><a href="apps.html" aria-current="page">Desktop and Android apps</a></li><li><a href="encryption.html">Encryption and sync</a></li><li><a href="api.html">Relay API</a></li></ul></aside>
+<main class="prose"><h1>Desktop and Android apps</h1>
+<p>The native apps are the web interface packaged with Tauri 2. They work offline, ring <a href="reminders.html">reminders</a> and sync through your server.</p>
+<h2 id="install">Install a release</h2>
+<p>Installers are attached to each release, and the <a href="../download.html">download page</a> picks the right one for your platform. They are <strong>not code-signed</strong> yet, so your system warns you on first launch:</p>
+<ul><li><strong>Windows</strong>: SmartScreen shows “Windows protected your PC”. Click <strong>More info</strong>, then <strong>Run anyway</strong>.</li>
+<li><strong>macOS</strong>: Gatekeeper refuses to open the app. Right-click the app, choose <strong>Open</strong>, then confirm. If it says the app is damaged, run <code>xattr -dr com.apple.quarantine /Applications/Tickleaf.app</code>.</li>
+<li><strong>Linux</strong>: no warning. Make an AppImage executable first: <code>chmod +x Tickleaf_*.AppImage</code>.</li>
+<li><strong>Android</strong>: allow installs from your browser when Android asks.</li></ul>
+<h2>Updates</h2>
+<p><strong>Paramètres › Mises à jour</strong> shows the installed version and compares it with the latest release on GitHub.</p>
+<ul><li><strong>Desktop</strong>: the app downloads the signed package, installs it and restarts.</li>
+<li><strong>Android</strong>: the app downloads the <code>.apk</code> of the release, which Android installs over the current one.</li>
+<li><strong>Browser</strong>: the page updates itself when the server deploys a new version.</li></ul>
+<p>A desktop update only installs if it is signed with the project key.</p>
+<h2>Connect synchronization</h2>
+<ol><li>On first launch, create a key, enter one, or scan a QR code on Android.</li>
+<li>Enter the server address on that screen, or later in <strong>Paramètres › Synchronisation</strong>.</li>
+<li>The app derives its credentials from the key and runs a first sync.</li></ol>
+<h2>Build them</h2>
+<p>You need stable Rust and the <a href="https://v2.tauri.app/start/prerequisites/">Tauri prerequisites</a>, plus the Android SDK, NDK and a JDK for Android.</p>
+<pre class="code"><code>bun run desktop:dev     # desktop window
+bun run desktop:build   # desktop installers
+bun run android:dev     # connected device or emulator
+bun run android:build   # APK and AAB</code></pre>
+<p>Desktop installers land in <code>apps/desktop/src-tauri/target/release/bundle</code>.</p>
+<nav class="pager"><a href="self-hosting.html">← Self-hosting</a><a href="encryption.html">Encryption and sync →</a></nav></main></div>
+<footer class="foot"><div class="wrap">Tickleaf is a personal project. <a href="https://github.com/adrien-cardinale/Tickleaf">Source on GitHub</a>.</div></footer>
+<script src="../site.js"></script>
+</body></html>

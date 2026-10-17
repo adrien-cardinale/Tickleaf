@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Self-hosting — Tickleaf docs</title>
+<meta name="description" content="Self-hosting">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<script>try{const t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch{}</script>
+</head>
+<body>
+<header class="top"><div class="wrap bar">
+<a class="brand" href="../index.html"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 19.5C4.5 10.5 10 4.5 19.5 4.5c0 9.5-6 15-15 15z"/><path d="M9 12.5l2.2 2.2 4.3-4.6"/></svg>tickleaf</a>
+<nav><a href="../docs/index.html" aria-current="page">Docs</a><a href="../download.html">Download</a><a href="https://github.com/adrien-cardinale/Tickleaf">GitHub</a><a class="btn primary" href="../app/">Open the app</a>
+<button id="theme" type="button" aria-label="Toggle theme">◐</button></nav></div></header>
+<div class="wrap docs"><aside class="side"><p class="side-title">Documentation</p><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="tasks.html">Tasks and projects</a></li><li><a href="reminders.html">Reminders</a></li><li><a href="accounts.html">Accounts and devices</a></li><li><a href="self-hosting.html" aria-current="page">Self-hosting</a></li><li><a href="apps.html">Desktop and Android apps</a></li><li><a href="encryption.html">Encryption and sync</a></li><li><a href="api.html">Relay API</a></li></ul></aside>
+<main class="prose"><h1>Self-hosting</h1>
+<p>The relay is a small server that stores encrypted blobs and serves the web app. It holds no business logic and never sees your tasks in clear text.</p>
+<h2>Docker</h2>
+<pre class="code"><code>git clone https://github.com/adrien-cardinale/Tickleaf.git
+cd Tickleaf
+docker compose up -d --build</code></pre>
+<p>Open <code>http://localhost:3000</code>. The relay database lives in the <code>tickleaf-data</code> volume, mounted on <code>/app/data</code>.</p>
+<p>Without Compose:</p>
+<pre class="code"><code>docker build -t tickleaf .
+docker run -d -p 3000:3000 -v tickleaf-data:/app/data tickleaf</code></pre>
+<h2>HTTPS</h2>
+<p>Encryption also works over plain HTTP. Only the service worker (PWA install, offline mode) needs HTTPS or <code>localhost</code>. Put a TLS reverse proxy in front of port 3000 for remote access.</p>
+<h2>Configuration</h2>
+<p>Every variable has a default.</p>
+<table><thead><tr><th>Variable</th><th>Default</th><th>Role</th></tr></thead><tbody>
+<tr><td><code>PORT</code></td><td><code>3000</code></td><td>Listening port.</td></tr>
+<tr><td><code>DATABASE_PATH</code></td><td><code>./data/relay.db</code></td><td>Relay SQLite database (<code>/app/data/relay.db</code> in the image).</td></tr>
+<tr><td><code>ALLOW_SIGNUP</code></td><td><code>true</code></td><td><code>false</code> refuses any new key. Set it once your devices are connected.</td></tr>
+<tr><td><code>STATIC_DIR</code></td><td><code>apps/web/dist</code></td><td>Web build folder to serve.</td></tr>
+<tr><td><code>MAX_USER_BYTES</code></td><td>512 MiB</td><td>Log quota per key. <code>0</code> disables it.</td></tr>
+<tr><td><code>RATE_LIMIT_PER_MINUTE</code></td><td><code>300</code></td><td>Requests per minute and per client. <code>0</code> disables it.</td></tr>
+<tr><td><code>ALLOWED_ORIGINS</code></td><td>empty</td><td>Allowed CORS origins, comma-separated.</td></tr>
+</tbody></table>
+<h2>Use it from this site</h2>
+<p>The app hosted on this site can sync with your relay. Add this site’s origin to <code>ALLOWED_ORIGINS</code>, then enter your relay address in the app. The desktop and Android apps need no CORS setting.</p>
+<nav class="pager"><a href="accounts.html">← Accounts and devices</a><a href="apps.html">Desktop and Android apps →</a></nav></main></div>
+<footer class="foot"><div class="wrap">Tickleaf is a personal project. <a href="https://github.com/adrien-cardinale/Tickleaf">Source on GitHub</a>.</div></footer>
+<script src="../site.js"></script>
+</body></html>
