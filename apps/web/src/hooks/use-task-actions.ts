@@ -11,6 +11,7 @@ import {
   createSubtask,
   deleteTask,
   reopenTask,
+  reorderTasks,
   rescheduleOverdue,
   restoreTasks,
   type TaskPatch,
@@ -81,6 +82,10 @@ export function useTaskActions() {
 
     update: async (id: string, patch: TaskPatch) => {
       await execute((db) => updateTask(db, id, patch))
+    },
+
+    reorder: async (orderedIds: readonly string[]) => {
+      await execute((db) => reorderTasks(db, orderedIds))
     },
 
     remove: async (id: string) => {

@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
-import { sortTasks } from "@tickleaf/core"
+import { sortManually } from "@tickleaf/core"
 import { useState } from "react"
 import { ProjectMenu } from "@/components/project-menu"
 import { ProjectTitle } from "@/components/project-title"
@@ -10,6 +10,7 @@ import { TaskSection } from "@/components/tasks/task-section"
 import { Button } from "@/components/ui/button"
 import { ViewPage } from "@/components/view-page"
 import { useProjectActions } from "@/hooks/use-project-actions"
+import { useTaskActions } from "@/hooks/use-task-actions"
 import { useViewData } from "@/hooks/use-view-data"
 import { labels } from "@/lib/labels"
 import { useSections } from "@/lib/queries"
@@ -40,13 +41,14 @@ function ProjectPage() {
   const { today, ready, projects, openTasks } = useViewData()
   const { data: allSections = [] } = useSections()
   const { rename, archive } = useProjectActions()
+  const { reorder } = useTaskActions()
   const [editing, setEditing] = useState(false)
   const project = projects.find((candidate) => candidate.id === projectId)
   const text = labels.views.project
 
   if (!project) return ready ? <ProjectNotFound /> : null
 
-  const items = sortTasks(openTasks.filter((task) => task.projectId === project.id))
+  const items = sortManually(openTasks.filter((task) => task.projectId === project.id))
   const sections = allSections.filter((section) => section.projectId === project.id)
   const sectionIds = new Set(sections.map((section) => section.id))
   const unsectioned = items.filter((task) => task.sectionId === null || !sectionIds.has(task.sectionId))
@@ -78,6 +80,7 @@ function ProjectPage() {
           today={today}
           empty={text.empty}
           projectNameOf={NO_PROJECT_NAME}
+          onReorder={reorder}
         />
       )}
       {sections.map((section) => (

@@ -3,6 +3,7 @@ import { useState } from "react"
 import { NameEditor } from "@/components/name-editor"
 import { TaskSection } from "@/components/tasks/task-section"
 import { useSectionActions } from "@/hooks/use-section-actions"
+import { useTaskActions } from "@/hooks/use-task-actions"
 import { labels } from "@/lib/labels"
 import { SectionMenu } from "./section-menu"
 import { SectionTaskAdd } from "./section-task-add"
@@ -19,6 +20,7 @@ type ProjectSectionProps = {
 export function ProjectSection({ project, section, tasks, today }: ProjectSectionProps) {
   const [editing, setEditing] = useState(false)
   const { rename, remove } = useSectionActions()
+  const { reorder } = useTaskActions()
   const text = labels.views.section
 
   const title = editing ? (
@@ -46,6 +48,7 @@ export function ProjectSection({ project, section, tasks, today }: ProjectSectio
       empty={text.empty}
       projectNameOf={NO_PROJECT_NAME}
       footer={<SectionTaskAdd project={project} section={section} />}
+      onReorder={reorder}
     />
   )
 }

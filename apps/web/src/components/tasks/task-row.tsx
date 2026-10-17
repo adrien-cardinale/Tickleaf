@@ -1,5 +1,6 @@
 import { type IsoDate, subtaskProgress, type Task } from "@tickleaf/core"
 import { ListChecks, Repeat } from "lucide-react"
+import type { ReactNode } from "react"
 import { Button } from "@/components/ui/button"
 import { useWorkspace } from "@/components/workspace-context"
 import { useTaskActions } from "@/hooks/use-task-actions"
@@ -13,6 +14,7 @@ type TaskRowProps = {
   task: Task
   today: IsoDate
   projectName: string | null
+  handle?: ReactNode
 }
 
 function dueClass(task: Task, today: IsoDate): string {
@@ -22,7 +24,7 @@ function dueClass(task: Task, today: IsoDate): string {
   return ""
 }
 
-export function TaskRow({ task, today, projectName }: TaskRowProps) {
+export function TaskRow({ task, today, projectName, handle }: TaskRowProps) {
   const { selectedTaskId, openTask } = useWorkspace()
   const { toggle } = useTaskActions()
   const { data: subtasks = [] } = useSubtasks(task.id)
@@ -33,10 +35,11 @@ export function TaskRow({ task, today, projectName }: TaskRowProps) {
   return (
     <div
       className={cn(
-        "flex items-start gap-3 border-b px-2 py-2.5 transition-colors hover:bg-muted/50",
+        "group flex items-start gap-3 border-b px-2 py-2.5 transition-colors hover:bg-muted/50",
         selectedTaskId === task.id && "bg-muted",
       )}
     >
+      {handle}
       <PriorityCheck
         priority={task.priority}
         done={done}

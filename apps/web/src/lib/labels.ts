@@ -114,6 +114,18 @@ export const labels = {
     untitled: "Sans titre",
     subtaskProgress: (done: number, total: number) =>
       `${done} sur ${total} ${plural(total, "sous-tâche terminée", "sous-tâches terminées")}`,
+    dragHandle: (title: string) => `Déplacer la tâche : ${title}`,
+  },
+  reorder: {
+    instructions:
+      "Pour déplacer une tâche, appuyez sur Espace ou Entrée. Déplacez-la avec les flèches haut et bas. Appuyez de nouveau sur Espace ou Entrée pour la déposer, ou sur Échap pour annuler.",
+    picked: (title: string, position: number, total: number) =>
+      `Tâche saisie : ${title}. Position ${position} sur ${total}.`,
+    moved: (title: string, position: number, total: number) =>
+      `Tâche déplacée : ${title}. Position ${position} sur ${total}.`,
+    dropped: (title: string, position: number, total: number) =>
+      `Tâche déposée : ${title}. Position ${position} sur ${total}.`,
+    cancelled: (title: string) => `Déplacement annulé : ${title} reprend sa place.`,
   },
   due: {
     today: "Aujourd’hui",

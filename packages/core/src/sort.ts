@@ -4,6 +4,8 @@ const NO_DUE = "9999-99-99"
 
 type SortableTask = Pick<Task, "priority" | "due" | "createdAt">
 
+type ManualTask = Pick<Task, "position" | "createdAt">
+
 export function compareTasks(a: SortableTask, b: SortableTask): number {
   if (a.priority !== b.priority) return a.priority - b.priority
   const dueA = a.due ?? NO_DUE
@@ -23,4 +25,12 @@ export function compareCompleted(a: Pick<Task, "completedAt">, b: Pick<Task, "co
 
 export function sortTasks<T extends SortableTask>(tasks: readonly T[]): T[] {
   return [...tasks].sort(compareTasks)
+}
+
+export function compareManual(a: ManualTask, b: ManualTask): number {
+  return a.position - b.position || a.createdAt.localeCompare(b.createdAt)
+}
+
+export function sortManually<T extends ManualTask>(tasks: readonly T[]): T[] {
+  return [...tasks].sort(compareManual)
 }

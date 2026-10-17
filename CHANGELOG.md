@@ -4,6 +4,12 @@ All notable changes to Tickleaf are documented here. The format follows [Keep a 
 
 The section matching the released version is attached automatically as the GitHub release notes.
 
+## [Unreleased]
+
+### Added
+
+- Reorder tasks by drag and drop in the inbox and in projects, in the list without a section and inside each section. Drag the handle at the left of a task, or focus it and use the keyboard. Today and Upcoming stay sorted by priority and date.
+
 ## [0.2.0] - 2026-10-17
 
 ### Added

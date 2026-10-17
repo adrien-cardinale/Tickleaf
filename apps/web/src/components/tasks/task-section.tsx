@@ -1,6 +1,8 @@
 import type { IsoDate, Task } from "@tickleaf/core"
 import type { ReactNode } from "react"
+import { useWorkspace } from "@/components/workspace-context"
 import { labels } from "@/lib/labels"
+import { SortableTaskList } from "./sortable-task-list"
 import { TaskRow } from "./task-row"
 
 type TaskSectionProps = {
@@ -13,6 +15,17 @@ type TaskSectionProps = {
   empty?: string
   projectNameOf: (task: Task) => string | null
   footer?: ReactNode
+  onReorder?: (orderedIds: string[]) => Promise<void> | void
+}
+
+type TaskListProps = Pick<TaskSectionProps, "tasks" | "today" | "projectNameOf" | "onReorder">
+
+function TaskList({ tasks, today, projectNameOf, onReorder }: TaskListProps) {
+  const { search } = useWorkspace()
+  if (onReorder && search === "") {
+    return <SortableTaskList tasks={tasks} today={today} projectNameOf={projectNameOf} onReorder={onReorder} />
+  }
+  return tasks.map((task) => <TaskRow key={task.id} task={task} today={today} projectName={projectNameOf(task)} />)
 }
 
 export function TaskSection({
@@ -25,6 +38,7 @@ export function TaskSection({
   empty,
   projectNameOf,
   footer,
+  onReorder,
 }: TaskSectionProps) {
   return (
     <section className="flex flex-col">
@@ -37,7 +51,7 @@ export function TaskSection({
       {tasks.length === 0 ? (
         <p className="py-8 text-center text-muted-foreground">{empty ?? labels.views.emptySection}</p>
       ) : (
-        tasks.map((task) => <TaskRow key={task.id} task={task} today={today} projectName={projectNameOf(task)} />)
+        <TaskList tasks={tasks} today={today} projectNameOf={projectNameOf} onReorder={onReorder} />
       )}
       {footer}
     </section>

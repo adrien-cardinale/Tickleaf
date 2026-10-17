@@ -111,6 +111,22 @@ export async function updateTask(db: Db, id: string, patch: TaskPatch): Promise<
   return previous
 }
 
+export async function reorderTasks(db: Db, orderedIds: readonly string[]): Promise<void> {
+  if (orderedIds.length === 0) return
+  const current = await db
+    .select({ id: tasks.id, position: tasks.position })
+    .from(tasks)
+    .where(inArray(tasks.id, [...orderedIds]))
+  const positions = new Map(current.map((task) => [task.id, task.position]))
+  for (const [index, id] of orderedIds.entries()) {
+    if (!positions.has(id) || positions.get(id) === index) continue
+    await db
+      .update(tasks)
+      .set({ position: index, ...touched() })
+      .where(eq(tasks.id, id))
+  }
+}
+
 function shiftTimestamp(timestamp: string, days: number): string {
   const date = new Date(timestamp)
   date.setDate(date.getDate() + days)
