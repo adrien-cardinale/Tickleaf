@@ -1,4 +1,4 @@
-import { type IsoDate, type Project, parseQuickAdd, type Task } from "@tickleaf/core"
+import { type IsoDate, nextOccurrence, type Project, parseQuickAdd, type Task, todayIso } from "@tickleaf/core"
 import type { Db } from "@tickleaf/db"
 import { toast } from "sonner"
 import { dueLabel } from "@/lib/format"
@@ -21,6 +21,13 @@ export type QuickAddContext = { due: IsoDate | null; project: Project | null; se
 
 type UndoableToast = { message: string; undo: (db: Db) => Promise<void> }
 
+function toggleMessage(task: Task): string {
+  if (task.completedAt !== null) return labels.toast.reopened
+  if (task.recurrence === null) return labels.toast.completed
+  const today = todayIso()
+  return labels.toast.repeated(dueLabel(nextOccurrence(task.due, task.recurrence, today), today))
+}
+
 export function useTaskActions() {
   const execute = useDbAction()
 
@@ -35,10 +42,7 @@ export function useTaskActions() {
       const done = task.completedAt !== null
       const previous = await execute((db) => (done ? reopenTask(db, task.id) : completeTask(db, task.id)))
       if (!previous) return
-      showUndo({
-        message: done ? labels.toast.reopened : labels.toast.completed,
-        undo: (db) => restoreTask(db, previous),
-      })
+      showUndo({ message: toggleMessage(task), undo: (db) => restoreTask(db, previous) })
     },
 
     add: async (input: string, context: QuickAddContext, today: IsoDate): Promise<boolean> => {

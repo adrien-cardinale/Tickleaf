@@ -46,7 +46,7 @@ export const labels = {
     hintOr: "ou",
     hintAfter: "dans la phrase.",
     hintShortcut: "pour écrire.",
-    hintTokens: ["demain", "lundi", "dans 3 jours"],
+    hintTokens: ["demain", "lundi", "chaque lundi"],
   },
   views: {
     today: {
@@ -126,6 +126,7 @@ export const labels = {
     descriptionPlaceholder: "Notes, liens, contexte…",
     fieldDue: "Échéance",
     fieldPriority: "Priorité",
+    fieldRecurrence: "Répétition",
     fieldReminder: "Rappel",
     reminderWebHint: "Le rappel sonne sur les apps ordinateur et Android.",
     fieldProject: "Projet",
@@ -136,6 +137,14 @@ export const labels = {
     completed: (date: string) => `Terminée le ${date}`,
     delete: "Supprimer la tâche",
     confirm: "Valider",
+  },
+  recurrence: {
+    none: "Ne se répète pas",
+    day: (interval: number) => (interval === 1 ? "Chaque jour" : `Tous les ${interval} jours`),
+    weekday: (interval: number) => (interval === 1 ? "Chaque jour ouvré" : `Tous les ${interval} jours ouvrés`),
+    week: (interval: number) => (interval === 1 ? "Chaque semaine" : `Toutes les ${interval} semaines`),
+    month: (interval: number) => (interval === 1 ? "Chaque mois" : `Tous les ${interval} mois`),
+    year: (interval: number) => (interval === 1 ? "Chaque année" : `Tous les ${interval} ans`),
   },
   reminders: {
     body: "Rappel Tickleaf",
@@ -151,6 +160,7 @@ export const labels = {
   toast: {
     undo: "Annuler",
     completed: "Tâche terminée",
+    repeated: (due: string) => `Prochaine occurrence : ${due}`,
     reopened: "Tâche rouverte",
     added: "Tâche ajoutée",
     addedWith: (where: string) => `Ajoutée : ${where}`,
@@ -346,7 +356,17 @@ export const labels = {
     switcher: "Changer de compte",
   },
   export: {
-    columns: ["Titre", "Description", "Projet", "Échéance", "Priorité", "Statut", "Terminée le", "Créée le"],
+    columns: [
+      "Titre",
+      "Description",
+      "Projet",
+      "Échéance",
+      "Répétition",
+      "Priorité",
+      "Statut",
+      "Terminée le",
+      "Créée le",
+    ],
     open: "Ouverte",
     done: "Terminée",
   },

@@ -1,4 +1,4 @@
-import { addDays, fromIsoDate, type IsoDate } from "@tickleaf/core"
+import { addDays, fromIsoDate, type IsoDate, type Recurrence } from "@tickleaf/core"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { labels } from "@/lib/labels"
@@ -25,6 +25,10 @@ export function toDateTimeInput(timestamp: string | null): string {
 
 export function fromDateTimeInput(value: string): string | null {
   return value === "" ? null : new Date(value).toISOString()
+}
+
+export function recurrenceLabel(recurrence: Recurrence): string {
+  return labels.recurrence[recurrence.unit](recurrence.interval)
 }
 
 export function dueLabel(due: IsoDate, today: IsoDate): string {

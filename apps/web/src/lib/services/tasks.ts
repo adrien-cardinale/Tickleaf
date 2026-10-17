@@ -1,4 +1,13 @@
-import { DEFAULT_PRIORITY, type IsoDate, type Priority, type Task } from "@tickleaf/core"
+import {
+  DEFAULT_PRIORITY,
+  daysBetween,
+  type IsoDate,
+  nextOccurrence,
+  type Priority,
+  type Recurrence,
+  type Task,
+  todayIso,
+} from "@tickleaf/core"
 import { type Db, tasks } from "@tickleaf/db"
 import { and, desc, eq, inArray, isNotNull, isNull, lt, max, type SQL } from "@tickleaf/db/orm"
 import { newId, nowIso, touched } from "./clock"
@@ -10,10 +19,11 @@ export type NewTask = {
   priority?: Priority
   projectId: string | null
   sectionId?: string | null
+  recurrence?: Recurrence | null
 }
 
 export type TaskPatch = Partial<
-  Pick<Task, "title" | "description" | "due" | "reminderAt" | "priority" | "projectId" | "sectionId">
+  Pick<Task, "title" | "description" | "due" | "reminderAt" | "recurrence" | "priority" | "projectId" | "sectionId">
 >
 
 const notDeleted = isNull(tasks.deletedAt)
@@ -62,6 +72,7 @@ export async function createTask(db: Db, input: NewTask): Promise<Task> {
     description: input.description ?? "",
     due: input.due,
     reminderAt: null,
+    recurrence: input.recurrence ?? null,
     priority: input.priority ?? DEFAULT_PRIORITY,
     projectId: input.projectId,
     sectionId: input.projectId === null ? null : (input.sectionId ?? null),
@@ -94,8 +105,27 @@ export async function updateTask(db: Db, id: string, patch: TaskPatch): Promise<
   return previous
 }
 
-export async function completeTask(db: Db, id: string): Promise<Task> {
+function shiftTimestamp(timestamp: string, days: number): string {
+  const date = new Date(timestamp)
+  date.setDate(date.getDate() + days)
+  return date.toISOString()
+}
+
+function nextRepetition(task: Task, recurrence: Recurrence, today: IsoDate): TaskPatch {
+  const due = nextOccurrence(task.due, recurrence, today)
+  const shift = daysBetween(task.due ?? today, due)
+  return { due, reminderAt: task.reminderAt === null ? null : shiftTimestamp(task.reminderAt, shift) }
+}
+
+export async function completeTask(db: Db, id: string, today: IsoDate = todayIso()): Promise<Task> {
   const previous = await requireTask(db, id)
+  if (previous.recurrence !== null) {
+    await db
+      .update(tasks)
+      .set({ ...nextRepetition(previous, previous.recurrence, today), ...touched() })
+      .where(eq(tasks.id, id))
+    return previous
+  }
   const timestamp = nowIso()
   await db
     .update(tasks)

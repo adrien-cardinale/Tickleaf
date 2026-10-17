@@ -10,6 +10,7 @@ describe("parseQuickAdd", () => {
       due: null,
       priority: 4,
       projectName: null,
+      recurrence: null,
     })
   })
 
@@ -67,6 +68,53 @@ describe("parseQuickAdd", () => {
       due: "2026-10-17",
       priority: 1,
       projectName: "Travail",
+      recurrence: null,
+    })
+  })
+
+  test("reads a daily, weekly, monthly or yearly recurrence starting today", () => {
+    expect(parseQuickAdd("Méditer tous les jours", FRIDAY)).toMatchObject({
+      title: "Méditer",
+      due: FRIDAY,
+      recurrence: { unit: "day", interval: 1 },
+    })
+    expect(parseQuickAdd("Arroser chaque semaine", FRIDAY).recurrence).toEqual({ unit: "week", interval: 1 })
+    expect(parseQuickAdd("Loyer tous les mois", FRIDAY).recurrence).toEqual({ unit: "month", interval: 1 })
+    expect(parseQuickAdd("Bilan chaque année", FRIDAY).recurrence).toEqual({ unit: "year", interval: 1 })
+    expect(parseQuickAdd("Bilan tous les ans", FRIDAY).recurrence).toEqual({ unit: "year", interval: 1 })
+  })
+
+  test("reads a recurrence with an interval", () => {
+    expect(parseQuickAdd("Sport tous les 2 jours", FRIDAY)).toMatchObject({
+      title: "Sport",
+      recurrence: { unit: "day", interval: 2 },
+    })
+    expect(parseQuickAdd("Courses toutes les 3 semaines", FRIDAY).recurrence).toEqual({ unit: "week", interval: 3 })
+  })
+
+  test("reads working days", () => {
+    expect(parseQuickAdd("Mails tous les jours ouvrés", FRIDAY)).toMatchObject({
+      title: "Mails",
+      recurrence: { unit: "weekday", interval: 1 },
+    })
+    expect(parseQuickAdd("Mails chaque jour ouvrable", FRIDAY).recurrence).toEqual({ unit: "weekday", interval: 1 })
+  })
+
+  test("reads a weekday recurrence starting on that weekday", () => {
+    expect(parseQuickAdd("Cours chaque lundi", FRIDAY)).toMatchObject({
+      title: "Cours",
+      due: "2026-10-19",
+      recurrence: { unit: "week", interval: 1 },
+    })
+    expect(parseQuickAdd("Marché tous les vendredis", FRIDAY).due).toBe(FRIDAY)
+  })
+
+  test("lets an explicit date set the first occurrence", () => {
+    expect(parseQuickAdd("Loyer tous les mois 01.11 #Maison", FRIDAY)).toMatchObject({
+      title: "Loyer",
+      due: "2026-11-01",
+      projectName: "Maison",
+      recurrence: { unit: "month", interval: 1 },
     })
   })
 

@@ -1,3 +1,5 @@
+import type { Recurrence } from "./recurrence"
+
 export const PRIORITIES = [1, 2, 3, 4] as const
 
 export type Priority = (typeof PRIORITIES)[number]
@@ -30,6 +32,7 @@ export type Task = {
   description: string
   due: IsoDate | null
   reminderAt: string | null
+  recurrence: Recurrence | null
   priority: Priority
   projectId: string | null
   sectionId: string | null

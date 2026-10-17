@@ -18,6 +18,7 @@ function task(overrides: Partial<Task>): Task {
     description: "",
     due: null,
     reminderAt: null,
+    recurrence: null,
     priority: 4,
     projectId: null,
     sectionId: null,
@@ -32,7 +33,7 @@ function task(overrides: Partial<Task>): Task {
 describe("export CSV des tâches", () => {
   test("commence par le BOM et l'en-tête", () => {
     const [header] = tasksToCsv([], []).split("\r\n")
-    expect(header).toBe("﻿Titre;Description;Projet;Échéance;Priorité;Statut;Terminée le;Créée le")
+    expect(header).toBe("﻿Titre;Description;Projet;Échéance;Répétition;Priorité;Statut;Terminée le;Créée le")
   })
 
   test("écrit une ligne par tâche, triée par création", () => {
@@ -42,12 +43,15 @@ describe("export CSV des tâches", () => {
       projectId: "p1",
       due: "2026-10-05",
       reminderAt: null,
+      recurrence: { unit: "week", interval: 2 },
       priority: 1,
       completedAt: "2026-10-04T08:00:00.000Z",
     })
     const lines = tasksToCsv([later, done], [project]).split("\r\n")
-    expect(lines[1]).toBe("Payer;;Maison;2026-10-05;P1;Terminée;2026-10-04T08:00:00.000Z;2026-10-02T08:00:00.000Z")
-    expect(lines[2]).toBe("Après;;Boîte de réception;;P4;Ouverte;;2026-10-03T08:00:00.000Z")
+    expect(lines[1]).toBe(
+      "Payer;;Maison;2026-10-05;Toutes les 2 semaines;P1;Terminée;2026-10-04T08:00:00.000Z;2026-10-02T08:00:00.000Z",
+    )
+    expect(lines[2]).toBe("Après;;Boîte de réception;;;P4;Ouverte;;2026-10-03T08:00:00.000Z")
   })
 
   test("met entre guillemets les cellules avec séparateur, guillemet ou saut de ligne", () => {

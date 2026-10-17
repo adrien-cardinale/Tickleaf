@@ -55,3 +55,26 @@ export function nextDayMonth(day: number, month: number, today: IsoDate): IsoDat
   if (thisYear === null || thisYear >= today) return thisYear
   return makeDate(year + 1, month, day)
 }
+
+export function upcomingWeekday(weekday: Weekday, today: IsoDate): IsoDate {
+  const target = WEEKDAYS.indexOf(weekday)
+  const current = fromIsoDate(today).getDay()
+  return addDays(today, (target - current + 7) % 7)
+}
+
+export function addMonths(value: IsoDate, months: number): IsoDate {
+  const date = fromIsoDate(value)
+  const target = new Date(date.getFullYear(), date.getMonth() + months, 1)
+  const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate()
+  target.setDate(Math.min(date.getDate(), lastDay))
+  return toIsoDate(target)
+}
+
+export function daysBetween(from: IsoDate, to: IsoDate): number {
+  return Math.round((fromIsoDate(to).getTime() - fromIsoDate(from).getTime()) / 86_400_000)
+}
+
+export function isWeekend(value: IsoDate): boolean {
+  const day = fromIsoDate(value).getDay()
+  return day === 0 || day === 6
+}

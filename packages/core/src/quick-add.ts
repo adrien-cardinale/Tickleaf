@@ -1,4 +1,5 @@
-import { addDays, isIsoDate, nextDayMonth, nextWeekday, type Weekday } from "./dates"
+import { addDays, isIsoDate, nextDayMonth, nextWeekday, upcomingWeekday, type Weekday } from "./dates"
+import type { Recurrence, RecurrenceUnit } from "./recurrence"
 import type { IsoDate, Priority } from "./types"
 import { DEFAULT_PRIORITY } from "./types"
 
@@ -7,6 +8,7 @@ export type QuickAddResult = {
   due: IsoDate | null
   priority: Priority
   projectName: string | null
+  recurrence: Recurrence | null
 }
 
 type DateRule = {
@@ -36,6 +38,42 @@ const DATE_RULES: readonly DateRule[] = [
   },
 ]
 
+const WEEKLY_PATTERN =
+  /(?<![\p{L}\d])(?:tous\s+les|chaque)\s+(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)s?(?![\p{L}\d])/iu
+const INTERVAL_PATTERN =
+  /(?<![\p{L}\d])(?:tous\s+les|toutes\s+les|chaque)\s+(?:(\d{1,3})\s+)?(jours?\s+ouvr(?:é|able)s?|jours?|semaines?|mois|ans?|années?)(?![\p{L}\d])/iu
+
+function unitOf(word: string): RecurrenceUnit {
+  const normalized = word.toLowerCase()
+  if (normalized.includes("ouvr")) return "weekday"
+  if (normalized.startsWith("jour")) return "day"
+  if (normalized.startsWith("semaine")) return "week"
+  if (normalized === "mois") return "month"
+  return "year"
+}
+
+type ExtractedRecurrence = { text: string; recurrence: Recurrence | null; start: IsoDate | null }
+
+function extractRecurrence(text: string, today: IsoDate): ExtractedRecurrence {
+  const weekly = text.match(WEEKLY_PATTERN)
+  if (weekly) {
+    return {
+      text: text.replace(WEEKLY_PATTERN, " "),
+      recurrence: { unit: "week", interval: 1 },
+      start: upcomingWeekday(String(weekly[1]).toLowerCase() as Weekday, today),
+    }
+  }
+  const periodic = text.match(INTERVAL_PATTERN)
+  if (!periodic) return { text, recurrence: null, start: null }
+  const interval = Number(periodic[1] ?? 1)
+  if (interval < 1) return { text, recurrence: null, start: null }
+  return {
+    text: text.replace(INTERVAL_PATTERN, " "),
+    recurrence: { unit: unitOf(String(periodic[2])), interval },
+    start: today,
+  }
+}
+
 const PRIORITY_PATTERN = /(?:^|\s)[p!]([1-4])(?=\s|$)/i
 const PROJECT_PATTERN = /#([\p{L}\d_-]+)/u
 
@@ -63,13 +101,15 @@ function extractProject(text: string): { text: string; projectName: string | nul
 }
 
 export function parseQuickAdd(input: string, today: IsoDate): QuickAddResult {
-  const dated = extractDate(input.trim(), today)
+  const repeated = extractRecurrence(input.trim(), today)
+  const dated = extractDate(repeated.text, today)
   const prioritized = extractPriority(dated.text)
   const assigned = extractProject(prioritized.text)
   return {
     title: assigned.text.replace(/\s+/g, " ").trim(),
-    due: dated.due,
+    due: dated.due ?? repeated.start,
     priority: prioritized.priority,
     projectName: assigned.projectName,
+    recurrence: repeated.recurrence,
   }
 }

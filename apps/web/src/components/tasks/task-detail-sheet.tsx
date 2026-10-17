@@ -1,4 +1,13 @@
-import { isPriority, PRIORITIES, type Project, type Section, type Task } from "@tickleaf/core"
+import {
+  isPriority,
+  PRIORITIES,
+  type Project,
+  RECURRENCE_UNITS,
+  type Recurrence,
+  type RecurrenceUnit,
+  type Section,
+  type Task,
+} from "@tickleaf/core"
 import { Trash2 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -11,7 +20,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/components/workspace-context"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useTaskActions } from "@/hooks/use-task-actions"
-import { formatTimestamp, fromDateTimeInput, toDateTimeInput } from "@/lib/format"
+import { useToday } from "@/hooks/use-today"
+import { formatTimestamp, fromDateTimeInput, recurrenceLabel, toDateTimeInput } from "@/lib/format"
 import { labels } from "@/lib/labels"
 import { useProjects, useSections, useTasks } from "@/lib/queries"
 import { ensureNotificationPermission } from "@/lib/reminders/reminder-notifications"
@@ -19,6 +29,8 @@ import { isTauri } from "@/lib/runtime"
 
 const INBOX_VALUE = "inbox"
 const NO_SECTION_VALUE = "none"
+const NO_RECURRENCE_VALUE = "none"
+const RECURRENCE_PRESETS: readonly Recurrence[] = RECURRENCE_UNITS.map((unit) => ({ unit, interval: 1 }))
 
 type TaskDetailFormProps = {
   task: Task
@@ -54,6 +66,52 @@ function SectionField({ task, sections }: SectionFieldProps) {
           {options.map((section) => (
             <SelectItem key={section.id} value={section.id}>
               {section.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  )
+}
+
+function recurrenceValue(recurrence: Recurrence): string {
+  return `${recurrence.interval}:${recurrence.unit}`
+}
+
+function parseRecurrenceValue(value: string): Recurrence | null {
+  const [interval, unit] = value.split(":")
+  if (!(RECURRENCE_UNITS as readonly string[]).includes(unit ?? "")) return null
+  return { unit: unit as RecurrenceUnit, interval: Number(interval) }
+}
+
+function RecurrenceField({ task }: { task: Task }) {
+  const { update } = useTaskActions()
+  const today = useToday()
+  const current = task.recurrence
+  const options = current === null || current.interval === 1 ? RECURRENCE_PRESETS : [...RECURRENCE_PRESETS, current]
+
+  const changeRecurrence = (value: string) => {
+    const recurrence = parseRecurrenceValue(value)
+    void update(task.id, recurrence !== null && task.due === null ? { recurrence, due: today } : { recurrence })
+  }
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label htmlFor="task-recurrence" className="text-xs text-muted-foreground">
+        {labels.detail.fieldRecurrence}
+      </Label>
+      <Select
+        value={current === null ? NO_RECURRENCE_VALUE : recurrenceValue(current)}
+        onValueChange={changeRecurrence}
+      >
+        <SelectTrigger id="task-recurrence" className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={NO_RECURRENCE_VALUE}>{labels.recurrence.none}</SelectItem>
+          {options.map((option) => (
+            <SelectItem key={recurrenceValue(option)} value={recurrenceValue(option)}>
+              {recurrenceLabel(option)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -167,6 +225,7 @@ function TaskDetailForm({ task, projects, sections }: TaskDetailFormProps) {
           </Select>
         </div>
       </div>
+      <RecurrenceField task={task} />
       <ReminderField task={task} />
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="task-project" className="text-xs text-muted-foreground">

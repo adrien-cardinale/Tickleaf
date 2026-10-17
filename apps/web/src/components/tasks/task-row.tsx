@@ -1,8 +1,9 @@
 import type { IsoDate, Task } from "@tickleaf/core"
+import { Repeat } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useWorkspace } from "@/components/workspace-context"
 import { useTaskActions } from "@/hooks/use-task-actions"
-import { dueLabel } from "@/lib/format"
+import { dueLabel, recurrenceLabel } from "@/lib/format"
 import { labels } from "@/lib/labels"
 import { cn } from "@/lib/utils"
 import { PriorityCheck } from "./priority-check"
@@ -51,7 +52,14 @@ export function TaskRow({ task, today, projectName }: TaskRowProps) {
         </span>
         {hasMeta && (
           <span className="mt-0.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-            {task.due !== null && <span className={dueClass(task, today)}>{dueLabel(task.due, today)}</span>}
+            {task.due !== null && (
+              <span className={cn("inline-flex items-center gap-1", dueClass(task, today))}>
+                {dueLabel(task.due, today)}
+                {task.recurrence !== null && (
+                  <Repeat className="size-3" role="img" aria-label={recurrenceLabel(task.recurrence)} />
+                )}
+              </span>
+            )}
             {projectName !== null && (
               <span className="inline-flex items-center gap-1.5">
                 <span className="size-1.5 rounded-full border border-current" aria-hidden="true" />

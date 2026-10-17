@@ -18,6 +18,7 @@ export async function addQuickTask(
     title: parsed.title,
     due: parsed.due ?? defaults.due,
     priority: parsed.priority,
+    recurrence: parsed.recurrence,
     projectId,
     sectionId: projectId === defaults.projectId ? defaults.sectionId : null,
   })

@@ -16,18 +16,30 @@
 <button id="theme" type="button" aria-label="Toggle theme">◐</button></nav></div></header>
 <div class="wrap docs"><aside class="side"><p class="side-title">Documentation</p><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="tasks.html" aria-current="page">Tasks and projects</a></li><li><a href="reminders.html">Reminders</a></li><li><a href="accounts.html">Accounts and devices</a></li><li><a href="self-hosting.html">Self-hosting</a></li><li><a href="apps.html">Desktop and Android apps</a></li><li><a href="encryption.html">Encryption and sync</a></li><li><a href="api.html">Relay API</a></li></ul></aside>
 <main class="prose"><h1>Tasks and projects</h1>
-<p>Tasks live in an inbox or in a project. A project can be split into sections. Each task has a title, notes, a due date, a priority and an optional reminder.</p>
+<p>Tasks live in an inbox or in a project. A project can be split into sections. Each task has a title, notes, a due date, a priority, an optional repetition and an optional reminder.</p>
 <h2 id="quick-add">Quick add</h2>
-<p>The field at the top of each view adds a task. Press <kbd>/</kbd> anywhere to jump to it. Tickleaf reads the date, the priority and the project from the sentence, then removes them from the title.</p>
+<p>The field at the top of each view adds a task. Press <kbd>/</kbd> anywhere to jump to it. Tickleaf reads the date, the repetition, the priority and the project from the sentence, then removes them from the title.</p>
 <table><thead><tr><th>Type</th><th>Result</th></tr></thead><tbody>
 <tr><td><code>aujourd'hui</code>, <code>demain</code>, <code>après-demain</code></td><td>Due today, tomorrow or the day after.</td></tr>
 <tr><td><code>lundi</code> … <code>dimanche</code></td><td>Due on the next such weekday.</td></tr>
 <tr><td><code>dans 3 jours</code></td><td>Due in 3 days.</td></tr>
 <tr><td><code>24.12</code>, <code>24/12</code>, <code>2026-12-24</code></td><td>Due on that date. Without a year, the next occurrence.</td></tr>
+<tr><td><code>tous les jours</code>, <code>chaque semaine</code>, <code>tous les mois</code>, <code>chaque année</code></td><td>Repeats from today.</td></tr>
+<tr><td><code>tous les 3 jours</code>, <code>toutes les 2 semaines</code></td><td>Repeats with that interval.</td></tr>
+<tr><td><code>tous les jours ouvrés</code></td><td>Repeats from Monday to Friday.</td></tr>
+<tr><td><code>chaque lundi</code>, <code>tous les vendredis</code></td><td>Repeats every week on that day.</td></tr>
 <tr><td><code>p1</code> … <code>p4</code>, or <code>!1</code> … <code>!4</code></td><td>Priority, from urgent to low. The default is <code>p4</code>.</td></tr>
 <tr><td><code>#Project</code></td><td>Files the task in that project.</td></tr>
 </tbody></table>
 <p>Example: <code>Appeler la banque demain p1 #Admin</code> creates “Appeler la banque”, due tomorrow, urgent, in the Admin project.</p>
+<p>A date in the same sentence sets the first occurrence: <code>Loyer tous les mois 01.11</code>.</p>
+<h2 id="recurring">Recurring tasks</h2>
+<p>A recurring task shows a repeat icon next to its date. Completing it does not move it to <strong>Terminées</strong>: its due date moves to the next occurrence and the task stays open.</p>
+<ul><li>The next occurrence comes after today. An overdue daily task moves to tomorrow, not to the missed day.</li>
+<li>A monthly task keeps its day of the month. A task on the 31st falls on the last day of shorter months.</li>
+<li>A reminder moves by the same number of days, at the same time.</li>
+<li><strong>Annuler</strong> in the notification puts the previous date back.</li>
+<li>To stop the repetition, choose <strong>Ne se répète pas</strong> in the task detail.</li></ul>
 <h2>Views</h2>
 <ul><li><strong>Aujourd’hui</strong>: overdue tasks first, with a button to move them to today, then the tasks due today.</li>
 <li><strong>À venir</strong>: the next seven days, day by day, then everything later.</li>
@@ -47,7 +59,7 @@
 <img class="light" src="../screenshots/task-light.webp" alt="The task detail: due date, priority, reminder, project and section" width="1512" height="920" loading="lazy">
 <img class="dark" src="../screenshots/task-dark.webp" alt="The task detail: due date, priority, reminder, project and section (dark mode)" width="1512" height="920" loading="lazy">
 </figure>
-<p>Click a task to open its detail. There you change the title, the notes, the due date, the priority, the <a href="reminders.html">reminder</a>, the project and the section. The trash icon in the header deletes the task.</p>
+<p>Click a task to open its detail. There you change the title, the notes, the due date, the priority, the repetition, the <a href="reminders.html">reminder</a>, the project and the section. The trash icon in the header deletes the task.</p>
 <nav class="pager"><a href="getting-started.html">← Getting started</a><a href="reminders.html">Reminders →</a></nav></main></div>
 <footer class="foot"><div class="wrap">Tickleaf is a personal project. <a href="https://github.com/adrien-cardinale/Tickleaf">Source on GitHub</a>.</div></footer>
 <script src="../site.js"></script>

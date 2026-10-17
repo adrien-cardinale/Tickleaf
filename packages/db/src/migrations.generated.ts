@@ -21,4 +21,9 @@ export const GENERATED_MIGRATIONS: readonly Migration[] = [
     when: 1792243076924,
     sql: "ALTER TABLE `tasks` ADD `reminder_at` text;",
   },
+  {
+    tag: "0004_recurrence",
+    when: 1792266814603,
+    sql: "ALTER TABLE `tasks` ADD `recurrence` text;",
+  },
 ]
