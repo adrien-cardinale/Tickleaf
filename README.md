@@ -134,6 +134,7 @@ Synchronization runs at startup, every 5 minutes, 5 seconds after each change, w
 ## Connecting a device
 
 1. On first launch the app asks for a key: **create a key** (write down the displayed recovery key) or **enter an existing key** to join your data.
+   The Android app can also **scan a QR code**: on a device already set up, **Settings** shows a QR code holding the recovery key and the relay address.
 2. In the browser, the server is the one that served the page: synchronization starts on its own. The static build (GitHub Pages) and the desktop and Android apps ask for the relay address. For the static build, the relay must list its origin in `ALLOWED_ORIGINS`. Without an address, the app stays local.
 3. The **Settings** page (`/settings`) shows the synchronization status, reveals the recovery key behind a warning, exports the tasks and checks for updates.
 
@@ -153,6 +154,10 @@ Account names and relay addresses are stored in clear text in IndexedDB.
 ## Export
 
 **Settings › Export** downloads every task of the open account as CSV: `;` separator, UTF-8 with BOM, one row per task. The Android app saves the file in its Download folder and shows the path.
+
+## Reminders
+
+The task detail sets a reminder date and time. The desktop and Android apps show a notification at that time; the web build stores the reminder but never rings. On the desktop, the reminder only rings while the app is open. On Android, the system schedules it, so it rings with the app closed.
 
 ## Where the data lives
 
