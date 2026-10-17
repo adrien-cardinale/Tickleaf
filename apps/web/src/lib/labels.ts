@@ -176,6 +176,18 @@ export const labels = {
     invalidServer: "Adresse du serveur invalide : commencez par http:// ou https://",
     saveFailed: "Enregistrement de la clé impossible",
     keyGenerationFailed: "Création de la clé impossible sur ce navigateur",
+    enterKeyManually: "Saisir la clé à la main",
+    scan: {
+      action: "Scanner un QR code",
+      scanning: "Scan en cours…",
+      hint: "Depuis un appareil déjà configuré : Paramètres → Clé de récupération → Afficher le QR code.",
+      cameraDenied: "Accès à la caméra refusé : autorisez-le pour scanner un QR code",
+      failed: "Scan interrompu",
+      settingsTitle: "Autoriser la caméra dans les réglages ?",
+      settingsDescription:
+        "L’accès à la caméra a été refusé. Autorisez-le dans les réglages de l’appareil pour scanner un QR code.",
+      openSettings: "Ouvrir les réglages",
+    },
   },
   sync: {
     indicator: "Synchronisation",
@@ -232,6 +244,18 @@ export const labels = {
       keyWarning: "Quiconque voit cette clé peut lire toutes vos tâches. Vérifiez que personne ne regarde votre écran.",
       reveal: "Afficher",
       hideKey: "Masquer la clé",
+    },
+    deviceLink: {
+      noServerTitle: "Aucun serveur de synchronisation",
+      noServerDescription:
+        "Connectez d’abord cet appareil à un serveur : sans lui, les deux appareils partageront la clé mais pas les tâches.",
+      secretTitle: "Ce QR code contient votre clé de chiffrement",
+      secretDescription:
+        "Quiconque le photographie peut lire toutes vos tâches. Ne le montrez qu’à votre appareil et masquez-le ensuite.",
+      steps: "Au premier lancement de l’application Android, choisissez « Scanner un QR code ».",
+      show: "Afficher le QR code",
+      hide: "Masquer le QR code",
+      buildFailed: "Génération du QR code impossible",
     },
     updates: {
       title: "Mises à jour",

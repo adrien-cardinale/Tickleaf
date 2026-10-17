@@ -18,7 +18,7 @@ function SettingsPage() {
     <ViewPage title={labels.settings.title} documentTitle={labels.settings.title}>
       <div className="space-y-4">
         <SyncCard state={state} />
-        <RecoveryKeyCard />
+        <RecoveryKeyCard serverUrl={state.serverUrl} />
         <UpdateCard />
         <DeviceCard pendingCount={state.pendingCount} />
       </div>

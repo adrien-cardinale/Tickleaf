@@ -12,8 +12,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { formatMasterKey, generateMasterKey, parseMasterKey } from "@/lib/crypto/master-key"
 import { completeOnboarding } from "@/lib/crypto/onboarding"
 import { labels } from "@/lib/labels"
-import { asksForServerUrl } from "@/lib/runtime"
+import { asksForServerUrl, isAndroid } from "@/lib/runtime"
 import { parseServerUrl } from "@/lib/sync/server-url"
+import { ScanLinkButton } from "./scan-link-button"
 
 type Mode = "choose" | "create" | "restore"
 
@@ -188,16 +189,23 @@ function RestoreKeyStep({ onDone, onBack }: StepProps) {
   )
 }
 
-function ChooseStep({ onChoose }: { onChoose: (mode: Mode) => void }) {
+function ChooseStep({ onChoose, onDone }: { onChoose: (mode: Mode) => void; onDone: () => void }) {
+  const android = isAndroid()
   return (
     <CardContent className="flex flex-col gap-2">
-      <Button onClick={() => onChoose("create")}>
+      {android && (
+        <>
+          <p className="text-sm text-muted-foreground">{labels.onboarding.scan.hint}</p>
+          <ScanLinkButton onDone={onDone} />
+        </>
+      )}
+      <Button variant={android ? "outline" : "default"} onClick={() => onChoose("create")}>
         <Plus />
         {labels.onboarding.createKey}
       </Button>
       <Button variant="outline" onClick={() => onChoose("restore")}>
         <KeyRound />
-        {labels.onboarding.haveKey}
+        {android ? labels.onboarding.enterKeyManually : labels.onboarding.haveKey}
       </Button>
     </CardContent>
   )
@@ -208,7 +216,7 @@ function OnboardingSteps({ onDone }: { onDone: () => void }) {
   const back = () => setMode("choose")
   if (mode === "create") return <CreateKeyStep onDone={onDone} onBack={back} />
   if (mode === "restore") return <RestoreKeyStep onDone={onDone} onBack={back} />
-  return <ChooseStep onChoose={setMode} />
+  return <ChooseStep onChoose={setMode} onDone={onDone} />
 }
 
 export function Onboarding({ onDone }: { onDone: () => void }) {

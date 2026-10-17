@@ -5,6 +5,9 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_os::init());
 
+    #[cfg(mobile)]
+    let builder = builder.plugin(tauri_plugin_barcode_scanner::init());
+
     #[cfg(desktop)]
     let builder = builder
         .plugin(tauri_plugin_process::init())
