@@ -11,6 +11,7 @@ import { useProjects, useSubtasks } from "@/lib/queries"
 import { hasAnyModifier, TASK_ROW_ATTRIBUTE, TOGGLE_TASK_KEYS } from "@/lib/shortcuts"
 import { cn } from "@/lib/utils"
 import { PriorityCheck } from "./priority-check"
+import { TaskContextMenu } from "./task-context-menu"
 
 type TaskRowProps = {
   task: Task
@@ -48,66 +49,68 @@ export function TaskRow({ task, today, projectName, handle }: TaskRowProps) {
   }
 
   return (
-    <div
-      className={cn(
-        "group flex items-start gap-3 border-b px-2 py-2.5 transition-colors hover:bg-muted/50",
-        selectedTaskId === task.id && "bg-muted",
-      )}
-    >
-      {handle}
-      <PriorityCheck
-        priority={task.priority}
-        done={done}
-        label={done ? labels.task.reopen(task.title) : labels.task.complete(task.title)}
-        onToggle={() => void toggle(task)}
-      />
-      <button
-        type="button"
-        onClick={() => openTask(task.id)}
-        onKeyDown={toggleOnKey}
-        {...rowAttributes}
-        className="min-w-0 flex-1 cursor-pointer rounded-sm text-left outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-      >
-        <span
-          className={cn("block leading-snug [overflow-wrap:anywhere]", done && "text-muted-foreground line-through")}
-        >
-          {task.title}
-        </span>
-        {hasMeta && (
-          <span className="mt-0.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-            {task.due !== null && (
-              <span className={cn("inline-flex items-center gap-1", dueClass(task, today))}>
-                {dueLabel(task.due, today)}
-                {task.recurrence !== null && (
-                  <Repeat className="size-3" role="img" aria-label={recurrenceLabel(task.recurrence)} />
-                )}
-              </span>
-            )}
-            {progress.total > 0 && (
-              <span
-                className="inline-flex items-center gap-1"
-                role="img"
-                aria-label={labels.task.subtaskProgress(progress.done, progress.total)}
-              >
-                <ListChecks className="size-3" aria-hidden="true" />
-                {progress.done}/{progress.total}
-              </span>
-            )}
-            {projectName !== null && (
-              <span className="inline-flex items-center gap-1.5">
-                <ProjectDot color={projectColor} className="size-1.5" />
-                {projectName}
-              </span>
-            )}
-            {task.description !== "" && <span className="basis-full truncate">{task.description}</span>}
-          </span>
+    <TaskContextMenu task={task} today={today}>
+      <div
+        className={cn(
+          "group flex items-start gap-3 border-b px-2 py-2.5 transition-colors hover:bg-muted/50",
+          selectedTaskId === task.id && "bg-muted",
         )}
-      </button>
-      {done && (
-        <Button variant="ghost" size="sm" className="self-center" onClick={() => void toggle(task)}>
-          {labels.views.completed.restore}
-        </Button>
-      )}
-    </div>
+      >
+        {handle}
+        <PriorityCheck
+          priority={task.priority}
+          done={done}
+          label={done ? labels.task.reopen(task.title) : labels.task.complete(task.title)}
+          onToggle={() => void toggle(task)}
+        />
+        <button
+          type="button"
+          onClick={() => openTask(task.id)}
+          onKeyDown={toggleOnKey}
+          {...rowAttributes}
+          className="min-w-0 flex-1 cursor-pointer rounded-sm text-left outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        >
+          <span
+            className={cn("block leading-snug [overflow-wrap:anywhere]", done && "text-muted-foreground line-through")}
+          >
+            {task.title}
+          </span>
+          {hasMeta && (
+            <span className="mt-0.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+              {task.due !== null && (
+                <span className={cn("inline-flex items-center gap-1", dueClass(task, today))}>
+                  {dueLabel(task.due, today)}
+                  {task.recurrence !== null && (
+                    <Repeat className="size-3" role="img" aria-label={recurrenceLabel(task.recurrence)} />
+                  )}
+                </span>
+              )}
+              {progress.total > 0 && (
+                <span
+                  className="inline-flex items-center gap-1"
+                  role="img"
+                  aria-label={labels.task.subtaskProgress(progress.done, progress.total)}
+                >
+                  <ListChecks className="size-3" aria-hidden="true" />
+                  {progress.done}/{progress.total}
+                </span>
+              )}
+              {projectName !== null && (
+                <span className="inline-flex items-center gap-1.5">
+                  <ProjectDot color={projectColor} className="size-1.5" />
+                  {projectName}
+                </span>
+              )}
+              {task.description !== "" && <span className="basis-full truncate">{task.description}</span>}
+            </span>
+          )}
+        </button>
+        {done && (
+          <Button variant="ghost" size="sm" className="self-center" onClick={() => void toggle(task)}>
+            {labels.views.completed.restore}
+          </Button>
+        )}
+      </div>
+    </TaskContextMenu>
   )
 }

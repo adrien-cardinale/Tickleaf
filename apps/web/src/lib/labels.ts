@@ -189,6 +189,16 @@ export const labels = {
     subtaskProgress: (done: number, total: number) =>
       `${done} sur ${total} ${plural(total, "sous-tâche terminée", "sous-tâches terminées")}`,
     dragHandle: (title: string) => `Déplacer la tâche : ${title}`,
+    menu: {
+      open: "Ouvrir",
+      complete: "Terminer",
+      reopen: "Rouvrir",
+      due: "Échéance",
+      noDue: "Sans échéance",
+      priority: "Priorité",
+      project: "Projet",
+      delete: "Supprimer",
+    },
   },
   reorder: {
     instructions:
