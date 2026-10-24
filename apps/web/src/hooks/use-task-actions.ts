@@ -88,6 +88,13 @@ export function useTaskActions() {
       await execute((db) => reorderTasks(db, orderedIds))
     },
 
+    moveToSection: async (id: string, sectionId: string | null, orderedIds: readonly string[]) => {
+      await execute(async (db) => {
+        await updateTask(db, id, { sectionId })
+        await reorderTasks(db, orderedIds)
+      })
+    },
+
     remove: async (id: string) => {
       const previous = await execute((db) => deleteTask(db, id))
       if (!previous || previous.length === 0) return

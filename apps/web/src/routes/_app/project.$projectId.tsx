@@ -18,6 +18,7 @@ import { ProjectSection } from "@/components/sections/project-section"
 import { SubprojectDialog } from "@/components/subproject-dialog"
 import { SubprojectList } from "@/components/subproject-list"
 import { QuickAdd } from "@/components/tasks/quick-add"
+import { type BoardColumn, TaskBoard } from "@/components/tasks/task-board"
 import { TaskSection } from "@/components/tasks/task-section"
 import { Button } from "@/components/ui/button"
 import { ViewPage } from "@/components/view-page"
@@ -32,6 +33,8 @@ export const Route = createFileRoute("/_app/project/$projectId")({
 })
 
 const NO_PROJECT_NAME = () => null
+
+const UNSECTIONED = "unsectioned"
 
 type ProjectDialog = "subproject" | "move" | null
 
@@ -56,7 +59,7 @@ function ProjectPage() {
   const { data: allSections = [] } = useSections()
   const { data: allTasks = [] } = useTasks()
   const { rename, setColor, archive } = useProjectActions()
-  const { reorder } = useTaskActions()
+  const { reorder, moveToSection } = useTaskActions()
   const [editing, setEditing] = useState(false)
   const [dialog, setDialog] = useState<ProjectDialog>(null)
   const project = projects.find((candidate) => candidate.id === projectId)
@@ -68,10 +71,21 @@ function ProjectPage() {
   const sections = allSections.filter((section) => section.projectId === project.id)
   const sectionIds = new Set(sections.map((section) => section.id))
   const unsectioned = items.filter((task) => task.sectionId === null || !sectionIds.has(task.sectionId))
+  const columns: BoardColumn[] = [
+    { id: UNSECTIONED, tasks: unsectioned },
+    ...sections.map((section) => ({ id: section.id, tasks: items.filter((task) => task.sectionId === section.id) })),
+  ]
+  const tasksOf = (columnId: string) => columns.find((column) => column.id === columnId)?.tasks ?? []
   const openByProject = countTasks(allTasks, today).byProject
   const openCountOf = (subproject: Project) => countWithDescendants(projects, openByProject, subproject.id)
   const closeDialog = (open: boolean) => {
     if (!open) setDialog(null)
+  }
+
+  const moveTask = (taskId: string, columnId: string, orderedIds: string[]) => {
+    const sectionId = columnId === UNSECTIONED ? null : columnId
+    const task = items.find((candidate) => candidate.id === taskId)
+    return task?.sectionId === sectionId ? reorder(orderedIds) : moveToSection(taskId, sectionId, orderedIds)
   }
 
   const archiveProject = async () => {
@@ -105,25 +119,27 @@ function ProjectPage() {
       }
     >
       <QuickAdd context={{ due: null, project }} placeholder={labels.quickAdd.placeholderProject(project.name)} />
-      {(sections.length === 0 || unsectioned.length > 0) && (
-        <TaskSection
-          title={text.section}
-          tasks={unsectioned}
-          today={today}
-          empty={text.empty}
-          projectNameOf={NO_PROJECT_NAME}
-          onReorder={reorder}
-        />
-      )}
-      {sections.map((section) => (
-        <ProjectSection
-          key={section.id}
-          project={project}
-          section={section}
-          tasks={items.filter((task) => task.sectionId === section.id)}
-          today={today}
-        />
-      ))}
+      <TaskBoard columns={columns} today={today} projectNameOf={NO_PROJECT_NAME} onMove={moveTask}>
+        {(sections.length === 0 || unsectioned.length > 0) && (
+          <TaskSection
+            title={text.section}
+            tasks={unsectioned}
+            today={today}
+            empty={text.empty}
+            projectNameOf={NO_PROJECT_NAME}
+            columnId={UNSECTIONED}
+          />
+        )}
+        {sections.map((section) => (
+          <ProjectSection
+            key={section.id}
+            project={project}
+            section={section}
+            tasks={tasksOf(section.id)}
+            today={today}
+          />
+        ))}
+      </TaskBoard>
       <NewSectionForm key={project.id} projectId={project.id} />
       <SubprojectList subprojects={childProjectsOf(projects, project.id)} openCountOf={openCountOf} />
       <SubprojectDialog parent={project} open={dialog === "subproject"} onOpenChange={closeDialog} />
