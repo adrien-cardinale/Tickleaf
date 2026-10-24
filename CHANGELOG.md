@@ -4,6 +4,23 @@ All notable changes to Tickleaf are documented here. The format follows [Keep a 
 
 The section matching the released version is attached automatically as the GitHub release notes.
 
+## [0.4.0] - 2026-10-24
+
+### Added
+
+- Right-click a task to open it, complete or reopen it, set its due date to today, tomorrow or none, change its priority, move it to another project or the inbox, or delete it.
+- Right-click a project in the sidebar to rename it, add a subproject, change its color, move it or archive it.
+
+### Changed
+
+- A new project gets a random color. The color picker no longer appears when you create a project: change the color later with **Couleur** in the project menu.
+- The desktop and Android apps no longer show the browser menu on right-click outside text fields.
+
+### Fixed
+
+- Drag a task from one section of a project to another, or to the list without a section.
+- **Copier** copies the recovery key on a self-hosted instance served over plain HTTP.
+
 ## [0.3.0] - 2026-10-17
 
 ### Added
