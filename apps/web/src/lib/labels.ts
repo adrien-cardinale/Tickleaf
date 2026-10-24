@@ -28,7 +28,6 @@ export const labels = {
     projectName: "Nom du projet",
     projectNamePlaceholder: "Nom du projet, puis Entrée",
     subprojectNamePlaceholder: "Nom du sous-projet, puis Entrée",
-    projectColor: "Couleur du projet",
     expandProject: (name: string) => `Déplier ${name}`,
     collapseProject: (name: string) => `Replier ${name}`,
     settings: "Paramètres",

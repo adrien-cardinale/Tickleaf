@@ -19,6 +19,10 @@ export type ProjectColor = (typeof PROJECT_COLORS)[number]
 
 export const DEFAULT_PROJECT_COLOR: ProjectColor = "gray"
 
+export function randomProjectColor(): ProjectColor {
+  return PROJECT_COLORS[Math.floor(Math.random() * PROJECT_COLORS.length)] ?? DEFAULT_PROJECT_COLOR
+}
+
 export function isProjectColor(value: unknown): value is ProjectColor {
   return typeof value === "string" && (PROJECT_COLORS as readonly string[]).includes(value)
 }
