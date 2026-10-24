@@ -8,7 +8,8 @@ import { AppBoot } from "@/components/startup/app-boot"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { bootApp } from "@/lib/boot"
-import { isDesktopBuild } from "@/lib/runtime"
+import { blockNativeContextMenu } from "@/lib/native-context-menu"
+import { isDesktopBuild, isTauri } from "@/lib/runtime"
 import { routeTree } from "./routeTree.gen"
 import "./index.css"
 
@@ -20,6 +21,8 @@ const queryClient = new QueryClient({
 })
 
 const boot = () => bootApp(queryClient)
+
+if (isTauri()) blockNativeContextMenu()
 
 const router = createRouter({
   routeTree,
