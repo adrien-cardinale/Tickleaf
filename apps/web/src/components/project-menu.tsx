@@ -1,17 +1,8 @@
 import { PROJECT_COLORS, type ProjectColor } from "@tickleaf/core"
 import { Archive, Ellipsis, FolderInput, FolderPlus, Palette, Pencil } from "lucide-react"
 import { useRef, useState } from "react"
+import { ArchiveProjectDialog } from "@/components/archive-project-dialog"
 import { ProjectDot } from "@/components/project-dot"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -107,18 +98,7 @@ export function ProjectMenu({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <AlertDialog open={confirming} onOpenChange={setConfirming}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{text.archiveTitle}</AlertDialogTitle>
-            <AlertDialogDescription>{text.archiveDescription}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{text.cancel}</AlertDialogCancel>
-            <AlertDialogAction onClick={onArchive}>{text.archive}</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ArchiveProjectDialog open={confirming} onOpenChange={setConfirming} onArchive={onArchive} />
     </>
   )
 }

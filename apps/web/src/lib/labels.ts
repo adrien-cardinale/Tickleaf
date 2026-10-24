@@ -150,6 +150,8 @@ export const labels = {
       actions: "Actions du projet",
       rename: "Renommer",
       renameLabel: "Nom du projet",
+      renameTitle: "Renommer le projet",
+      save: "Enregistrer",
       archive: "Archiver",
       archiveTitle: "Archiver ce projet ?",
       archiveDescription:

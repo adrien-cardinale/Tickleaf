@@ -1,8 +1,10 @@
-import { Link, useMatchRoute } from "@tanstack/react-router"
-import { buildProjectTree, countWithDescendants, type Project, type ProjectNode } from "@tickleaf/core"
+import { Link, useMatchRoute, useNavigate, useParams } from "@tanstack/react-router"
+import { ancestorsOf, buildProjectTree, countWithDescendants, type Project, type ProjectNode } from "@tickleaf/core"
 import { ChevronRight } from "lucide-react"
-import type { ComponentProps } from "react"
+import type { ComponentProps, ReactNode } from "react"
+import { ProjectContextMenu } from "@/components/project-context-menu"
 import { ProjectDot } from "@/components/project-dot"
+import { ContextMenuTrigger } from "@/components/ui/context-menu"
 import {
   SidebarMenu,
   SidebarMenuAction,
@@ -19,12 +21,14 @@ import { labels } from "@/lib/labels"
 import { cn } from "@/lib/utils"
 
 type ProjectTreeContext = {
+  projects: readonly Project[]
   isOpen: (node: ProjectNode<Project>) => boolean
   toggle: (id: string) => void
   countOf: (node: ProjectNode<Project>) => number
   isActive: (id: string) => boolean
   replace: boolean
   onNavigate: () => void
+  onArchived: (id: string) => void
 }
 
 type ProjectItemProps = { node: ProjectNode<Project>; tree: ProjectTreeContext }
@@ -74,6 +78,18 @@ function ProjectLink({ node, tree, ...slotProps }: ProjectItemProps & ComponentP
   )
 }
 
+function ProjectMenuArea({ node, tree, children }: ProjectItemProps & { children: ReactNode }) {
+  return (
+    <ProjectContextMenu
+      project={node.project}
+      projects={tree.projects}
+      onArchived={() => tree.onArchived(node.project.id)}
+    >
+      {children}
+    </ProjectContextMenu>
+  )
+}
+
 function ChildProjects({ node, tree }: ProjectItemProps) {
   if (node.children.length === 0 || !tree.isOpen(node)) return null
   return (
@@ -89,13 +105,17 @@ function SubProjectItem({ node, tree }: ProjectItemProps) {
   const hasChildren = node.children.length > 0
   return (
     <SidebarMenuSubItem>
-      <SidebarMenuSubButton
-        asChild
-        isActive={tree.isActive(node.project.id)}
-        className={hasChildren ? "pr-14" : "pr-8"}
-      >
-        <ProjectLink node={node} tree={tree} />
-      </SidebarMenuSubButton>
+      <ProjectMenuArea node={node} tree={tree}>
+        <SidebarMenuSubButton
+          asChild
+          isActive={tree.isActive(node.project.id)}
+          className={hasChildren ? "pr-14" : "pr-8"}
+        >
+          <ContextMenuTrigger asChild>
+            <ProjectLink node={node} tree={tree} />
+          </ContextMenuTrigger>
+        </SidebarMenuSubButton>
+      </ProjectMenuArea>
       <ToggleAction node={node} tree={tree} className="top-1" />
       <CountBadge value={tree.countOf(node)} className={cn("top-1", hasChildren && "right-7")} />
       <ChildProjects node={node} tree={tree} />
@@ -107,14 +127,18 @@ function RootProjectItem({ node, tree }: ProjectItemProps) {
   const hasChildren = node.children.length > 0
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton
-        asChild
-        isActive={tree.isActive(node.project.id)}
-        tooltip={node.project.name}
-        className={cn(hasChildren && "group-has-data-[sidebar=menu-action]/menu-item:pr-14")}
-      >
-        <ProjectLink node={node} tree={tree} />
-      </SidebarMenuButton>
+      <ProjectMenuArea node={node} tree={tree}>
+        <SidebarMenuButton
+          asChild
+          isActive={tree.isActive(node.project.id)}
+          tooltip={node.project.name}
+          className={cn(hasChildren && "group-has-data-[sidebar=menu-action]/menu-item:pr-14")}
+        >
+          <ContextMenuTrigger asChild>
+            <ProjectLink node={node} tree={tree} />
+          </ContextMenuTrigger>
+        </SidebarMenuButton>
+      </ProjectMenuArea>
       <ToggleAction node={node} tree={tree} />
       <CountBadge value={tree.countOf(node)} className={cn(hasChildren && "right-7")} />
       <ChildProjects node={node} tree={tree} />
@@ -130,11 +154,18 @@ type SidebarProjectTreeProps = {
 
 export function SidebarProjectTree({ projects, openByProject, onNavigate }: SidebarProjectTreeProps) {
   const matchRoute = useMatchRoute()
+  const navigate = useNavigate()
+  const { projectId: activeId } = useParams({ strict: false })
   const { isMobile } = useSidebar()
   const { isCollapsed, toggle } = useCollapsedProjects()
   const isOpen = (node: ProjectNode<Project>) => !isCollapsed(node.project.id)
 
+  const containsActive = (id: string) =>
+    activeId !== undefined &&
+    (activeId === id || ancestorsOf(projects, activeId).some((ancestor) => ancestor.id === id))
+
   const tree: ProjectTreeContext = {
+    projects,
     isOpen,
     toggle,
     countOf: (node) =>
@@ -144,6 +175,9 @@ export function SidebarProjectTree({ projects, openByProject, onNavigate }: Side
     isActive: (id) => Boolean(matchRoute({ to: "/project/$projectId", params: { projectId: id } })),
     replace: isMobile,
     onNavigate,
+    onArchived: (id) => {
+      if (containsActive(id)) void navigate({ to: "/inbox" })
+    },
   }
 
   return (
