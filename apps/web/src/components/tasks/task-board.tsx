@@ -3,11 +3,11 @@ import {
   closestCenter,
   DndContext,
   type DragEndEvent,
+  type DragMoveEvent,
   type DragOverEvent,
   DragOverlay,
   type DragStartEvent,
   getFirstCollision,
-  MeasuringStrategy,
   type Modifier,
   pointerWithin,
   rectIntersection,
@@ -15,11 +15,28 @@ import {
   useDroppable,
 } from "@dnd-kit/core"
 import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
+import type { Coordinates } from "@dnd-kit/utilities"
 import type { IsoDate, Task } from "@tickleaf/core"
 import { GripVertical } from "lucide-react"
-import { createContext, type ReactNode, useContext, useRef, useState } from "react"
+import {
+  createContext,
+  type ReactNode,
+  startTransition,
+  useCallback,
+  useContext,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { labels } from "@/lib/labels"
-import { reorderAnnouncements, type Slot, SortableTaskRow, useTaskSensors } from "./sortable-task-list"
+import {
+  reorderAnnouncements,
+  SCREEN_READER_INSTRUCTIONS,
+  type Slot,
+  SortableTaskRow,
+  useTaskSensors,
+} from "./sortable-task-list"
 import { TaskRow } from "./task-row"
 
 export type BoardColumn = { id: string; tasks: readonly Task[] }
@@ -46,9 +63,14 @@ type Board = { placement: Placement | null; taskById: ReadonlyMap<string, Task> 
 
 const BoardContext = createContext<Board | null>(null)
 
-const MEASURING = { droppable: { strategy: MeasuringStrategy.Always } }
-
 const verticalAxis: Modifier = ({ transform }) => ({ ...transform, x: 0 })
+
+const VERTICAL_ONLY = [verticalAxis]
+
+const ORIGIN: Coordinates = { x: 0, y: 0 }
+
+// Blocks the column ping-pong of dnd-kit issue #1678 until the pointer really moves.
+const CROSSING_SLOP = 8
 
 function placementOf(columns: readonly BoardColumn[]): Placement {
   return Object.fromEntries(columns.map((column) => [column.id, column.tasks.map((task) => task.id)]))
@@ -79,6 +101,31 @@ function moveAcross(placement: Placement, activeId: string, overId: string, belo
   }
 }
 
+function slotIn(placement: Placement, id: UniqueIdentifier): Slot {
+  const ids = placement[columnOf(placement, id) ?? ""] ?? []
+  const index = ids.indexOf(String(id))
+  return index === -1 ? { position: ids.length + 1, total: ids.length + 1 } : { position: index + 1, total: ids.length }
+}
+
+function isBelow({ active, over }: DragOverEvent): boolean {
+  const translated = active.rect.current.translated
+  return over !== null && translated !== null && translated.top > over.rect.top + over.rect.height / 2
+}
+
+function distance(from: Coordinates, to: Coordinates): number {
+  return Math.hypot(to.x - from.x, to.y - from.y)
+}
+
+function closestHit(args: Parameters<CollisionDetection>[0], placement: Placement): UniqueIdentifier | null {
+  const pointerHits = pointerWithin(args)
+  const hit = getFirstCollision(pointerHits.length > 0 ? pointerHits : rectIntersection(args), "id")
+  if (hit == null) return null
+  const columnIds = placement[String(hit)]
+  if (!columnIds || columnIds.length === 0) return hit
+  const candidates = args.droppableContainers.filter((container) => columnIds.includes(String(container.id)))
+  return closestCenter({ ...args, droppableContainers: candidates })[0]?.id ?? hit
+}
+
 function sameOrder(left: readonly string[], right: readonly string[]): boolean {
   return left.length === right.length && left.every((id, index) => id === right[index])
 }
@@ -99,93 +146,154 @@ function DragPreview({ task, today, projectName }: { task: Task; today: IsoDate;
 export function TaskBoard({ columns, today, projectNameOf, onMove, children }: TaskBoardProps) {
   const [placement, setPlacement] = useState<Placement | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
-  const lastOverId = useRef<UniqueIdentifier | null>(null)
-  const movedToNewColumn = useRef(false)
   const sensors = useTaskSensors()
-  const current = placement ?? placementOf(columns)
-  const taskById = new Map(columns.flatMap((column) => column.tasks.map((task) => [task.id, task] as const)))
+  const current = useMemo(() => placement ?? placementOf(columns), [placement, columns])
+  const taskById = useMemo(
+    () => new Map(columns.flatMap((column) => column.tasks.map((task) => [task.id, task] as const))),
+    [columns],
+  )
   const activeTask = activeId ? taskById.get(activeId) : undefined
 
-  const collisionDetection: CollisionDetection = (args) => {
-    const pointerHits = pointerWithin(args)
-    const hits = pointerHits.length > 0 ? pointerHits : rectIntersection(args)
-    let overId = getFirstCollision(hits, "id")
-    if (overId != null) {
-      const columnIds = current[String(overId)]
-      if (columnIds && columnIds.length > 0) {
-        const candidates = args.droppableContainers.filter((container) => columnIds.includes(String(container.id)))
-        overId = closestCenter({ ...args, droppableContainers: candidates })[0]?.id ?? overId
+  const rendered = useRef({ current, taskById })
+  useLayoutEffect(() => {
+    rendered.current = { current, taskById }
+  })
+  const draft = useRef<Placement | null>(null)
+  const lastOverId = useRef<UniqueIdentifier | null>(null)
+  const pendingOver = useRef<DragOverEvent | null>(null)
+  const frame = useRef<number | null>(null)
+  const pointer = useRef<Coordinates>(ORIGIN)
+  const crossedAt = useRef<Coordinates | null>(null)
+
+  const livePlacement = useCallback(() => draft.current ?? rendered.current.current, [])
+
+  const crossingLocked = useCallback(
+    () => crossedAt.current !== null && distance(crossedAt.current, pointer.current) < CROSSING_SLOP,
+    [],
+  )
+
+  const collisionDetection: CollisionDetection = useCallback(
+    (args) => {
+      const live = livePlacement()
+      const activeColumn = columnOf(live, args.active.id)
+      let overId = closestHit(args, live)
+      if (overId != null && crossingLocked() && columnOf(live, overId) !== activeColumn) overId = lastOverId.current
+      if (overId != null) {
+        lastOverId.current = overId
+        return [{ id: overId }]
       }
-      lastOverId.current = overId
-      return [{ id: overId }]
-    }
-    if (movedToNewColumn.current) lastOverId.current = activeId
-    return lastOverId.current ? [{ id: lastOverId.current }] : []
+      if (crossingLocked()) lastOverId.current = args.active.id
+      return lastOverId.current ? [{ id: lastOverId.current }] : []
+    },
+    [livePlacement, crossingLocked],
+  )
+
+  const announcements = useMemo(
+    () =>
+      reorderAnnouncements(
+        (id) => rendered.current.taskById.get(String(id))?.title ?? labels.task.untitled,
+        (id) => slotIn(livePlacement(), id),
+      ),
+    [livePlacement],
+  )
+  const accessibility = useMemo(
+    () => ({ announcements, screenReaderInstructions: SCREEN_READER_INSTRUCTIONS }),
+    [announcements],
+  )
+
+  const commitDraft = (next: Placement | null) => {
+    draft.current = next
+    startTransition(() => setPlacement(next))
   }
 
-  const slotOf = (id: UniqueIdentifier): Slot => {
-    const ids = current[columnOf(current, id) ?? ""] ?? []
-    const index = ids.indexOf(String(id))
-    return index === -1
-      ? { position: ids.length + 1, total: ids.length + 1 }
-      : { position: index + 1, total: ids.length }
+  const settlePendingOver = (): Placement => {
+    const event = pendingOver.current
+    pendingOver.current = null
+    const live = livePlacement()
+    if (!event?.over) return live
+    const next = moveAcross(live, String(event.active.id), String(event.over.id), isBelow(event))
+    if (next !== live) {
+      draft.current = next
+      crossedAt.current = pointer.current
+    }
+    return next
   }
-  const announcements = reorderAnnouncements((id) => taskById.get(String(id))?.title ?? labels.task.untitled, slotOf)
+
+  const cancelFrame = () => {
+    if (frame.current !== null) cancelAnimationFrame(frame.current)
+    frame.current = null
+  }
+
+  const clearDrag = () => {
+    cancelFrame()
+    pendingOver.current = null
+    lastOverId.current = null
+    crossedAt.current = null
+    pointer.current = ORIGIN
+  }
 
   const reset = () => {
+    clearDrag()
     setActiveId(null)
-    setPlacement(null)
+    commitDraft(null)
   }
 
   const handleDragStart = ({ active }: DragStartEvent) => {
+    clearDrag()
     setActiveId(String(active.id))
-    setPlacement(placementOf(columns))
+    draft.current = placementOf(columns)
+    setPlacement(draft.current)
   }
 
-  const handleDragOver = ({ active, over }: DragOverEvent) => {
-    if (!over) return
-    const translated = active.rect.current.translated
-    const belowOver = translated !== null && translated.top > over.rect.top + over.rect.height / 2
-    setPlacement((previous) => {
-      const base = previous ?? placementOf(columns)
-      const next = moveAcross(base, String(active.id), String(over.id), belowOver)
-      if (next !== base) movedToNewColumn.current = true
-      return next
-    })
-    requestAnimationFrame(() => {
-      movedToNewColumn.current = false
+  const handleDragMove = ({ delta }: DragMoveEvent) => {
+    pointer.current = delta
+  }
+
+  const handleDragOver = (event: DragOverEvent) => {
+    pointer.current = event.delta
+    pendingOver.current = event
+    if (frame.current !== null) return
+    frame.current = requestAnimationFrame(() => {
+      frame.current = null
+      const before = livePlacement()
+      const next = settlePendingOver()
+      if (next !== before) commitDraft(next)
     })
   }
 
   const handleDragEnd = async ({ active, over }: DragEndEvent) => {
+    const settled = settlePendingOver()
+    clearDrag()
     const id = String(active.id)
-    const column = columnOf(current, id)
+    const column = columnOf(settled, id)
     setActiveId(null)
     if (!over || !column) return reset()
-    const ids = current[column] ?? []
+    const ids = settled[column] ?? []
     const overIndex = ids.indexOf(String(over.id))
     const ordered = overIndex === -1 ? [...ids] : arrayMove([...ids], ids.indexOf(id), overIndex)
     const original = columns.find((candidate) => candidate.id === column)?.tasks.map((task) => task.id) ?? []
     if (sameOrder(ordered, original)) return reset()
-    setPlacement({ ...current, [column]: ordered })
+    commitDraft({ ...settled, [column]: ordered })
     await onMove(id, column, ordered)
-    setPlacement(null)
+    commitDraft(null)
   }
 
+  const board = useMemo(() => ({ placement, taskById }), [placement, taskById])
+
   return (
-    <BoardContext.Provider value={{ placement, taskById }}>
+    <BoardContext.Provider value={board}>
       <DndContext
         sensors={sensors}
         collisionDetection={collisionDetection}
-        measuring={MEASURING}
-        accessibility={{ announcements, screenReaderInstructions: { draggable: labels.reorder.instructions } }}
+        accessibility={accessibility}
         onDragStart={handleDragStart}
+        onDragMove={handleDragMove}
         onDragOver={handleDragOver}
         onDragEnd={(event) => void handleDragEnd(event)}
         onDragCancel={reset}
       >
         {children}
-        <DragOverlay modifiers={[verticalAxis]}>
+        <DragOverlay modifiers={VERTICAL_ONLY}>
           {activeTask && <DragPreview task={activeTask} today={today} projectName={projectNameOf(activeTask)} />}
         </DragOverlay>
       </DndContext>
@@ -197,8 +305,12 @@ export function BoardColumnList({ columnId, tasks, today, projectNameOf, empty }
   const board = useContext(BoardContext)
   const { setNodeRef } = useDroppable({ id: columnId })
   const pendingIds = board?.placement?.[columnId]
-  const shown = pendingIds ? pendingIds.flatMap((id) => board?.taskById.get(id) ?? []) : tasks
-  const ids = shown.map((task) => task.id)
+  const taskById = board?.taskById
+  const shown = useMemo(
+    () => (pendingIds && taskById ? pendingIds.flatMap((id) => taskById.get(id) ?? []) : tasks),
+    [pendingIds, taskById, tasks],
+  )
+  const ids = useMemo(() => shown.map((task) => task.id), [shown])
 
   return (
     <SortableContext id={columnId} items={ids} strategy={verticalListSortingStrategy}>
