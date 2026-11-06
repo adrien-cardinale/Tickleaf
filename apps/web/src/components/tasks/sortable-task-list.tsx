@@ -20,7 +20,7 @@ import {
 import { CSS, type Transform } from "@dnd-kit/utilities"
 import type { IsoDate, Task } from "@tickleaf/core"
 import { GripVertical } from "lucide-react"
-import { useState } from "react"
+import { startTransition, useMemo, useState } from "react"
 import { labels } from "@/lib/labels"
 import { cn } from "@/lib/utils"
 import { TaskRow } from "./task-row"
@@ -38,6 +38,12 @@ type SortableTaskRowProps = {
   projectName: string | null
   placeholder?: boolean
 }
+
+const POINTER_OPTIONS = { activationConstraint: { distance: 4 } }
+const TOUCH_OPTIONS = { activationConstraint: { delay: 250, tolerance: 5 } }
+const KEYBOARD_OPTIONS = { coordinateGetter: sortableKeyboardCoordinates }
+
+export const SCREEN_READER_INSTRUCTIONS = { draggable: labels.reorder.instructions }
 
 function inPendingOrder(tasks: readonly Task[], pending: readonly string[] | null): readonly Task[] {
   if (pending === null) return tasks
@@ -75,17 +81,21 @@ export function reorderAnnouncements(
 }
 
 function useReorderAnnouncements(tasks: readonly Task[]): Announcements {
-  return reorderAnnouncements(
-    (id) => tasks.find((task) => task.id === id)?.title ?? labels.task.untitled,
-    (id) => ({ position: tasks.findIndex((task) => task.id === id) + 1, total: tasks.length }),
+  return useMemo(
+    () =>
+      reorderAnnouncements(
+        (id) => tasks.find((task) => task.id === id)?.title ?? labels.task.untitled,
+        (id) => ({ position: tasks.findIndex((task) => task.id === id) + 1, total: tasks.length }),
+      ),
+    [tasks],
   )
 }
 
 export function useTaskSensors() {
   return useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(PointerSensor, POINTER_OPTIONS),
+    useSensor(TouchSensor, TOUCH_OPTIONS),
+    useSensor(KeyboardSensor, KEYBOARD_OPTIONS),
   )
 }
 
@@ -110,7 +120,7 @@ export function SortableTaskRow({ task, today, projectName, placeholder = false 
   return (
     <div
       ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(verticalOnly(transform)), transition }}
+      style={{ transform: CSS.Translate.toString(verticalOnly(transform)), transition }}
       className={cn(isDragging && (placeholder ? "opacity-40" : "relative z-10 bg-background opacity-90 shadow-md"))}
     >
       <TaskRow task={task} today={today} projectName={projectName} handle={handle} />
@@ -120,24 +130,28 @@ export function SortableTaskRow({ task, today, projectName, placeholder = false 
 
 export function SortableTaskList({ tasks, today, projectNameOf, onReorder }: SortableTaskListProps) {
   const [pending, setPending] = useState<readonly string[] | null>(null)
-  const ordered = inPendingOrder(tasks, pending)
-  const ids = ordered.map((task) => task.id)
+  const ordered = useMemo(() => inPendingOrder(tasks, pending), [tasks, pending])
+  const ids = useMemo(() => ordered.map((task) => task.id), [ordered])
   const announcements = useReorderAnnouncements(ordered)
+  const accessibility = useMemo(
+    () => ({ announcements, screenReaderInstructions: SCREEN_READER_INSTRUCTIONS }),
+    [announcements],
+  )
   const sensors = useTaskSensors()
 
   const handleDragEnd = async ({ active, over }: DragEndEvent) => {
     if (!over || active.id === over.id) return
     const next = arrayMove(ids, ids.indexOf(String(active.id)), ids.indexOf(String(over.id)))
-    setPending(next)
+    startTransition(() => setPending(next))
     await onReorder(next)
-    setPending(null)
+    startTransition(() => setPending(null))
   }
 
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
-      accessibility={{ announcements, screenReaderInstructions: { draggable: labels.reorder.instructions } }}
+      accessibility={accessibility}
       onDragEnd={(event) => void handleDragEnd(event)}
     >
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
