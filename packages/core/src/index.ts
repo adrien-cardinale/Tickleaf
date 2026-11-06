@@ -1,5 +1,6 @@
 export * from "./dates"
 export * from "./matrix"
+export * from "./places"
 export * from "./projects"
 export * from "./quick-add"
 export * from "./recurrence"

@@ -16,6 +16,7 @@ function taskRow(changes: Partial<TaskRowPayload> = {}): TaskRowPayload {
     due: null,
     reminderAt: null,
     recurrence: null,
+    place: null,
     priority: 4,
     projectId: null,
     sectionId: null,
@@ -167,6 +168,18 @@ describe("applyPayload", () => {
       ],
     })
     expect(payload.projects[0]?.color).toBe("gray")
+  })
+
+  test("lit une ancienne tâche sans lieu comme une tâche sans lieu", () => {
+    const { place: _, ...legacy } = taskRow()
+    const payload = payloadSchema.parse({ v: 6, tasks: [legacy] })
+    expect(payload.tasks[0]?.place).toBeNull()
+  })
+
+  test("applique le lieu d'une tâche", async () => {
+    const place = { latitude: 46.5197, longitude: 6.6323, radius: 250, label: "Bureau" }
+    await applyPayload(db, payloadSchema.parse({ v: 7, tasks: [taskRow({ place })] }), 1)
+    expect((await readTask(db))?.place).toEqual(place)
   })
 })
 

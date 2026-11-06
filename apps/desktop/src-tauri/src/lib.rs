@@ -9,7 +9,9 @@ pub fn run() {
     #[cfg(mobile)]
     let builder = builder
         .plugin(tauri_plugin_barcode_scanner::init())
-        .plugin(tauri_plugin_fs::init());
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_geolocation::init())
+        .plugin(tauri_plugin_geofence::init());
 
     #[cfg(desktop)]
     let builder = builder

@@ -7,7 +7,7 @@ import {
 } from "@tickleaf/core"
 import { z } from "zod"
 
-export const PAYLOAD_VERSION = 6
+export const PAYLOAD_VERSION = 7
 
 const timestamp = z.iso.datetime()
 
@@ -21,6 +21,13 @@ const syncFields = {
 const recurrenceSchema = z.object({
   unit: z.enum(RECURRENCE_UNITS),
   interval: z.number().int().min(1).max(MAX_RECURRENCE_INTERVAL),
+})
+
+const placeSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  radius: z.number().positive(),
+  label: z.string(),
 })
 
 export const projectRowSchema = z.object({
@@ -46,6 +53,7 @@ export const taskRowSchema = z.object({
   due: z.string().nullable(),
   reminderAt: timestamp.nullable().default(null),
   recurrence: recurrenceSchema.nullable().default(null),
+  place: placeSchema.nullable().default(null),
   priority: z.literal(PRIORITIES),
   projectId: z.string().nullable(),
   sectionId: z.string().nullable().default(null),

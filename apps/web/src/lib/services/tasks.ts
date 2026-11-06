@@ -3,6 +3,7 @@ import {
   daysBetween,
   type IsoDate,
   nextOccurrence,
+  type Place,
   type Priority,
   type Recurrence,
   type Task,
@@ -21,10 +22,14 @@ export type NewTask = {
   sectionId?: string | null
   parentId?: string | null
   recurrence?: Recurrence | null
+  place?: Place | null
 }
 
 export type TaskPatch = Partial<
-  Pick<Task, "title" | "description" | "due" | "reminderAt" | "recurrence" | "priority" | "projectId" | "sectionId">
+  Pick<
+    Task,
+    "title" | "description" | "due" | "reminderAt" | "recurrence" | "place" | "priority" | "projectId" | "sectionId"
+  >
 >
 
 const notDeleted = isNull(tasks.deletedAt)
@@ -74,6 +79,7 @@ export async function createTask(db: Db, input: NewTask): Promise<Task> {
     due: input.due,
     reminderAt: null,
     recurrence: input.recurrence ?? null,
+    place: input.place ?? null,
     priority: input.priority ?? DEFAULT_PRIORITY,
     projectId: input.projectId,
     sectionId: input.projectId === null ? null : (input.sectionId ?? null),

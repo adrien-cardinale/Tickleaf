@@ -1,5 +1,5 @@
 import type { Project, Task } from "@tickleaf/core"
-import { recurrenceLabel } from "@/lib/format"
+import { placeLabel, recurrenceLabel } from "@/lib/format"
 import { labels } from "@/lib/labels"
 
 const SEPARATOR = ";"
@@ -21,6 +21,7 @@ function taskRow(task: Task, projectNames: Map<string, string>, taskTitles: Map<
     task.parentId === null ? "" : (taskTitles.get(task.parentId) ?? ""),
     task.due ?? "",
     task.recurrence === null ? "" : recurrenceLabel(task.recurrence),
+    task.place === null ? "" : placeLabel(task.place),
     `P${task.priority}`,
     task.completedAt === null ? labels.export.open : labels.export.done,
     task.completedAt ?? "",

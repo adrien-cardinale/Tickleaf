@@ -4245,6 +4245,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-geofence"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-plugin",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "tauri-plugin-geolocation"
+version = "2.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "240085699dfda0556e20ae95f10db8050a9bb158702e8fdd927d217e49d90757"
+dependencies = [
+ "log",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-plugin",
+ "thiserror 2.0.21",
+]
+
+[[package]]
 name = "tauri-plugin-http"
 version = "2.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4555,6 +4580,8 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-barcode-scanner",
  "tauri-plugin-fs",
+ "tauri-plugin-geofence",
+ "tauri-plugin-geolocation",
  "tauri-plugin-http",
  "tauri-plugin-notification",
  "tauri-plugin-opener",

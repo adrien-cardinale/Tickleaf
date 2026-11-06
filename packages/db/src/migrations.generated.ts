@@ -41,4 +41,9 @@ export const GENERATED_MIGRATIONS: readonly Migration[] = [
     when: 1792271356893,
     sql: "ALTER TABLE `projects` ADD `color` text DEFAULT 'gray' NOT NULL;",
   },
+  {
+    tag: "0008_places",
+    when: 1793970647548,
+    sql: "ALTER TABLE `tasks` ADD `place` text;",
+  },
 ]

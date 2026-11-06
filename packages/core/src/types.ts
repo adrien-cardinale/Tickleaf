@@ -1,3 +1,4 @@
+import type { Place } from "./places"
 import type { ProjectColor } from "./projects"
 import type { Recurrence } from "./recurrence"
 
@@ -36,6 +37,7 @@ export type Task = {
   due: IsoDate | null
   reminderAt: string | null
   recurrence: Recurrence | null
+  place: Place | null
   priority: Priority
   projectId: string | null
   sectionId: string | null

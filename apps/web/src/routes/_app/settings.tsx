@@ -2,12 +2,14 @@ import { createFileRoute } from "@tanstack/react-router"
 import { AccountsCard } from "@/components/settings/accounts-card"
 import { DeviceCard } from "@/components/settings/device-card"
 import { ExportCard } from "@/components/settings/export-card"
+import { PlacesCard } from "@/components/settings/places-card"
 import { RecoveryKeyCard } from "@/components/settings/recovery-key-card"
 import { ShortcutsCard } from "@/components/settings/shortcuts-card"
 import { SyncCard } from "@/components/settings/sync-card"
 import { UpdateCard } from "@/components/settings/update-card"
 import { ViewPage } from "@/components/view-page"
 import { labels } from "@/lib/labels"
+import { isAndroid } from "@/lib/runtime"
 import { isSyncConfigured, useSyncState } from "@/lib/sync/sync-store"
 
 export const Route = createFileRoute("/_app/settings")({
@@ -24,6 +26,7 @@ function SettingsPage() {
         <RecoveryKeyCard serverUrl={state.serverUrl} />
         <AccountsCard />
         <ExportCard />
+        {isAndroid() && <PlacesCard />}
         <ShortcutsCard />
         <UpdateCard />
         <DeviceCard pendingCount={state.pendingCount} syncConfigured={isSyncConfigured(state)} />

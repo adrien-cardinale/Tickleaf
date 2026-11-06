@@ -1,0 +1,10 @@
+"$schema" = "schemas/schema.json"
+
+[default]
+description = "Allows checking and requesting the location permissions, and registering or clearing the geofences of the tasks."
+permissions = [
+  "allow-check-permissions",
+  "allow-request-permissions",
+  "allow-sync-geofences",
+  "allow-clear-geofences",
+]

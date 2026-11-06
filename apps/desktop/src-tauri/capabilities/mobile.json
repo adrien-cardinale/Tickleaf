@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/mobile-schema.json",
   "identifier": "mobile",
-  "description": "Permissions supplémentaires de Tickleaf sur mobile : scan du QR code d'appairage et export dans le dossier Download",
+  "description": "Permissions supplémentaires de Tickleaf sur mobile : scan du QR code d'appairage, export dans le dossier Download, lecture de la position et alerte à l'arrivée en arrière-plan",
   "platforms": ["android", "iOS"],
   "windows": ["main"],
   "permissions": [
@@ -9,6 +9,12 @@
     "barcode-scanner:allow-request-permissions",
     "barcode-scanner:allow-open-app-settings",
     "barcode-scanner:allow-scan",
+    "geolocation:allow-check-permissions",
+    "geolocation:allow-request-permissions",
+    "geolocation:allow-get-current-position",
+    "geolocation:allow-watch-position",
+    "geolocation:allow-clear-watch",
+    "geofence:default",
     "fs:allow-mkdir",
     "fs:allow-write-file",
     {

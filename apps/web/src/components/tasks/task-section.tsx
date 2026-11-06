@@ -18,15 +18,19 @@ type TaskSectionProps = {
   footer?: ReactNode
   onReorder?: (orderedIds: string[]) => Promise<void> | void
   columnId?: string
+  placeDetailOf?: (task: Task) => string | undefined
 }
 
-type TaskListProps = Pick<TaskSectionProps, "tasks" | "today" | "empty" | "projectNameOf" | "onReorder" | "columnId">
+type TaskListProps = Pick<
+  TaskSectionProps,
+  "tasks" | "today" | "empty" | "projectNameOf" | "onReorder" | "columnId" | "placeDetailOf"
+>
 
 function EmptySection({ text }: { text: string | undefined }) {
   return <p className="py-8 text-center text-muted-foreground">{text ?? labels.views.emptySection}</p>
 }
 
-function TaskList({ tasks, today, empty, projectNameOf, onReorder, columnId }: TaskListProps) {
+function TaskList({ tasks, today, empty, projectNameOf, onReorder, columnId, placeDetailOf }: TaskListProps) {
   const { search } = useWorkspace()
   const sortable = search === ""
   if (columnId && sortable) {
@@ -44,7 +48,15 @@ function TaskList({ tasks, today, empty, projectNameOf, onReorder, columnId }: T
   if (onReorder && sortable) {
     return <SortableTaskList tasks={tasks} today={today} projectNameOf={projectNameOf} onReorder={onReorder} />
   }
-  return tasks.map((task) => <TaskRow key={task.id} task={task} today={today} projectName={projectNameOf(task)} />)
+  return tasks.map((task) => (
+    <TaskRow
+      key={task.id}
+      task={task}
+      today={today}
+      projectName={projectNameOf(task)}
+      placeDetail={placeDetailOf?.(task)}
+    />
+  ))
 }
 
 export function TaskSection({
@@ -59,6 +71,7 @@ export function TaskSection({
   footer,
   onReorder,
   columnId,
+  placeDetailOf,
 }: TaskSectionProps) {
   return (
     <section className="flex flex-col">
@@ -75,6 +88,7 @@ export function TaskSection({
         projectNameOf={projectNameOf}
         onReorder={onReorder}
         columnId={columnId}
+        placeDetailOf={placeDetailOf}
       />
       {footer}
     </section>

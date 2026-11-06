@@ -1,4 +1,4 @@
-import type { IsoDate, Priority, ProjectColor, Recurrence } from "@tickleaf/core"
+import type { IsoDate, Place, Priority, ProjectColor, Recurrence } from "@tickleaf/core"
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 export const projects = sqliteTable(
@@ -44,6 +44,7 @@ export const tasks = sqliteTable(
     due: text("due").$type<IsoDate>(),
     reminderAt: text("reminder_at"),
     recurrence: text("recurrence", { mode: "json" }).$type<Recurrence>(),
+    place: text("place", { mode: "json" }).$type<Place>(),
     priority: integer("priority").$type<Priority>().notNull().default(4),
     projectId: text("project_id").references(() => projects.id),
     sectionId: text("section_id").references(() => sections.id),

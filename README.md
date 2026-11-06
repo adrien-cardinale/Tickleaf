@@ -159,6 +159,20 @@ Account names and relay addresses are stored in clear text in IndexedDB.
 
 The task detail sets a reminder date and time. The desktop and Android apps show a notification at that time; the web build stores the reminder but never rings. On the desktop, the reminder only rings while the app is open. On Android, the system schedules it, so it rings with the app closed.
 
+## Places
+
+The **Lieu** field in the task detail attaches a place to a task: latitude, longitude, a radius from 50 m to 1 km, and an optional name. **Utiliser ma position** fills in the current position.
+
+- The Android app reads the position when it opens and each time it comes back to the foreground. It asks for the location permission the first time a task has a place.
+- **Près de moi** at the top of **Aujourd’hui** lists open tasks with a place within 5 km. Tasks whose zone contains you come first, marked **Sur place**. The others are sorted by distance.
+- When you enter the zone of a task, the Android app shows a notification, even when it is closed. Android watches the zones itself (geofencing through Google Play services) and wakes Tickleaf on arrival. A task notifies on entry only, so it notifies again only after you leave its zone and come back.
+- Background alerts need the location permission set to **Toujours autoriser**. The app asks for it the first time a task has a place, after the regular location permission: Android requires that order, and from Android 11 it opens the system settings for this choice. Without it, the app notifies only while it is open, when it reads the position.
+- **Paramètres** › **Lieux**, on Android only, shows whether the alert works with the app closed, asks for the permission again, and counts the zones Android watches.
+- Android watches at most 100 zones per app. Tickleaf registers the first 100 open tasks with a place and ignores the rest. The zones are registered again after a restart of the phone.
+- The browser reads the position too, if it allows geolocation, and shows **Près de moi**. It never notifies.
+- The desktop app stores and shows places but does not read the position.
+- Publishing the APK on the Play Store requires a background location declaration in the Play Console, with a video of the feature. The APK from the GitHub releases needs nothing more.
+
 ## Where the data lives
 
 The SQLite database runs in memory with sql.js. It is saved encrypted in IndexedDB (database `tickleaf`, entry `database:<id>`, key in the entry `master-key:<id>`) 500 ms after each write, and when the page closes. `<id>` is the public user id derived from the key. The entry `accounts` lists the accounts and the open one. The `database` and `master-key` entries of an earlier version move under the new names on the next launch.

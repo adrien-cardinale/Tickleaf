@@ -12,7 +12,7 @@
     },
     "apps/desktop": {
       "name": "@tickleaf/desktop",
-      "version": "0.2.0",
+      "version": "0.4.0",
       "devDependencies": {
         "@tauri-apps/cli": "^2",
       },
@@ -39,6 +39,7 @@
         "@tauri-apps/api": "^2.12.0",
         "@tauri-apps/plugin-barcode-scanner": "^2",
         "@tauri-apps/plugin-fs": "^2",
+        "@tauri-apps/plugin-geolocation": "^2",
         "@tauri-apps/plugin-http": "^2.7.0",
         "@tauri-apps/plugin-notification": "^2",
         "@tauri-apps/plugin-opener": "^2.7.0",
@@ -736,6 +737,8 @@
     "@tauri-apps/plugin-barcode-scanner": ["@tauri-apps/plugin-barcode-scanner@2.5.3", "", { "dependencies": { "@tauri-apps/api": "^2.12.0" } }, "sha512-Ienqx/XkIcxkf6oM7CCy5FnWNUtiuWC5mkLtM7GughgrYvd5EIGPGxuISboFhvtgiNSJZF8hSan8+dSznlsdBQ=="],
 
     "@tauri-apps/plugin-fs": ["@tauri-apps/plugin-fs@2.7.1", "", { "dependencies": { "@tauri-apps/api": "^2.12.0" } }, "sha512-4TBVjpi/q8PuNzjpkAc2iBGXMTLjOrAyfTiiOL8ORaJCZJRG3tjzmQ4sqs2CMG75FvLyRkOkERfP7AyY4iBNwQ=="],
+
+    "@tauri-apps/plugin-geolocation": ["@tauri-apps/plugin-geolocation@2.5.0", "", { "dependencies": { "@tauri-apps/api": "^2.12.0" } }, "sha512-kYtYGQm48Wa6sYWQKG1E9a8Yp8Lk5ML5b8onw8Xldwrw5t9ptTCt306KB7F0bFt2BsnFrdJvw9UIPyhGnCWC7g=="],
 
     "@tauri-apps/plugin-http": ["@tauri-apps/plugin-http@2.8.3", "", { "dependencies": { "@tauri-apps/api": "^2.12.0" } }, "sha512-MrgCnnxSnzxkMX+Tk1XXB8rSI9hfhUHQmtbn0EpflEDcSx04K1BDfrv51tcK27SCuU/B1j8sNHL0UZur/1iqKA=="],
 

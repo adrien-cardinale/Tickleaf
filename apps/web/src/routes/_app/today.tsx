@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { buildTodayView } from "@tickleaf/core"
+import { NearbySection } from "@/components/places/nearby-section"
 import { QuickAdd } from "@/components/tasks/quick-add"
 import { TaskSection } from "@/components/tasks/task-section"
 import { Badge } from "@/components/ui/badge"
@@ -24,6 +25,7 @@ function TodayPage() {
   return (
     <ViewPage title={text.title} documentTitle={text.title} description={capitalize(formatLongDate(today))}>
       <QuickAdd context={{ due: today, project: null }} placeholder={labels.quickAdd.placeholderToday} />
+      <NearbySection tasks={openTasks} today={today} projectNameOf={projectNameOf} />
       {hasOverdue && (
         <TaskSection
           title={text.overdue}

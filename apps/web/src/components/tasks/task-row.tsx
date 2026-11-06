@@ -1,5 +1,5 @@
 import { DEFAULT_PROJECT_COLOR, type IsoDate, type ProjectColor, subtaskProgress, type Task } from "@tickleaf/core"
-import { ListChecks, Repeat } from "lucide-react"
+import { ListChecks, MapPin, Repeat } from "lucide-react"
 import type { KeyboardEvent, ReactNode } from "react"
 import { ProjectDot } from "@/components/project-dot"
 import { Button } from "@/components/ui/button"
@@ -18,11 +18,16 @@ type TaskRowProps = {
   today: IsoDate
   projectName: string | null
   handle?: ReactNode
+  placeDetail?: string
 }
 
 function useProjectColor(projectId: string | null): ProjectColor {
   const { data: projects } = useProjects()
   return projects?.find((project) => project.id === projectId)?.color ?? DEFAULT_PROJECT_COLOR
+}
+
+function placeText(task: Task, detail: string | undefined): string {
+  return [task.place?.label, detail].filter(Boolean).join(" · ")
 }
 
 function dueClass(task: Task, today: IsoDate): string {
@@ -32,14 +37,15 @@ function dueClass(task: Task, today: IsoDate): string {
   return ""
 }
 
-export function TaskRow({ task, today, projectName, handle }: TaskRowProps) {
+export function TaskRow({ task, today, projectName, handle, placeDetail }: TaskRowProps) {
   const { selectedTaskId, openTask } = useWorkspace()
   const { toggle } = useTaskActions()
   const { data: subtasks = [] } = useSubtasks(task.id)
   const progress = subtaskProgress(subtasks)
   const projectColor = useProjectColor(task.projectId)
   const done = task.completedAt !== null
-  const hasMeta = task.due !== null || projectName !== null || task.description !== "" || progress.total > 0
+  const hasMeta =
+    task.due !== null || task.place !== null || projectName !== null || task.description !== "" || progress.total > 0
   const rowAttributes = { [TASK_ROW_ATTRIBUTE]: "" }
 
   const toggleOnKey = (event: KeyboardEvent<HTMLButtonElement>) => {
@@ -83,6 +89,12 @@ export function TaskRow({ task, today, projectName, handle }: TaskRowProps) {
                   {task.recurrence !== null && (
                     <Repeat className="size-3" role="img" aria-label={recurrenceLabel(task.recurrence)} />
                   )}
+                </span>
+              )}
+              {task.place !== null && (
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="size-3" role="img" aria-label={labels.detail.fieldPlace} />
+                  {placeText(task, placeDetail)}
                 </span>
               )}
               {progress.total > 0 && (

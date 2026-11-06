@@ -29,6 +29,7 @@ import { useProjects, useSections, useSubtasks, useTasks } from "@/lib/queries"
 import { ensureNotificationPermission } from "@/lib/reminders/reminder-notifications"
 import { isTauri } from "@/lib/runtime"
 import { cn } from "@/lib/utils"
+import { PlaceField } from "./place-field"
 
 const INBOX_VALUE = "inbox"
 const NO_SECTION_VALUE = "none"
@@ -310,6 +311,7 @@ function TaskDetailForm({ task, projects, sections }: TaskDetailFormProps) {
       </div>
       <RecurrenceField task={task} />
       <ReminderField task={task} />
+      <PlaceField task={task} />
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="task-project" className="text-xs text-muted-foreground">
           {labels.detail.fieldProject}

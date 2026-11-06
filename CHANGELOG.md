@@ -4,6 +4,22 @@ All notable changes to Tickleaf are documented here. The format follows [Keep a 
 
 The section matching the released version is attached automatically as the GitHub release notes.
 
+## [Unreleased]
+
+### Added
+
+- Places. The **Lieu** field in the task detail attaches a place to a task: coordinates, a radius from 50 m to 1 km and an optional name. **Utiliser ma position** fills in the current position on Android and in the browser.
+- **Près de moi** at the top of **Aujourd’hui** lists open tasks with a place nearby. Tasks whose zone contains you come first, marked **Sur place**, then the others sorted by distance.
+- The Android app shows a notification when it opens or comes back to the foreground inside the zone of a task. A task notifies again only after you leave its zone and come back.
+- Task rows show the place name next to the due date.
+- The Android app notifies you when you enter the zone of a task, even when it is closed. Android watches the zones itself and wakes Tickleaf on arrival, and the zones come back after a restart of the phone.
+- The Android app asks for background location, shown as **Toujours autoriser** in the system settings, the first time a task has a place. Without it, arrivals only notify while the app is open. **Paramètres** › **Lieux** shows whether the alert works with the app closed, asks for the permission again and counts the zones Android watches.
+
+### Changed
+
+- Places are synchronized. Update every device: an older version cannot read the changes a newer one sends.
+- The CSV export gains a **Lieu** column with the place name, or its coordinates when it has no name.
+
 ## [0.4.0] - 2026-10-24
 
 ### Added
