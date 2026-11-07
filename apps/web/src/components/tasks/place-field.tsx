@@ -1,8 +1,10 @@
-import { PLACE_RADII, type Task } from "@tickleaf/core"
+import { type FavoritePlace, PLACE_RADII, type Task } from "@tickleaf/core"
 import { LocateFixed, MapPinned, X } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
+import { FavoritePlaceMenu } from "@/components/places/favorite-place-menu"
 import { type MapPoint, PlaceMapDialog } from "@/components/places/place-map-dialog"
+import { SaveFavoriteButton } from "@/components/places/save-favorite-button"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -14,6 +16,7 @@ import { onNextGeofenceSync } from "@/lib/places/geofence-sync"
 import { draftFromPlace, type PlaceDraft, placeFromDraft, roundCoordinate } from "@/lib/places/place-draft"
 import { canReadPosition, type PositionReading } from "@/lib/places/position"
 import { refreshPosition } from "@/lib/places/position-store"
+import { useFavoritePlaces } from "@/lib/queries"
 import { isAndroid } from "@/lib/runtime"
 
 function warnPositionFailure(reading: PositionReading): void {
@@ -61,6 +64,7 @@ export function PlaceField({ task }: { task: Task }) {
   const [draft, setDraft] = useState<PlaceDraft>(() => draftFromPlace(task.place))
   const [locating, setLocating] = useState(false)
   const [mapOpen, setMapOpen] = useState(false)
+  const { data: favorites = [] } = useFavoritePlaces()
   const locatable = canReadPosition()
 
   const change = (patch: Partial<PlaceDraft>) => {
@@ -88,6 +92,15 @@ export function PlaceField({ task }: { task: Task }) {
 
   const pickOnMap = ({ latitude, longitude }: MapPoint) => {
     change({ latitude: String(latitude), longitude: String(longitude) })
+  }
+
+  const applyFavorite = (favorite: FavoritePlace) => {
+    change({
+      latitude: String(favorite.latitude),
+      longitude: String(favorite.longitude),
+      radius: favorite.radius,
+      label: favorite.label,
+    })
   }
 
   const remove = () => {
@@ -136,6 +149,7 @@ export function PlaceField({ task }: { task: Task }) {
         >
           <MapPinned />
         </Button>
+        {favorites.length > 0 && <FavoritePlaceMenu favorites={favorites} onPick={applyFavorite} />}
       </div>
       {task.place !== null && (
         <div className="flex items-center gap-2">
@@ -157,6 +171,7 @@ export function PlaceField({ task }: { task: Task }) {
               ))}
             </SelectContent>
           </Select>
+          <SaveFavoriteButton place={task.place} />
           <Button
             variant="ghost"
             size="icon"

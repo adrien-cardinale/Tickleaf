@@ -64,6 +64,13 @@
       "when": 1793970647548,
       "tag": "0008_places",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1794080838692,
+      "tag": "0009_favorite-places",
+      "breakpoints": true
     }
   ]
 }

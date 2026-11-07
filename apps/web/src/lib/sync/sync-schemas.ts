@@ -7,7 +7,7 @@ import {
 } from "@tickleaf/core"
 import { z } from "zod"
 
-export const PAYLOAD_VERSION = 7
+export const PAYLOAD_VERSION = 8
 
 const timestamp = z.iso.datetime()
 
@@ -23,12 +23,14 @@ const recurrenceSchema = z.object({
   interval: z.number().int().min(1).max(MAX_RECURRENCE_INTERVAL),
 })
 
-const placeSchema = z.object({
+const placeFields = {
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
   radius: z.number().positive(),
   label: z.string(),
-})
+}
+
+const placeSchema = z.object(placeFields)
 
 export const projectRowSchema = z.object({
   ...syncFields,
@@ -62,6 +64,13 @@ export const taskRowSchema = z.object({
   completedAt: timestamp.nullable(),
 })
 
+export const favoritePlaceRowSchema = z.object({
+  ...syncFields,
+  ...placeFields,
+  radius: z.number().int().positive(),
+  position: z.number().int(),
+})
+
 export const payloadHeaderSchema = z.object({ v: z.number().int() })
 
 export const payloadSchema = z.object({
@@ -69,9 +78,11 @@ export const payloadSchema = z.object({
   projects: z.array(projectRowSchema).default([]),
   sections: z.array(sectionRowSchema).default([]),
   tasks: z.array(taskRowSchema).default([]),
+  favoritePlaces: z.array(favoritePlaceRowSchema).default([]),
 })
 
 export type ProjectRowPayload = z.infer<typeof projectRowSchema>
 export type SectionRowPayload = z.infer<typeof sectionRowSchema>
 export type TaskRowPayload = z.infer<typeof taskRowSchema>
+export type FavoritePlaceRowPayload = z.infer<typeof favoritePlaceRowSchema>
 export type SyncPayload = z.infer<typeof payloadSchema>

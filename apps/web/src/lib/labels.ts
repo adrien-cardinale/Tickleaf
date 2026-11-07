@@ -292,6 +292,16 @@ export const labels = {
     activeCount: (count: number) =>
       count === 0 ? "Aucune zone suivie" : `${count} ${plural(count, "zone suivie", "zones suivies")}`,
     permissionFailed: "Lecture de l’autorisation impossible",
+    favorites: "Lieux favoris",
+    favoritesDescription: "Des lieux prêts à l’emploi pour vos tâches.",
+    addFavorite: "Ajouter un lieu",
+    saveAsFavorite: "Ajouter aux favoris",
+    alreadyFavorite: "Déjà dans les favoris",
+    favoriteSaved: "Lieu ajouté aux favoris",
+    pickFavorite: "Choisir un lieu favori",
+    noFavorites: "Aucun lieu favori pour l’instant.",
+    removeFavorite: "Supprimer ce lieu",
+    defaultFavoriteLabel: "Nouveau lieu",
   },
   priority: {
     1: "P1 · Urgent",

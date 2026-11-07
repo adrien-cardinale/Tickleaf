@@ -1,5 +1,5 @@
 import type { IsoDate, Place, Priority, ProjectColor, Recurrence } from "@tickleaf/core"
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
+import { index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 export const projects = sqliteTable(
   "projects",
@@ -65,6 +65,19 @@ export const tasks = sqliteTable(
   ],
 )
 
+export const favoritePlaces = sqliteTable("favorite_places", {
+  id: text("id").primaryKey(),
+  label: text("label").notNull(),
+  latitude: real("latitude").notNull(),
+  longitude: real("longitude").notNull(),
+  radius: integer("radius").notNull(),
+  position: integer("position").notNull().default(0),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+  deletedAt: text("deleted_at"),
+  syncVersion: integer("sync_version"),
+})
+
 export const syncState = sqliteTable("sync_state", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
@@ -75,3 +88,4 @@ export type NewProjectRow = typeof projects.$inferInsert
 export type SectionRow = typeof sections.$inferSelect
 export type TaskRow = typeof tasks.$inferSelect
 export type NewTaskRow = typeof tasks.$inferInsert
+export type FavoritePlaceRow = typeof favoritePlaces.$inferSelect

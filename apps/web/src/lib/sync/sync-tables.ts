@@ -1,10 +1,11 @@
-import { type Db, projects, sections, tasks } from "@tickleaf/db"
+import { type Db, favoritePlaces, projects, sections, tasks } from "@tickleaf/db"
 import { count, isNull, sql } from "@tickleaf/db/orm"
 
 export const SYNC_TABLES = [
   { name: "projects", table: projects },
   { name: "sections", table: sections },
   { name: "tasks", table: tasks },
+  { name: "favoritePlaces", table: favoritePlaces },
 ] as const
 
 export type SyncTableEntry = (typeof SYNC_TABLES)[number]

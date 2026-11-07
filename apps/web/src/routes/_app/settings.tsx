@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { AccountsCard } from "@/components/settings/accounts-card"
 import { DeviceCard } from "@/components/settings/device-card"
 import { ExportCard } from "@/components/settings/export-card"
+import { FavoritePlacesCard } from "@/components/settings/favorite-places-card"
 import { PlacesCard } from "@/components/settings/places-card"
 import { RecoveryKeyCard } from "@/components/settings/recovery-key-card"
 import { ShortcutsCard } from "@/components/settings/shortcuts-card"
@@ -27,6 +28,7 @@ function SettingsPage() {
         <AccountsCard />
         <ExportCard />
         {isAndroid() && <PlacesCard />}
+        <FavoritePlacesCard />
         <ShortcutsCard />
         <UpdateCard />
         <DeviceCard pendingCount={state.pendingCount} syncConfigured={isSyncConfigured(state)} />

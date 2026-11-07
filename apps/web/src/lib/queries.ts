@@ -5,6 +5,7 @@ import { useCallback } from "react"
 import { toast } from "sonner"
 import { labels } from "@/lib/labels"
 import { getLocalDatabase } from "@/lib/local-db/current-database"
+import { listFavoritePlaces } from "@/lib/services/favorite-places"
 import { listProjects } from "@/lib/services/projects"
 import { listSections } from "@/lib/services/sections"
 import { listAllTasks } from "@/lib/services/tasks"
@@ -13,6 +14,7 @@ export const queryKeys = {
   tasks: ["tasks"] as const,
   projects: ["projects"] as const,
   sections: ["sections"] as const,
+  favoritePlaces: ["favorite-places"] as const,
 }
 
 const localWriteListeners = new Set<() => void>()
@@ -31,6 +33,7 @@ export async function invalidateData(queryClient: QueryClient): Promise<void> {
     queryClient.invalidateQueries({ queryKey: queryKeys.tasks }),
     queryClient.invalidateQueries({ queryKey: queryKeys.projects }),
     queryClient.invalidateQueries({ queryKey: queryKeys.sections }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.favoritePlaces }),
   ])
 }
 
@@ -53,6 +56,11 @@ export const sectionsQuery = queryOptions({
   queryFn: () => runDb(listSections),
 })
 
+export const favoritePlacesQuery = queryOptions({
+  queryKey: queryKeys.favoritePlaces,
+  queryFn: () => runDb(listFavoritePlaces),
+})
+
 export function useTasks() {
   return useQuery(tasksQuery)
 }
@@ -68,6 +76,10 @@ export function useProjects() {
 
 export function useSections() {
   return useQuery(sectionsQuery)
+}
+
+export function useFavoritePlaces() {
+  return useQuery(favoritePlacesQuery)
 }
 
 export function useInvalidateData() {

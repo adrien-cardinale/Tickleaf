@@ -46,4 +46,9 @@ export const GENERATED_MIGRATIONS: readonly Migration[] = [
     when: 1793970647548,
     sql: "ALTER TABLE `tasks` ADD `place` text;",
   },
+  {
+    tag: "0009_favorite-places",
+    when: 1794080838692,
+    sql: "CREATE TABLE `favorite_places` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`label` text NOT NULL,\n\t`latitude` real NOT NULL,\n\t`longitude` real NOT NULL,\n\t`radius` integer NOT NULL,\n\t`position` integer DEFAULT 0 NOT NULL,\n\t`created_at` text NOT NULL,\n\t`updated_at` text NOT NULL,\n\t`deleted_at` text,\n\t`sync_version` integer\n);\n",
+  },
 ]

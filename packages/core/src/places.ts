@@ -1,5 +1,7 @@
 export type Place = { latitude: number; longitude: number; radius: number; label: string }
 
+export type FavoritePlace = Place & { id: string; position: number; createdAt: string; updatedAt: string }
+
 export type Position = { latitude: number; longitude: number }
 
 export const DEFAULT_PLACE_RADIUS = 100
