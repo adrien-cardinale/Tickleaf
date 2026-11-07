@@ -11,6 +11,9 @@
             android:name="ch.tickleaf.geofence.GeofenceReceiver"
             android:exported="false" />
         <receiver
+            android:name="ch.tickleaf.geofence.ArmingReceiver"
+            android:exported="false" />
+        <receiver
             android:name="ch.tickleaf.geofence.BootReceiver"
             android:exported="false">
             <intent-filter>

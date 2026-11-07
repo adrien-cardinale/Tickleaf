@@ -77,7 +77,7 @@ class GeofencePlugin(private val activity: Activity) : Plugin(activity) {
 
     private fun syncResult(): JSObject {
         val result = JSObject()
-        result.put("registered", GeofenceStore.read(activity.applicationContext).size)
+        result.put("registered", GeofenceStore.registered(activity.applicationContext).size)
         return result
     }
 

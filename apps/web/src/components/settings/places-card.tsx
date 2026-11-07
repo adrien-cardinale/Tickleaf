@@ -19,7 +19,7 @@ function BackgroundRequest({ onRequested }: { onRequested: () => void }) {
   const request = async () => {
     setPending(true)
     try {
-      await requestBackgroundGeofences(tasks ?? [], new Date())
+      await requestBackgroundGeofences(tasks ?? [])
     } catch (error) {
       toast.error(text.permissionFailed, { description: error instanceof Error ? error.message : String(error) })
     } finally {

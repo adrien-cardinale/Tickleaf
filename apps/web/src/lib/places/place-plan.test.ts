@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import type { Place, Task } from "@tickleaf/core"
 import { notificationId } from "@/lib/reminders/reminder-plan"
-import { checkArrivals, geofenceTargets } from "./place-plan"
+import { armedTargets, checkArrivals, geofenceTargets } from "./place-plan"
 
 const OFFICE: Place = { latitude: 46.5197, longitude: 6.6323, radius: 100, label: "Bureau" }
 const AT_OFFICE = { latitude: 46.5199, longitude: 6.6323 }
@@ -32,7 +32,7 @@ function task(overrides: Partial<Task>): Task {
 
 describe("geofenceTargets", () => {
   test("turns an open task with a place into a target", () => {
-    expect(geofenceTargets([task({})], NOW)).toEqual([
+    expect(geofenceTargets([task({})])).toEqual([
       {
         id: notificationId("t1"),
         taskId: "t1",
@@ -41,37 +41,54 @@ describe("geofenceTargets", () => {
         latitude: 46.5197,
         longitude: 6.6323,
         radius: 100,
+        armAt: null,
       },
     ])
   })
 
   test("skips completed tasks and tasks without a place", () => {
     const tasks = [task({ id: "done", completedAt: "2026-10-03T08:00:00.000Z" }), task({ id: "free", place: null })]
-    expect(geofenceTargets(tasks, NOW)).toEqual([])
+    expect(geofenceTargets(tasks)).toEqual([])
   })
 
   test("uses a generic body for a place without a name", () => {
-    const [target] = geofenceTargets([task({ place: { ...OFFICE, label: "" } })], NOW)
+    const [target] = geofenceTargets([task({ place: { ...OFFICE, label: "" } })])
     expect(target?.body).toBe("Vous êtes sur place")
   })
 
-  test("skips a task whose due time is more than one hour away", () => {
-    expect(geofenceTargets([task({ due: "2026-10-02", dueTime: "13:01" })], NOW)).toEqual([])
+  test("arms a task one hour before its due time", () => {
+    const [target] = geofenceTargets([task({ due: "2026-10-02", dueTime: "13:00" })])
+    expect(target?.armAt).toBe(NOW.getTime())
   })
 
-  test("arms a task one hour before its due time", () => {
-    const targets = geofenceTargets([task({ due: "2026-10-02", dueTime: "13:00" })], NOW)
+  test("keeps a task with a later due time instead of skipping it", () => {
+    const targets = geofenceTargets([task({ due: "2026-10-02", dueTime: "13:01" })])
+    expect(targets.map((target) => target.taskId)).toEqual(["t1"])
+  })
+})
+
+describe("armedTargets", () => {
+  test("keeps a target armed right away", () => {
+    expect(armedTargets(geofenceTargets([task({})]), NOW).map((target) => target.taskId)).toEqual(["t1"])
+  })
+
+  test("skips a target whose due time is more than one hour away", () => {
+    expect(armedTargets(geofenceTargets([task({ due: "2026-10-02", dueTime: "13:01" })]), NOW)).toEqual([])
+  })
+
+  test("arms a target exactly one hour before its due time", () => {
+    const targets = armedTargets(geofenceTargets([task({ due: "2026-10-02", dueTime: "13:00" })]), NOW)
     expect(targets.map((target) => target.taskId)).toEqual(["t1"])
   })
 
-  test("keeps an overdue task armed", () => {
-    const targets = geofenceTargets([task({ due: "2026-09-30" })], NOW)
+  test("keeps an overdue target armed", () => {
+    const targets = armedTargets(geofenceTargets([task({ due: "2026-09-30" })]), NOW)
     expect(targets.map((target) => target.taskId)).toEqual(["t1"])
   })
 })
 
 describe("checkArrivals", () => {
-  const targets = geofenceTargets([task({})], NOW)
+  const targets = geofenceTargets([task({})])
 
   test("reports an arrival inside the zone", () => {
     const check = checkArrivals(targets, AT_OFFICE, new Set())

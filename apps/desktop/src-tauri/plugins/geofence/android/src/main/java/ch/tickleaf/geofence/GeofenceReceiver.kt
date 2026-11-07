@@ -24,6 +24,6 @@ class GeofenceReceiver : BroadcastReceiver() {
 
     // Android removes every geofence when location turns off; forgetting them lets the next sync add them back.
     private fun forgetWhenUnavailable(context: Context, errorCode: Int) {
-        if (errorCode == GeofenceStatusCodes.GEOFENCE_NOT_AVAILABLE) GeofenceStore.clear(context)
+        if (errorCode == GeofenceStatusCodes.GEOFENCE_NOT_AVAILABLE) GeofenceStore.writeRegistered(context, emptyList())
     }
 }

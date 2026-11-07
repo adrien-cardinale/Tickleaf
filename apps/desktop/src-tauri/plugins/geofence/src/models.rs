@@ -11,6 +11,7 @@ pub struct GeofenceTarget {
     pub latitude: f64,
     pub longitude: f64,
     pub radius: f64,
+    pub arm_at: Option<i64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

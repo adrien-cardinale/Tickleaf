@@ -1,4 +1,4 @@
-import { distanceMeters, isPlaceArmed, type Position, type Task } from "@tickleaf/core"
+import { distanceMeters, type Position, placeArmingTime, type Task } from "@tickleaf/core"
 import { labels } from "@/lib/labels"
 import { notificationId } from "@/lib/reminders/reminder-plan"
 
@@ -10,6 +10,7 @@ export type GeofenceTarget = {
   latitude: number
   longitude: number
   radius: number
+  armAt: number | null
 }
 
 export type ArrivalCheck = { arrivals: GeofenceTarget[]; inside: Set<string> }
@@ -18,9 +19,9 @@ function arrivalBody(label: string): string {
   return label === "" ? labels.places.body : labels.places.bodyAt(label)
 }
 
-export function geofenceTargets(tasks: readonly Task[], now: Date): GeofenceTarget[] {
+export function geofenceTargets(tasks: readonly Task[]): GeofenceTarget[] {
   return tasks.flatMap((task) => {
-    if (task.place === null || !isPlaceArmed(task, now)) return []
+    if (task.place === null || task.completedAt !== null) return []
     const { latitude, longitude, radius, label } = task.place
     return [
       {
@@ -31,9 +32,14 @@ export function geofenceTargets(tasks: readonly Task[], now: Date): GeofenceTarg
         latitude,
         longitude,
         radius,
+        armAt: placeArmingTime(task)?.getTime() ?? null,
       },
     ]
   })
+}
+
+export function armedTargets(targets: readonly GeofenceTarget[], now: Date): GeofenceTarget[] {
+  return targets.filter((target) => target.armAt === null || target.armAt <= now.getTime())
 }
 
 export function checkArrivals(

@@ -22,6 +22,7 @@ The section matching the released version is attached automatically as the GitHu
 - Places are synchronized. Update every device: an older version cannot read the changes a newer one sends.
 - The CSV export gains a **Lieu** column with the place name, or its coordinates when it has no name.
 - The zone of a task with a due date is armed one hour before its due time, or from 23:00 the day before when the task has no time. Until then, the task neither notifies on arrival nor appears in **Près de moi**. A task without due date stays armed, and an overdue task stays armed until it is completed.
+- On Android, a zone is armed at its time even when the app is closed, give or take a few minutes. Before, it waited for the next opening of the app.
 
 ## [0.4.0] - 2026-10-24
 
