@@ -8,6 +8,7 @@ describe("parseQuickAdd", () => {
     expect(parseQuickAdd("  Lire   la doc  ", FRIDAY)).toEqual({
       title: "Lire la doc",
       due: null,
+      dueTime: null,
       priority: 4,
       projectName: null,
       recurrence: null,
@@ -66,6 +67,7 @@ describe("parseQuickAdd", () => {
     expect(parseQuickAdd("Préparer le cours demain p1 #Travail", FRIDAY)).toEqual({
       title: "Préparer le cours",
       due: "2026-10-17",
+      dueTime: null,
       priority: 1,
       projectName: "Travail",
       recurrence: null,
@@ -120,6 +122,60 @@ describe("parseQuickAdd", () => {
 
   test("uses only the first date token", () => {
     expect(parseQuickAdd("demain ou lundi", FRIDAY)).toMatchObject({ title: "ou lundi", due: "2026-10-17" })
+  })
+
+  test("reads a time in every format", () => {
+    expect(parseQuickAdd("Dentiste demain 14h", FRIDAY)).toMatchObject({
+      title: "Dentiste",
+      due: "2026-10-17",
+      dueTime: "14:00",
+    })
+    expect(parseQuickAdd("Appel 14h30", FRIDAY).dueTime).toBe("14:30")
+    expect(parseQuickAdd("Appel 14:30", FRIDAY).dueTime).toBe("14:30")
+    expect(parseQuickAdd("Café 9h", FRIDAY).dueTime).toBe("09:00")
+    expect(parseQuickAdd("Café 09:05", FRIDAY).dueTime).toBe("09:05")
+    expect(parseQuickAdd("Café 9H15", FRIDAY).dueTime).toBe("09:15")
+  })
+
+  test("removes an optional à before the time", () => {
+    expect(parseQuickAdd("Réunion à 14h lundi", FRIDAY)).toMatchObject({
+      title: "Réunion",
+      due: "2026-10-19",
+      dueTime: "14:00",
+    })
+    expect(parseQuickAdd("Réunion a 10h30", FRIDAY)).toMatchObject({ title: "Réunion", dueTime: "10:30" })
+    expect(parseQuickAdd("Voilà 8h", FRIDAY)).toMatchObject({ title: "Voilà", dueTime: "08:00" })
+  })
+
+  test("dates a time without a date today", () => {
+    expect(parseQuickAdd("Appeler à 18h", FRIDAY)).toMatchObject({ title: "Appeler", due: FRIDAY, dueTime: "18:00" })
+  })
+
+  test("keeps the recurrence start for a timed recurrence", () => {
+    expect(parseQuickAdd("Cours chaque lundi à 8h", FRIDAY)).toMatchObject({
+      title: "Cours",
+      due: "2026-10-19",
+      dueTime: "08:00",
+      recurrence: { unit: "week", interval: 1 },
+    })
+  })
+
+  test("keeps an out of range time in the title", () => {
+    expect(parseQuickAdd("Film 25h", FRIDAY)).toMatchObject({ title: "Film 25h", due: null, dueTime: null })
+    expect(parseQuickAdd("Film 14h75", FRIDAY)).toMatchObject({ title: "Film 14h75", dueTime: null })
+    expect(parseQuickAdd("Film 24:00", FRIDAY).dueTime).toBeNull()
+  })
+
+  test("reads a time only as a whole word", () => {
+    expect(parseQuickAdd("Dormir 14heures", FRIDAY)).toMatchObject({ title: "Dormir 14heures", dueTime: null })
+    expect(parseQuickAdd("Lire 14 pages", FRIDAY)).toMatchObject({ title: "Lire 14 pages", dueTime: null })
+    expect(parseQuickAdd("Code a14h", FRIDAY).dueTime).toBeNull()
+    expect(parseQuickAdd("Score 114h", FRIDAY).dueTime).toBeNull()
+  })
+
+  test("uses only the first valid time", () => {
+    expect(parseQuickAdd("Train 9h ou 10h", FRIDAY)).toMatchObject({ title: "Train ou 10h", dueTime: "09:00" })
+    expect(parseQuickAdd("Train 25h ou 10h", FRIDAY)).toMatchObject({ title: "Train 25h ou", dueTime: "10:00" })
   })
 
   test("returns an empty title when only tokens remain", () => {

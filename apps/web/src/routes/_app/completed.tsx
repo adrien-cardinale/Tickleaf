@@ -13,20 +13,14 @@ export const Route = createFileRoute("/_app/completed")({
 const COMPLETED_CONTEXT = { due: null, project: null }
 
 function CompletedPage() {
-  const { today, completedTasks, projectNameOf } = useViewData()
+  const { now, completedTasks, projectNameOf } = useViewData()
   const history = [...completedTasks].sort(compareCompleted)
   const text = labels.views.completed
 
   return (
     <ViewPage title={text.title} documentTitle={text.title} description={text.description(history.length)}>
       <QuickAdd context={COMPLETED_CONTEXT} placeholder={labels.quickAdd.placeholder} />
-      <TaskSection
-        title={text.section}
-        tasks={history}
-        today={today}
-        empty={text.empty}
-        projectNameOf={projectNameOf}
-      />
+      <TaskSection title={text.section} tasks={history} now={now} empty={text.empty} projectNameOf={projectNameOf} />
     </ViewPage>
   )
 }

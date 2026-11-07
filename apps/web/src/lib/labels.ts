@@ -96,7 +96,7 @@ export const labels = {
     hintOr: "ou",
     hintAfter: "dans la phrase.",
     hintShortcut: "pour écrire.",
-    hintTokens: ["demain", "lundi", "chaque lundi"],
+    hintTokens: ["demain", "à 14h", "lundi", "chaque lundi"],
   },
   views: {
     today: {

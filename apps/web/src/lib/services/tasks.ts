@@ -4,15 +4,17 @@ import {
   daysBetween,
   type IsoDate,
   isDueTime,
+  isOverdue,
   nextOccurrence,
   type Place,
   type Priority,
   type Recurrence,
+  rescheduledToToday,
   type Task,
   todayIso,
 } from "@tickleaf/core"
 import { type Db, tasks } from "@tickleaf/db"
-import { and, desc, eq, inArray, isNotNull, isNull, lt, max, or, type SQL } from "@tickleaf/db/orm"
+import { and, desc, eq, inArray, isNotNull, isNull, lte, max, or, type SQL } from "@tickleaf/db/orm"
 import { newId, nowIso, touched } from "./clock"
 
 export type NewTask = {
@@ -235,19 +237,17 @@ export async function deleteTask(db: Db, id: string): Promise<Task[]> {
   return previous
 }
 
-export async function rescheduleOverdue(db: Db, today: IsoDate): Promise<Task[]> {
-  const overdue = alive(and(isNull(tasks.completedAt), isNotNull(tasks.due), lt(tasks.due, today)))
-  const previous = await db.select().from(tasks).where(overdue)
-  if (previous.length === 0) return []
-  await db
-    .update(tasks)
-    .set({ due: today, ...touched() })
-    .where(
-      inArray(
-        tasks.id,
-        previous.map((task) => task.id),
-      ),
-    )
+export async function rescheduleOverdue(db: Db, now: Date): Promise<Task[]> {
+  const dueByToday = alive(and(isNull(tasks.completedAt), isNotNull(tasks.due), lte(tasks.due, todayIso(now))))
+  const candidates = await db.select().from(tasks).where(dueByToday)
+  const previous = candidates.filter((task) => isOverdue(task, now))
+  const stamp = touched()
+  for (const task of previous) {
+    await db
+      .update(tasks)
+      .set({ ...rescheduledToToday(task, now), ...stamp })
+      .where(eq(tasks.id, task.id))
+  }
   return previous
 }
 

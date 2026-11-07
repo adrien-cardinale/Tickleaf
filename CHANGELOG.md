@@ -16,6 +16,7 @@ The section matching the released version is attached automatically as the GitHu
 - The Android app asks for background location, shown as **Toujours autoriser** in the system settings, the first time a task has a place. Without it, arrivals only notify while the app is open. **Paramètres** › **Lieux** shows whether the alert works with the app closed, asks for the permission again and counts the zones Android watches.
 - Favorite places. **Paramètres** › **Lieux favoris** lists named places: add one on the map, rename it, change its radius or delete it. In the **Lieu** field, the star button applies a favorite to the task in one click, and the star next to the radius saves the task place as a favorite. Favorites are synchronized.
 - Due time. Once a task has a due date, the task detail shows an **Heure** field for an optional time, with a button to clear it. Task rows show the time after the date, tasks of the same day are sorted by time, and a repeating task keeps its time on the next occurrence. The CSV export gains an **Heure** column. Clearing the due date clears the time.
+- Quick add understands a time: `14h`, `14h30`, `14:30` or `à 14h`. The time fills the **Heure** field, and a time without a date puts the task on today.
 
 ### Changed
 
@@ -23,6 +24,7 @@ The section matching the released version is attached automatically as the GitHu
 - The CSV export gains a **Lieu** column with the place name, or its coordinates when it has no name.
 - The zone of a task with a due date is armed one hour before its due time, or from 23:00 the day before when the task has no time. Until then, the task neither notifies on arrival nor appears in **Près de moi**. A task without due date stays armed, and an overdue task stays armed until it is completed.
 - On Android, a zone is armed at its time even when the app is closed, give or take a few minutes. Before, it waited for the next opening of the app.
+- A task due today with a time turns overdue once that time has passed, instead of at midnight. It then appears under **En retard** in **Aujourd’hui**, and **Reporter à aujourd’hui** keeps its time only when the time is still to come.
 
 ## [0.4.0] - 2026-10-24
 

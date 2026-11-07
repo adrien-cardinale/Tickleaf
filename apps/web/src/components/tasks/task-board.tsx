@@ -16,7 +16,7 @@ import {
 } from "@dnd-kit/core"
 import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import type { Coordinates } from "@dnd-kit/utilities"
-import type { IsoDate, Task } from "@tickleaf/core"
+import type { Task } from "@tickleaf/core"
 import { GripVertical } from "lucide-react"
 import {
   createContext,
@@ -45,7 +45,7 @@ type Placement = Readonly<Record<string, readonly string[]>>
 
 type TaskBoardProps = {
   columns: readonly BoardColumn[]
-  today: IsoDate
+  now: Date
   projectNameOf: (task: Task) => string | null
   onMove: (taskId: string, columnId: string, orderedIds: string[]) => Promise<void> | void
   children: ReactNode
@@ -54,7 +54,7 @@ type TaskBoardProps = {
 type BoardColumnListProps = {
   columnId: string
   tasks: readonly Task[]
-  today: IsoDate
+  now: Date
   projectNameOf: (task: Task) => string | null
   empty: ReactNode
 }
@@ -130,7 +130,7 @@ function sameOrder(left: readonly string[], right: readonly string[]): boolean {
   return left.length === right.length && left.every((id, index) => id === right[index])
 }
 
-function DragPreview({ task, today, projectName }: { task: Task; today: IsoDate; projectName: string | null }) {
+function DragPreview({ task, now, projectName }: { task: Task; now: Date; projectName: string | null }) {
   const handle = (
     <span className="-mr-1.5 mt-0.5 grid size-[18px] shrink-0 cursor-grabbing place-items-center text-muted-foreground pointer-coarse:size-[22px]">
       <GripVertical className="size-4" aria-hidden="true" />
@@ -138,12 +138,12 @@ function DragPreview({ task, today, projectName }: { task: Task; today: IsoDate;
   )
   return (
     <div className="bg-background opacity-90 shadow-md">
-      <TaskRow task={task} today={today} projectName={projectName} handle={handle} />
+      <TaskRow task={task} now={now} projectName={projectName} handle={handle} />
     </div>
   )
 }
 
-export function TaskBoard({ columns, today, projectNameOf, onMove, children }: TaskBoardProps) {
+export function TaskBoard({ columns, now, projectNameOf, onMove, children }: TaskBoardProps) {
   const [placement, setPlacement] = useState<Placement | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
   const sensors = useTaskSensors()
@@ -294,14 +294,14 @@ export function TaskBoard({ columns, today, projectNameOf, onMove, children }: T
       >
         {children}
         <DragOverlay modifiers={VERTICAL_ONLY}>
-          {activeTask && <DragPreview task={activeTask} today={today} projectName={projectNameOf(activeTask)} />}
+          {activeTask && <DragPreview task={activeTask} now={now} projectName={projectNameOf(activeTask)} />}
         </DragOverlay>
       </DndContext>
     </BoardContext.Provider>
   )
 }
 
-export function BoardColumnList({ columnId, tasks, today, projectNameOf, empty }: BoardColumnListProps) {
+export function BoardColumnList({ columnId, tasks, now, projectNameOf, empty }: BoardColumnListProps) {
   const board = useContext(BoardContext)
   const { setNodeRef } = useDroppable({ id: columnId })
   const pendingIds = board?.placement?.[columnId]
@@ -318,7 +318,7 @@ export function BoardColumnList({ columnId, tasks, today, projectNameOf, empty }
         {shown.length === 0
           ? empty
           : shown.map((task) => (
-              <SortableTaskRow key={task.id} task={task} today={today} projectName={projectNameOf(task)} placeholder />
+              <SortableTaskRow key={task.id} task={task} now={now} projectName={projectNameOf(task)} placeholder />
             ))}
       </div>
     </SortableContext>

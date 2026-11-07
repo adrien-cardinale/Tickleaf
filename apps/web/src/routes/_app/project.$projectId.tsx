@@ -55,7 +55,7 @@ function ProjectNotFound() {
 function ProjectPage() {
   const { projectId } = Route.useParams()
   const navigate = useNavigate()
-  const { today, ready, projects, openTasks } = useViewData()
+  const { today, now, ready, projects, openTasks } = useViewData()
   const { data: allSections = [] } = useSections()
   const { data: allTasks = [] } = useTasks()
   const { rename, setColor, archive } = useProjectActions()
@@ -119,25 +119,19 @@ function ProjectPage() {
       }
     >
       <QuickAdd context={{ due: null, project }} placeholder={labels.quickAdd.placeholderProject(project.name)} />
-      <TaskBoard columns={columns} today={today} projectNameOf={NO_PROJECT_NAME} onMove={moveTask}>
+      <TaskBoard columns={columns} now={now} projectNameOf={NO_PROJECT_NAME} onMove={moveTask}>
         {(sections.length === 0 || unsectioned.length > 0) && (
           <TaskSection
             title={text.section}
             tasks={unsectioned}
-            today={today}
+            now={now}
             empty={text.empty}
             projectNameOf={NO_PROJECT_NAME}
             columnId={UNSECTIONED}
           />
         )}
         {sections.map((section) => (
-          <ProjectSection
-            key={section.id}
-            project={project}
-            section={section}
-            tasks={tasksOf(section.id)}
-            today={today}
-          />
+          <ProjectSection key={section.id} project={project} section={section} tasks={tasksOf(section.id)} now={now} />
         ))}
       </TaskBoard>
       <NewSectionForm key={project.id} projectId={project.id} />

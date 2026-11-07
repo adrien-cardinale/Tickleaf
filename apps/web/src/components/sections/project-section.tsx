@@ -1,4 +1,4 @@
-import type { IsoDate, Project, Section, Task } from "@tickleaf/core"
+import type { Project, Section, Task } from "@tickleaf/core"
 import { useState } from "react"
 import { NameEditor } from "@/components/name-editor"
 import { TaskSection } from "@/components/tasks/task-section"
@@ -13,10 +13,10 @@ type ProjectSectionProps = {
   project: Project
   section: Section
   tasks: readonly Task[]
-  today: IsoDate
+  now: Date
 }
 
-export function ProjectSection({ project, section, tasks, today }: ProjectSectionProps) {
+export function ProjectSection({ project, section, tasks, now }: ProjectSectionProps) {
   const [editing, setEditing] = useState(false)
   const { rename, remove } = useSectionActions()
   const text = labels.views.section
@@ -42,7 +42,7 @@ export function ProjectSection({ project, section, tasks, today }: ProjectSectio
         <SectionMenu name={section.name} onRename={() => setEditing(true)} onDelete={() => void remove(section.id)} />
       }
       tasks={tasks}
-      today={today}
+      now={now}
       empty={text.empty}
       projectNameOf={NO_PROJECT_NAME}
       footer={<SectionTaskAdd project={project} section={section} />}

@@ -4,6 +4,7 @@ import type { Task } from "./types"
 import { buildTodayView, buildUpcomingView, countTasks } from "./views"
 
 const TODAY = "2026-10-16"
+const NOW = new Date(2026, 9, 16, 12, 0)
 
 function task(overrides: Partial<Task>): Task {
   return {
@@ -38,9 +39,20 @@ describe("views", () => {
   })
 
   test("splits overdue and today", () => {
-    const view = buildTodayView([task({ due: "2026-10-15" }), task({ due: TODAY }), task({ due: null })], TODAY)
+    const view = buildTodayView([task({ due: "2026-10-15" }), task({ due: TODAY }), task({ due: null })], NOW)
     expect(view.overdue).toHaveLength(1)
     expect(view.today).toHaveLength(1)
+  })
+
+  test("moves a task of today to overdue once its time has passed", () => {
+    const tasks = [
+      task({ id: "past", due: TODAY, dueTime: "09:00" }),
+      task({ id: "later", due: TODAY, dueTime: "18:00" }),
+      task({ id: "allDay", due: TODAY }),
+    ]
+    const view = buildTodayView(tasks, NOW)
+    expect(view.overdue.map((item) => item.id)).toEqual(["past"])
+    expect(view.today.map((item) => item.id).sort()).toEqual(["allDay", "later"])
   })
 
   test("always shows the first two upcoming days", () => {

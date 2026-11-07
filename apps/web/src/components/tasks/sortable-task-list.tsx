@@ -18,7 +18,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { CSS, type Transform } from "@dnd-kit/utilities"
-import type { IsoDate, Task } from "@tickleaf/core"
+import type { Task } from "@tickleaf/core"
 import { GripVertical } from "lucide-react"
 import { startTransition, useMemo, useState } from "react"
 import { labels } from "@/lib/labels"
@@ -27,14 +27,14 @@ import { TaskRow } from "./task-row"
 
 type SortableTaskListProps = {
   tasks: readonly Task[]
-  today: IsoDate
+  now: Date
   projectNameOf: (task: Task) => string | null
   onReorder: (orderedIds: string[]) => Promise<void> | void
 }
 
 type SortableTaskRowProps = {
   task: Task
-  today: IsoDate
+  now: Date
   projectName: string | null
   placeholder?: boolean
 }
@@ -99,7 +99,7 @@ export function useTaskSensors() {
   )
 }
 
-export function SortableTaskRow({ task, today, projectName, placeholder = false }: SortableTaskRowProps) {
+export function SortableTaskRow({ task, now, projectName, placeholder = false }: SortableTaskRowProps) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
   })
@@ -123,12 +123,12 @@ export function SortableTaskRow({ task, today, projectName, placeholder = false 
       style={{ transform: CSS.Translate.toString(verticalOnly(transform)), transition }}
       className={cn(isDragging && (placeholder ? "opacity-40" : "relative z-10 bg-background opacity-90 shadow-md"))}
     >
-      <TaskRow task={task} today={today} projectName={projectName} handle={handle} />
+      <TaskRow task={task} now={now} projectName={projectName} handle={handle} />
     </div>
   )
 }
 
-export function SortableTaskList({ tasks, today, projectNameOf, onReorder }: SortableTaskListProps) {
+export function SortableTaskList({ tasks, now, projectNameOf, onReorder }: SortableTaskListProps) {
   const [pending, setPending] = useState<readonly string[] | null>(null)
   const ordered = useMemo(() => inPendingOrder(tasks, pending), [tasks, pending])
   const ids = useMemo(() => ordered.map((task) => task.id), [ordered])
@@ -156,7 +156,7 @@ export function SortableTaskList({ tasks, today, projectNameOf, onReorder }: Sor
     >
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         {ordered.map((task) => (
-          <SortableTaskRow key={task.id} task={task} today={today} projectName={projectNameOf(task)} />
+          <SortableTaskRow key={task.id} task={task} now={now} projectName={projectNameOf(task)} />
         ))}
       </SortableContext>
     </DndContext>

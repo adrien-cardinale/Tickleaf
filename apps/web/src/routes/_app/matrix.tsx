@@ -35,7 +35,7 @@ function QuadrantTitle({ quadrant }: { quadrant: MatrixQuadrant }) {
 }
 
 function MatrixPage() {
-  const { today, openTasks, projectNameOf } = useViewData()
+  const { today, now, openTasks, projectNameOf } = useViewData()
   const view = buildMatrixView(openTasks, today)
   const text = labels.views.matrix
 
@@ -50,7 +50,7 @@ function MatrixPage() {
             detail={text.quadrants[quadrant].action}
             badge={<QuadrantBadge quadrant={quadrant} count={view[quadrant].length} />}
             tasks={view[quadrant]}
-            today={today}
+            now={now}
             empty={text.quadrants[quadrant].empty}
             projectNameOf={projectNameOf}
           />

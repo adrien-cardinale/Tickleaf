@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_app/upcoming")({
 const UPCOMING_CONTEXT = { due: null, project: null }
 
 function UpcomingPage() {
-  const { today, openTasks, projectNameOf } = useViewData()
+  const { today, now, openTasks, projectNameOf } = useViewData()
   const view = buildUpcomingView(openTasks, today)
   const text = labels.views.upcoming
   const isEmpty = view.days.length === 0 && view.later.length === 0
@@ -30,14 +30,14 @@ function UpcomingPage() {
             title={heading.title}
             detail={heading.detail}
             tasks={day.tasks}
-            today={today}
+            now={now}
             empty={text.emptyDay}
             projectNameOf={projectNameOf}
           />
         )
       })}
       {view.later.length > 0 && (
-        <TaskSection title={text.later} tasks={view.later} today={today} projectNameOf={projectNameOf} />
+        <TaskSection title={text.later} tasks={view.later} now={now} projectNameOf={projectNameOf} />
       )}
       {isEmpty && <p className="py-8 text-center text-muted-foreground">{text.empty}</p>}
     </ViewPage>

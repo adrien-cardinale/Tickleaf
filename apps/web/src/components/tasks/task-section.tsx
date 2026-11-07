@@ -1,4 +1,4 @@
-import type { IsoDate, Task } from "@tickleaf/core"
+import type { Task } from "@tickleaf/core"
 import type { ReactNode } from "react"
 import { useWorkspace } from "@/components/workspace-context"
 import { labels } from "@/lib/labels"
@@ -12,7 +12,7 @@ type TaskSectionProps = {
   badge?: ReactNode
   action?: ReactNode
   tasks: readonly Task[]
-  today: IsoDate
+  now: Date
   empty?: string
   projectNameOf: (task: Task) => string | null
   footer?: ReactNode
@@ -23,14 +23,14 @@ type TaskSectionProps = {
 
 type TaskListProps = Pick<
   TaskSectionProps,
-  "tasks" | "today" | "empty" | "projectNameOf" | "onReorder" | "columnId" | "placeDetailOf"
+  "tasks" | "now" | "empty" | "projectNameOf" | "onReorder" | "columnId" | "placeDetailOf"
 >
 
 function EmptySection({ text }: { text: string | undefined }) {
   return <p className="py-8 text-center text-muted-foreground">{text ?? labels.views.emptySection}</p>
 }
 
-function TaskList({ tasks, today, empty, projectNameOf, onReorder, columnId, placeDetailOf }: TaskListProps) {
+function TaskList({ tasks, now, empty, projectNameOf, onReorder, columnId, placeDetailOf }: TaskListProps) {
   const { search } = useWorkspace()
   const sortable = search === ""
   if (columnId && sortable) {
@@ -38,7 +38,7 @@ function TaskList({ tasks, today, empty, projectNameOf, onReorder, columnId, pla
       <BoardColumnList
         columnId={columnId}
         tasks={tasks}
-        today={today}
+        now={now}
         projectNameOf={projectNameOf}
         empty={<EmptySection text={empty} />}
       />
@@ -46,13 +46,13 @@ function TaskList({ tasks, today, empty, projectNameOf, onReorder, columnId, pla
   }
   if (tasks.length === 0) return <EmptySection text={empty} />
   if (onReorder && sortable) {
-    return <SortableTaskList tasks={tasks} today={today} projectNameOf={projectNameOf} onReorder={onReorder} />
+    return <SortableTaskList tasks={tasks} now={now} projectNameOf={projectNameOf} onReorder={onReorder} />
   }
   return tasks.map((task) => (
     <TaskRow
       key={task.id}
       task={task}
-      today={today}
+      now={now}
       projectName={projectNameOf(task)}
       placeDetail={placeDetailOf?.(task)}
     />
@@ -65,7 +65,7 @@ export function TaskSection({
   badge,
   action,
   tasks,
-  today,
+  now,
   empty,
   projectNameOf,
   footer,
@@ -83,7 +83,7 @@ export function TaskSection({
       </h2>
       <TaskList
         tasks={tasks}
-        today={today}
+        now={now}
         empty={empty}
         projectNameOf={projectNameOf}
         onReorder={onReorder}

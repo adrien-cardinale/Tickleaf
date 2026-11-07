@@ -101,8 +101,8 @@ export function useTaskActions() {
       showUndo({ message: labels.toast.deleted, undo: (db) => restoreTasks(db, previous) })
     },
 
-    rescheduleOverdue: async (today: IsoDate) => {
-      const previous = await execute((db) => rescheduleOverdue(db, today))
+    rescheduleOverdue: async (now: Date) => {
+      const previous = await execute((db) => rescheduleOverdue(db, now))
       if (!previous || previous.length === 0) return
       showUndo({ message: labels.toast.rescheduled(previous.length), undo: (db) => restoreTasks(db, previous) })
     },

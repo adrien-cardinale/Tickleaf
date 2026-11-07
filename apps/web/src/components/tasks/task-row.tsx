@@ -1,4 +1,11 @@
-import { DEFAULT_PROJECT_COLOR, type IsoDate, type ProjectColor, subtaskProgress, type Task } from "@tickleaf/core"
+import {
+  DEFAULT_PROJECT_COLOR,
+  isOverdue,
+  type ProjectColor,
+  subtaskProgress,
+  type Task,
+  todayIso,
+} from "@tickleaf/core"
 import { ListChecks, MapPin, Repeat } from "lucide-react"
 import type { KeyboardEvent, ReactNode } from "react"
 import { ProjectDot } from "@/components/project-dot"
@@ -15,7 +22,7 @@ import { TaskContextMenu } from "./task-context-menu"
 
 type TaskRowProps = {
   task: Task
-  today: IsoDate
+  now: Date
   projectName: string | null
   handle?: ReactNode
   placeDetail?: string
@@ -30,14 +37,14 @@ function placeText(task: Task, detail: string | undefined): string {
   return [task.place?.label, detail].filter(Boolean).join(" · ")
 }
 
-function dueClass(task: Task, today: IsoDate): string {
-  if (task.completedAt !== null || task.due === null) return ""
-  if (task.due < today) return "text-red-600 dark:text-red-400"
-  if (task.due === today) return "font-medium text-foreground"
+function dueClass(task: Task, now: Date): string {
+  if (isOverdue(task, now)) return "text-red-600 dark:text-red-400"
+  if (task.completedAt === null && task.due === todayIso(now)) return "font-medium text-foreground"
   return ""
 }
 
-export function TaskRow({ task, today, projectName, handle, placeDetail }: TaskRowProps) {
+export function TaskRow({ task, now, projectName, handle, placeDetail }: TaskRowProps) {
+  const today = todayIso(now)
   const { selectedTaskId, openTask } = useWorkspace()
   const { toggle } = useTaskActions()
   const { data: subtasks = [] } = useSubtasks(task.id)
@@ -84,7 +91,7 @@ export function TaskRow({ task, today, projectName, handle, placeDetail }: TaskR
           {hasMeta && (
             <span className="mt-0.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
               {task.due !== null && (
-                <span className={cn("inline-flex items-center gap-1", dueClass(task, today))}>
+                <span className={cn("inline-flex items-center gap-1", dueClass(task, now))}>
                   {dueWithTimeLabel(task.due, task.dueTime, today)}
                   {task.recurrence !== null && (
                     <Repeat className="size-3" role="img" aria-label={recurrenceLabel(task.recurrence)} />

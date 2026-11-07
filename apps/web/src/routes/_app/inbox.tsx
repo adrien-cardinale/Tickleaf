@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_app/inbox")({
 const INBOX_CONTEXT = { due: null, project: null }
 
 function InboxPage() {
-  const { today, openTasks, projectNameOf } = useViewData()
+  const { now, openTasks, projectNameOf } = useViewData()
   const { reorder } = useTaskActions()
   const inbox = sortManually(openTasks.filter((task) => task.projectId === null))
   const text = labels.views.inbox
@@ -24,7 +24,7 @@ function InboxPage() {
       <TaskSection
         title={text.section}
         tasks={inbox}
-        today={today}
+        now={now}
         empty={text.empty}
         projectNameOf={projectNameOf}
         onReorder={reorder}

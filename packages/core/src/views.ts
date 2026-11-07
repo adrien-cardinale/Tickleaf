@@ -1,4 +1,5 @@
-import { addDays } from "./dates"
+import { addDays, todayIso } from "./dates"
+import { isOverdue } from "./due"
 import { quadrantOf } from "./matrix"
 import { compareOverdue, compareTasks } from "./sort"
 import { isSubtask } from "./subtasks"
@@ -26,10 +27,6 @@ export function isOpen(task: Pick<Task, "completedAt">): boolean {
   return task.completedAt === null
 }
 
-export function isOverdue(task: Pick<Task, "due" | "completedAt">, today: IsoDate): boolean {
-  return isOpen(task) && task.due !== null && task.due < today
-}
-
 export function countTasks(tasks: readonly Task[], today: IsoDate): TaskCounts {
   const counts: TaskCounts = { inbox: 0, today: 0, upcoming: 0, matrix: 0, completed: 0, byProject: {} }
   for (const task of tasks) {
@@ -47,11 +44,11 @@ export function countTasks(tasks: readonly Task[], today: IsoDate): TaskCounts {
   return counts
 }
 
-export function buildTodayView(openTasks: readonly Task[], today: IsoDate): TodayView {
-  return {
-    overdue: openTasks.filter((task) => task.due !== null && task.due < today).sort(compareOverdue),
-    today: openTasks.filter((task) => task.due === today).sort(compareTasks),
-  }
+export function buildTodayView(openTasks: readonly Task[], now: Date): TodayView {
+  const today = todayIso(now)
+  const overdue = openTasks.filter((task) => isOverdue(task, now))
+  const dueToday = openTasks.filter((task) => task.due === today && !isOverdue(task, now))
+  return { overdue: overdue.sort(compareOverdue), today: dueToday.sort(compareTasks) }
 }
 
 export function buildUpcomingView(openTasks: readonly Task[], today: IsoDate): UpcomingView {

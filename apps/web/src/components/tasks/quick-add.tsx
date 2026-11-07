@@ -17,10 +17,14 @@ function Token({ children }: { children: string }) {
 }
 
 function QuickAddHint() {
-  const [first, second, third] = labels.quickAdd.hintTokens
   return (
     <p className="-mt-3 text-xs text-muted-foreground">
-      {labels.quickAdd.hintBefore} <Token>{first}</Token>, <Token>{second}</Token>, <Token>{third}</Token>,{" "}
+      {labels.quickAdd.hintBefore}{" "}
+      {labels.quickAdd.hintTokens.map((token) => (
+        <span key={token}>
+          <Token>{token}</Token>,{" "}
+        </span>
+      ))}
       <Token>p1</Token>…<Token>p4</Token> {labels.quickAdd.hintOr} <Token>#Projet</Token> {labels.quickAdd.hintAfter}{" "}
       <Kbd>/</Kbd>
       {labels.quickAdd.hintShortcut}

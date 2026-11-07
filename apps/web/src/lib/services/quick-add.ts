@@ -17,6 +17,7 @@ export async function addQuickTask(
   const task = await createTask(db, {
     title: parsed.title,
     due: parsed.due ?? defaults.due,
+    dueTime: parsed.dueTime,
     priority: parsed.priority,
     recurrence: parsed.recurrence,
     projectId,

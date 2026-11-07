@@ -16,16 +16,16 @@ export const Route = createFileRoute("/_app/today")({
 })
 
 function TodayPage() {
-  const { today, openTasks, projectNameOf } = useViewData()
+  const { today, now, openTasks, projectNameOf } = useViewData()
   const { rescheduleOverdue } = useTaskActions()
-  const view = buildTodayView(openTasks, today)
+  const view = buildTodayView(openTasks, now)
   const text = labels.views.today
   const hasOverdue = view.overdue.length > 0
 
   return (
     <ViewPage title={text.title} documentTitle={text.title} description={capitalize(formatLongDate(today))}>
       <QuickAdd context={{ due: today, project: null }} placeholder={labels.quickAdd.placeholderToday} />
-      <NearbySection tasks={openTasks} today={today} projectNameOf={projectNameOf} />
+      <NearbySection tasks={openTasks} now={now} projectNameOf={projectNameOf} />
       {hasOverdue && (
         <TaskSection
           title={text.overdue}
@@ -35,19 +35,19 @@ function TodayPage() {
             </Badge>
           }
           action={
-            <Button variant="link" className="h-auto p-0" onClick={() => void rescheduleOverdue(today)}>
+            <Button variant="link" className="h-auto p-0" onClick={() => void rescheduleOverdue(now)}>
               {text.reschedule}
             </Button>
           }
           tasks={view.overdue}
-          today={today}
+          now={now}
           projectNameOf={projectNameOf}
         />
       )}
       <TaskSection
         title={text.section}
         tasks={view.today}
-        today={today}
+        now={now}
         empty={hasOverdue ? text.emptyAfterOverdue : text.empty}
         projectNameOf={projectNameOf}
       />

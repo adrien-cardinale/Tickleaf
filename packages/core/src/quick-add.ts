@@ -1,11 +1,12 @@
 import { addDays, isIsoDate, nextDayMonth, nextWeekday, upcomingWeekday, type Weekday } from "./dates"
 import type { Recurrence, RecurrenceUnit } from "./recurrence"
-import type { IsoDate, Priority } from "./types"
+import type { DueTime, IsoDate, Priority } from "./types"
 import { DEFAULT_PRIORITY } from "./types"
 
 export type QuickAddResult = {
   title: string
   due: IsoDate | null
+  dueTime: DueTime | null
   priority: Priority
   projectName: string | null
   recurrence: Recurrence | null
@@ -74,6 +75,25 @@ function extractRecurrence(text: string, today: IsoDate): ExtractedRecurrence {
   }
 }
 
+const TIME_PATTERN = /(?<![\p{L}\d:])(?:(?:à|a)\s+)?(\d{1,2})(?:h(\d{2})?|:(\d{2}))(?![\p{L}\d:])/giu
+
+function toDueTime(hours: string, minutes: string): DueTime | null {
+  const hour = Number(hours)
+  const minute = Number(minutes)
+  if (hour > 23 || minute > 59) return null
+  return `${hours.padStart(2, "0")}:${minutes}`
+}
+
+function extractTime(text: string): { text: string; dueTime: DueTime | null } {
+  for (const match of text.matchAll(TIME_PATTERN)) {
+    const dueTime = toDueTime(String(match[1]), match[2] ?? match[3] ?? "00")
+    if (dueTime === null) continue
+    const start = match.index ?? 0
+    return { text: `${text.slice(0, start)} ${text.slice(start + match[0].length)}`, dueTime }
+  }
+  return { text, dueTime: null }
+}
+
 const PRIORITY_PATTERN = /(?:^|\s)[p!]([1-4])(?=\s|$)/i
 const PROJECT_PATTERN = /#([\p{L}\d_-]+)/u
 
@@ -102,12 +122,14 @@ function extractProject(text: string): { text: string; projectName: string | nul
 
 export function parseQuickAdd(input: string, today: IsoDate): QuickAddResult {
   const repeated = extractRecurrence(input.trim(), today)
-  const dated = extractDate(repeated.text, today)
+  const timed = extractTime(repeated.text)
+  const dated = extractDate(timed.text, today)
   const prioritized = extractPriority(dated.text)
   const assigned = extractProject(prioritized.text)
   return {
     title: assigned.text.replace(/\s+/g, " ").trim(),
-    due: dated.due ?? repeated.start,
+    due: dated.due ?? repeated.start ?? (timed.dueTime === null ? null : today),
+    dueTime: timed.dueTime,
     priority: prioritized.priority,
     projectName: assigned.projectName,
     recurrence: repeated.recurrence,
