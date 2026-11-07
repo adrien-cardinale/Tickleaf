@@ -129,7 +129,7 @@ The server is a blind, ordered log; clients do the merging.
 2. **Push**: local rows not yet sent (`sync_version` is `NULL`) go out in batches of 200, each sealed and appended to the log. Accepted rows get their sequence number as `sync_version`.
 3. **Conflicts**: the row with the most recent `updatedAt` wins. Deletions are soft (`deleted_at`) so they propagate between devices.
 
-Synchronization runs at startup, every 5 minutes, 5 seconds after each change, when the tab comes back to the foreground, when the network comes back, and on demand from the sidebar.
+Synchronization runs at startup, every 5 minutes, 5 seconds after each change, as soon as the tab goes to the background, when it comes back to the foreground, when the network comes back, and on demand from the sidebar.
 
 ## Connecting a device
 
@@ -159,9 +159,13 @@ Account names and relay addresses are stored in clear text in IndexedDB.
 
 A task with a due date can carry an optional time, set in the task detail under the date or typed in quick add (`14h`, `14h30`, `14:30`, `à 14h`; a time without a date puts the task on today). Tasks of the same day are sorted by time, and a task turns overdue once its time has passed. The time is stored with the time zone of the device that set it and shown in the time zone of the device that reads it, with the original zone mentioned when they differ.
 
+## Selecting tasks
+
+`Ctrl`/`⌘`+click, `Shift`+click or `s` on a focused row selects a task, and a checkbox appears on every row while a selection exists. On touch screens, **Sélectionner** in the long-press menu starts the selection. A toolbar at the bottom completes, reschedules, reprioritises, moves, puts in focus or deletes the selection, with undo. `Esc` clears it.
+
 ## Focus
 
-Each task can be put in focus for the current day, from the right-click menu, the selection bar, the task detail or quick add with `@focus` or `!focus`. The **Focus** view lists the tasks in focus today in your own order and warns past five, the recommended limit. When nothing is in focus, it suggests the urgent and important tasks of the matrix. **Démarrer** opens a full-screen session that shows one task at a time with a 15, 25 or 45 minute timer: `Space` pauses, `x` completes, `n` skips and `Esc` quits. A focus lasts one day, and the next occurrence of a repeating task starts out of focus. Press `g` then `f` to open the view.
+Each task can be put in focus for the current day, from the star on its row, the right-click menu, the selection bar, the task detail or quick add with `@focus` or `!focus`. The **Focus** view lists the tasks in focus today in your own order and warns past five, the recommended limit. When nothing is in focus, it suggests the urgent and important tasks of the matrix. **Démarrer** opens a full-screen session that shows one task at a time with a 15, 25 or 45 minute timer: `Space` pauses, `x` completes, `n` skips and `Esc` quits. A focus lasts one day, and the next occurrence of a repeating task starts out of focus. Press `g` then `f` to open the view.
 
 ## Reminders
 

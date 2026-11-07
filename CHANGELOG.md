@@ -4,12 +4,14 @@ All notable changes to Tickleaf are documented here. The format follows [Keep a 
 
 The section matching the released version is attached automatically as the GitHub release notes.
 
-## [Unreleased]
+## [0.6.0] - 2026-11-07
 
 ### Added
 
+- Multi-selection. `Ctrl`/`⌘`+click, `Shift`+click or `s` on a task row selects it, and a checkbox appears on each row while a selection exists. On touch screens, **Sélectionner** in the long-press menu starts the selection. `Esc` or leaving the view clears it.
+- A toolbar at the bottom of the screen acts on the whole selection: complete or reopen, set the due date, the priority or the project, put in focus, or delete, each with undo. The right-click menu applies to the whole selection when the clicked task belongs to it.
 - Focus. A new **Focus** view, between **Aujourd’hui** and **À venir**, lists the tasks you chose for today in your own order. Its description counts them against the limit of five and warns past it. The sidebar shows their count, and `g` then `f` opens the view.
-- **Mettre en focus** and **Retirer du focus** in the right-click menu and the selection bar apply to one task or the whole selection, with undo. The task detail gains a **Focus aujourd’hui** checkbox, and task rows show a target icon for tasks in focus today.
+- A star on each task row puts the task in focus for today or takes it out. **Mettre en focus** and **Retirer du focus** in the right-click menu and the selection bar do the same for one task or the whole selection, with undo. The task detail gains a **Focus aujourd’hui** checkbox.
 - Quick add understands `@focus` and `!focus` to put the new task in focus today.
 - When nothing is in focus, the view suggests the urgent and important tasks of the matrix, with **Tout ajouter au focus**.
 - **Démarrer** opens a full-screen session with one task at a time and a 15, 25 or 45 minute timer that stays accurate in a background tab. **Terminer**, **Passer** and **Retirer du focus** move to the next task, and `Space`, `x`, `n` and `Esc` pause the timer, complete, skip and quit.
@@ -19,6 +21,7 @@ The section matching the released version is attached automatically as the GitHu
 
 - The focus date is synchronized. Update every device: an older version cannot read the changes a newer one sends.
 - Completing a repeating task takes its next occurrence out of focus.
+- An empty section of a project no longer shows a message, only the add field.
 
 ### Fixed
 
