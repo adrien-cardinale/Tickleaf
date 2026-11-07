@@ -261,6 +261,7 @@ export const labels = {
     chooseOnMap: "Choisir sur la carte",
     mapHint: "Cherchez une adresse ou touchez la carte pour placer le lieu.",
     searchPlaceholder: "Rechercher une adresse",
+    search: "Rechercher",
     searching: "Recherche…",
     noResults: "Aucun résultat",
     searchFailed: "Recherche impossible. Vérifiez la connexion.",

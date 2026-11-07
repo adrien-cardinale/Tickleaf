@@ -8,8 +8,8 @@ export function useFavoritePlaceActions() {
   const execute = useDbAction()
 
   return {
-    create: async (place: Place): Promise<boolean> => {
-      return (await execute((db) => createFavoritePlace(db, place))) !== null
+    create: async (place: Place) => {
+      await execute((db) => createFavoritePlace(db, place))
     },
 
     saveFromTask: async (place: Place) => {

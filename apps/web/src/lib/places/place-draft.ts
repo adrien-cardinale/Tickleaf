@@ -2,8 +2,8 @@ import { DEFAULT_PLACE_RADIUS, type Place } from "@tickleaf/core"
 
 export type PlaceDraft = { latitude: string; longitude: string; radius: number; label: string }
 
-const MAX_LATITUDE = 90
-const MAX_LONGITUDE = 180
+export const MAX_LATITUDE = 90
+export const MAX_LONGITUDE = 180
 const COORDINATE_DECIMALS = 6
 
 function parseCoordinate(text: string, limit: number): number | null {

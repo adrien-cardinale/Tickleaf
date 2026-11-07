@@ -1,31 +1,23 @@
-import { type FavoritePlace, PLACE_RADII, type Task } from "@tickleaf/core"
+import type { FavoritePlace, Task } from "@tickleaf/core"
 import { LocateFixed, MapPinned, X } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { FavoritePlaceMenu } from "@/components/places/favorite-place-menu"
 import { type MapPoint, PlaceMapDialog } from "@/components/places/place-map-dialog"
+import { RadiusSelect } from "@/components/places/radius-select"
 import { SaveFavoriteButton } from "@/components/places/save-favorite-button"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useTaskActions } from "@/hooks/use-task-actions"
 import { labels } from "@/lib/labels"
-import { formatDistance } from "@/lib/places/distance"
 import { onNextGeofenceSync } from "@/lib/places/geofence-sync"
 import { draftFromPlace, type PlaceDraft, placeFromDraft, roundCoordinate } from "@/lib/places/place-draft"
-import { canReadPosition, type PositionReading } from "@/lib/places/position"
+import { canReadPosition } from "@/lib/places/position"
 import { refreshPosition } from "@/lib/places/position-store"
+import { warnPositionFailure } from "@/lib/places/position-warnings"
 import { useFavoritePlaces } from "@/lib/queries"
 import { isAndroid } from "@/lib/runtime"
-
-function warnPositionFailure(reading: PositionReading): void {
-  if (reading.status === "denied") {
-    toast.error(labels.places.permissionDenied, { description: labels.places.permissionHint })
-  } else if (reading.status === "unavailable") {
-    toast.error(labels.places.unavailable, { description: labels.places.unavailableHint })
-  }
-}
 
 let backgroundWarningPending = false
 
@@ -159,18 +151,7 @@ export function PlaceField({ task }: { task: Task }) {
             placeholder={labels.places.labelPlaceholder}
             onChange={(event) => change({ label: event.target.value })}
           />
-          <Select value={String(draft.radius)} onValueChange={(value) => change({ radius: Number(value) })}>
-            <SelectTrigger className="w-24 shrink-0" aria-label={labels.places.radius}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PLACE_RADII.map((radius) => (
-                <SelectItem key={radius} value={String(radius)}>
-                  {formatDistance(radius)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <RadiusSelect value={draft.radius} onChange={(radius) => change({ radius })} />
           <SaveFavoriteButton place={task.place} />
           <Button
             variant="ghost"

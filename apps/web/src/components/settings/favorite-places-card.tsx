@@ -1,14 +1,13 @@
-import { DEFAULT_PLACE_RADIUS, type FavoritePlace, PLACE_RADII } from "@tickleaf/core"
+import { DEFAULT_PLACE_RADIUS, type FavoritePlace } from "@tickleaf/core"
 import { Plus, X } from "lucide-react"
-import { type FormEvent, useState } from "react"
+import { type FormEvent, useEffect, useState } from "react"
 import { type MapPoint, PlaceMapDialog } from "@/components/places/place-map-dialog"
+import { RadiusSelect } from "@/components/places/radius-select"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useFavoritePlaceActions } from "@/hooks/use-favorite-place-actions"
 import { labels } from "@/lib/labels"
-import { formatDistance } from "@/lib/places/distance"
 import { draftFromPlace } from "@/lib/places/place-draft"
 import { useFavoritePlaces } from "@/lib/queries"
 
@@ -20,8 +19,15 @@ type FavoriteLabelInputProps = { label: string; onRename: (label: string) => voi
 function FavoriteLabelInput({ label, onRename }: FavoriteLabelInputProps) {
   const [draft, setDraft] = useState(label)
 
+  useEffect(() => setDraft(label), [label])
+
   const commit = () => {
-    if (draft.trim() !== label) onRename(draft)
+    const trimmed = draft.trim()
+    if (trimmed === "") {
+      setDraft(label)
+      return
+    }
+    if (trimmed !== label) onRename(trimmed)
   }
 
   const submit = (event: FormEvent) => {
@@ -49,26 +55,8 @@ function FavoritePlaceRow({ favorite }: { favorite: FavoritePlace }) {
   return (
     <li className="space-y-1">
       <div className="flex items-center gap-2">
-        <FavoriteLabelInput
-          key={favorite.label}
-          label={favorite.label}
-          onRename={(label) => void update(favorite.id, { label })}
-        />
-        <Select
-          value={String(favorite.radius)}
-          onValueChange={(value) => void update(favorite.id, { radius: Number(value) })}
-        >
-          <SelectTrigger className="w-24 shrink-0" aria-label={text.radius}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {PLACE_RADII.map((radius) => (
-              <SelectItem key={radius} value={String(radius)}>
-                {formatDistance(radius)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <FavoriteLabelInput label={favorite.label} onRename={(label) => void update(favorite.id, { label })} />
+        <RadiusSelect value={favorite.radius} onChange={(radius) => void update(favorite.id, { radius })} />
         <Button
           variant="ghost"
           size="icon"

@@ -3,8 +3,18 @@ import { Icon, type LatLngLiteral, type Marker as LeafletMarker } from "leaflet"
 import markerIconUrl from "leaflet/dist/images/marker-icon.png"
 import markerIconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png"
 import markerShadowUrl from "leaflet/dist/images/marker-shadow.png"
-import { Search } from "lucide-react"
-import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { LocateFixed, Search } from "lucide-react"
+import {
+  type KeyboardEvent,
+  type Ref,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { Circle, MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet"
 import { Button } from "@/components/ui/button"
 import {
@@ -21,6 +31,7 @@ import { type GeocodeResult, searchPlaces } from "@/lib/places/geocode"
 import { type PlaceDraft, placeFromDraft, roundCoordinate } from "@/lib/places/place-draft"
 import { canReadPosition } from "@/lib/places/position"
 import { currentPosition, refreshPosition } from "@/lib/places/position-store"
+import { warnPositionFailure } from "@/lib/places/position-warnings"
 
 export type MapPoint = { latitude: number; longitude: number }
 
@@ -31,9 +42,10 @@ const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyrigh
 const DEFAULT_VIEW: MapView = { center: { lat: 46.8, lng: 8.2 }, zoom: 8 }
 const LOCATED_ZOOM = 15
 const SEARCH_ZOOM = 16
-const SEARCH_DELAY_MS = 400
 const MIN_QUERY_LENGTH = 3
 const SEARCH_LIST_ID = "place-search-results"
+
+type SearchHandle = { dismiss: () => boolean }
 
 type SearchState =
   | { status: "idle" }
@@ -75,32 +87,16 @@ function SizeOnOpen() {
   return null
 }
 
-function CenterOnPosition({ enabled }: { enabled: boolean }) {
-  const map = useMap()
-  useEffect(() => {
-    if (!enabled || currentPosition().status !== "pending" || !canReadPosition()) return
-    let active = true
-    void refreshPosition().then((reading) => {
-      if (!active || reading.status !== "located") return
-      map.setView({ lat: reading.position.latitude, lng: reading.position.longitude }, LOCATED_ZOOM)
-    })
-    return () => {
-      active = false
-    }
-  }, [enabled, map])
-  return null
-}
-
 function PickOnClick({ onPick }: { onPick: (point: LatLngLiteral) => void }) {
   useMapEvents({ click: (event) => onPick(event.latlng) })
   return null
 }
 
-function FlyTo({ target }: { target: LatLngLiteral | null }) {
+function FlyTo({ view }: { view: MapView | null }) {
   const map = useMap()
   useEffect(() => {
-    if (target !== null) map.setView(target, SEARCH_ZOOM)
-  }, [map, target])
+    if (view !== null) map.setView(view.center, view.zoom)
+  }, [map, view])
   return null
 }
 
@@ -135,30 +131,41 @@ function SearchStatus({ search, onPick }: { search: SearchState; onPick: (result
   ))
 }
 
-function PlaceSearch({ onPick }: { onPick: (point: LatLngLiteral) => void }) {
+type PlaceSearchProps = { onPick: (point: LatLngLiteral) => void; ref: Ref<SearchHandle> }
+
+function PlaceSearch({ onPick, ref }: PlaceSearchProps) {
   const [query, setQuery] = useState("")
   const [search, setSearch] = useState<SearchState>({ status: "idle" })
-  const timerRef = useRef<number | undefined>(undefined)
   const controllerRef = useRef<AbortController | null>(null)
+  const listOpen = search.status !== "idle"
 
-  const cancelPending = useCallback(() => {
-    window.clearTimeout(timerRef.current)
+  const cancelSearch = useCallback(() => {
     controllerRef.current?.abort()
     controllerRef.current = null
   }, [])
 
-  useEffect(() => cancelPending, [cancelPending])
+  useEffect(() => cancelSearch, [cancelSearch])
 
-  const runSearch = (value: string) => {
-    cancelPending()
-    if (!isSearchableQuery(value)) {
-      setSearch({ status: "idle" })
-      return
-    }
+  const clearResults = () => {
+    cancelSearch()
+    setSearch({ status: "idle" })
+  }
+
+  useImperativeHandle(ref, () => ({
+    dismiss: () => {
+      if (!listOpen) return false
+      clearResults()
+      return true
+    },
+  }))
+
+  const runSearch = () => {
+    if (!isSearchableQuery(query)) return
+    cancelSearch()
     const controller = new AbortController()
     controllerRef.current = controller
     setSearch({ status: "searching" })
-    searchPlaces(value, controller.signal).then(
+    searchPlaces(query, controller.signal).then(
       (results) => {
         if (!controller.signal.aborted) setSearch({ status: "found", results })
       },
@@ -170,17 +177,7 @@ function PlaceSearch({ onPick }: { onPick: (point: LatLngLiteral) => void }) {
 
   const changeQuery = (value: string) => {
     setQuery(value)
-    cancelPending()
-    if (!isSearchableQuery(value)) {
-      setSearch({ status: "idle" })
-      return
-    }
-    timerRef.current = window.setTimeout(() => runSearch(value), SEARCH_DELAY_MS)
-  }
-
-  const clearResults = () => {
-    cancelPending()
-    setSearch({ status: "idle" })
+    if (listOpen) clearResults()
   }
 
   const pickResult = (result: GeocodeResult) => {
@@ -190,20 +187,13 @@ function PlaceSearch({ onPick }: { onPick: (point: LatLngLiteral) => void }) {
   }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.nativeEvent.isComposing) return
-    if (event.key === "Enter") {
-      event.preventDefault()
-      runSearch(query)
-    } else if (event.key === "Escape" && search.status !== "idle") {
-      clearResults()
-    }
+    if (event.nativeEvent.isComposing || event.key !== "Enter") return
+    event.preventDefault()
+    runSearch()
   }
 
-  const listOpen = search.status !== "idle"
-
   return (
-    <div className="relative">
-      <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+    <div className="relative flex min-w-0 flex-1 gap-2">
       <Input
         type="text"
         value={query}
@@ -212,13 +202,21 @@ function PlaceSearch({ onPick }: { onPick: (point: LatLngLiteral) => void }) {
         role="combobox"
         aria-expanded={listOpen}
         aria-controls={SEARCH_LIST_ID}
-        aria-autocomplete="list"
-        data-search-open={listOpen}
         autoComplete="off"
-        className="pl-9"
         onChange={(event) => changeQuery(event.target.value)}
         onKeyDown={handleKeyDown}
       />
+      <Button
+        type="button"
+        variant="outline"
+        size="icon"
+        className="shrink-0"
+        title={labels.places.search}
+        aria-label={labels.places.search}
+        onClick={runSearch}
+      >
+        <Search />
+      </Button>
       {listOpen && (
         <div
           id={SEARCH_LIST_ID}
@@ -231,8 +229,34 @@ function PlaceSearch({ onPick }: { onPick: (point: LatLngLiteral) => void }) {
   )
 }
 
-function keepDialogOpenWhileSearching(event: globalThis.KeyboardEvent) {
-  if (event.target instanceof HTMLElement && event.target.dataset.searchOpen === "true") event.preventDefault()
+function LocateButton({ onLocate }: { onLocate: (point: LatLngLiteral) => void }) {
+  const [locating, setLocating] = useState(false)
+
+  const locate = async () => {
+    setLocating(true)
+    const reading = await refreshPosition()
+    setLocating(false)
+    if (reading.status !== "located") {
+      warnPositionFailure(reading)
+      return
+    }
+    onLocate({ lat: reading.position.latitude, lng: reading.position.longitude })
+  }
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="icon"
+      className="shrink-0"
+      disabled={locating}
+      title={labels.places.useMyPosition}
+      aria-label={labels.places.useMyPosition}
+      onClick={() => void locate()}
+    >
+      <LocateFixed />
+    </Button>
+  )
 }
 
 type DraggableMarkerProps = { point: LatLngLiteral; radius: number; onPick: (point: LatLngLiteral) => void }
@@ -256,17 +280,22 @@ function DraggableMarker({ point, radius, onPick }: DraggableMarkerProps) {
   )
 }
 
-type PlaceMapPickerProps = { draft: PlaceDraft; onConfirm: (point: MapPoint) => void; onCancel: () => void }
+type PlaceMapPickerProps = {
+  draft: PlaceDraft
+  searchRef: Ref<SearchHandle>
+  onConfirm: (point: MapPoint) => void
+  onCancel: () => void
+}
 
-function PlaceMapPicker({ draft, onConfirm, onCancel }: PlaceMapPickerProps) {
+function PlaceMapPicker({ draft, searchRef, onConfirm, onCancel }: PlaceMapPickerProps) {
   const [initialPoint] = useState(() => pointFromDraft(draft))
   const [view] = useState(() => initialView(initialPoint))
   const [point, setPoint] = useState(initialPoint)
-  const [searchTarget, setSearchTarget] = useState<LatLngLiteral | null>(null)
+  const [focus, setFocus] = useState<MapView | null>(null)
 
-  const pickSearchResult = (target: LatLngLiteral) => {
+  const placeAndFocus = (target: LatLngLiteral, zoom: number) => {
     setPoint(target)
-    setSearchTarget(target)
+    setFocus({ center: target, zoom })
   }
 
   const confirm = () => {
@@ -276,13 +305,15 @@ function PlaceMapPicker({ draft, onConfirm, onCancel }: PlaceMapPickerProps) {
 
   return (
     <>
-      <PlaceSearch onPick={pickSearchResult} />
+      <div className="flex gap-2">
+        <PlaceSearch ref={searchRef} onPick={(target) => placeAndFocus(target, SEARCH_ZOOM)} />
+        {canReadPosition() && <LocateButton onLocate={(target) => placeAndFocus(target, LOCATED_ZOOM)} />}
+      </div>
       <div className="relative isolate z-0 h-[50dvh] overflow-hidden rounded-md border sm:h-80">
         <MapContainer center={view.center} zoom={view.zoom} className="size-full">
           <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} />
           <SizeOnOpen />
-          <CenterOnPosition enabled={initialPoint === null} />
-          <FlyTo target={searchTarget} />
+          <FlyTo view={focus} />
           <PickOnClick onPick={setPoint} />
           {point !== null && <DraggableMarker point={point} radius={draft.radius} onPick={setPoint} />}
         </MapContainer>
@@ -306,7 +337,12 @@ type PlaceMapDialogProps = {
   onConfirm: (point: MapPoint) => void
 }
 
+function keepOpenWhileSearching(searchRef: RefObject<SearchHandle | null>, event: globalThis.KeyboardEvent) {
+  if (searchRef.current?.dismiss()) event.preventDefault()
+}
+
 export function PlaceMapDialog({ open, onOpenChange, draft, onConfirm }: PlaceMapDialogProps) {
+  const searchRef = useRef<SearchHandle>(null)
   const close = () => onOpenChange(false)
   const confirm = (point: MapPoint) => {
     onConfirm(point)
@@ -315,12 +351,12 @@ export function PlaceMapDialog({ open, onOpenChange, draft, onConfirm }: PlaceMa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl" onEscapeKeyDown={keepDialogOpenWhileSearching}>
+      <DialogContent className="sm:max-w-2xl" onEscapeKeyDown={(event) => keepOpenWhileSearching(searchRef, event)}>
         <DialogHeader>
           <DialogTitle>{labels.places.chooseOnMap}</DialogTitle>
           <DialogDescription>{labels.places.mapHint}</DialogDescription>
         </DialogHeader>
-        <PlaceMapPicker draft={draft} onConfirm={confirm} onCancel={close} />
+        <PlaceMapPicker draft={draft} searchRef={searchRef} onConfirm={confirm} onCancel={close} />
       </DialogContent>
     </Dialog>
   )

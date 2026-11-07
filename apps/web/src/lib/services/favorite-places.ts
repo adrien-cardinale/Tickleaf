@@ -2,6 +2,7 @@ import type { FavoritePlace, Place } from "@tickleaf/core"
 import { type Db, favoritePlaces } from "@tickleaf/db"
 import { and, asc, eq, isNull, max } from "@tickleaf/db/orm"
 import { labels } from "@/lib/labels"
+import { assertValidPlace } from "@/lib/places/place-validation"
 import { newId, nowIso, touched } from "./clock"
 
 export async function listFavoritePlaces(db: Db): Promise<FavoritePlace[]> {
@@ -32,6 +33,7 @@ function labelOrDefault(label: string): string {
 }
 
 export async function createFavoritePlace(db: Db, place: Place): Promise<FavoritePlace> {
+  assertValidPlace(place)
   const timestamp = nowIso()
   const favorite: FavoritePlace = {
     ...place,
@@ -46,6 +48,7 @@ export async function createFavoritePlace(db: Db, place: Place): Promise<Favorit
 }
 
 export async function updateFavoritePlace(db: Db, id: string, patch: Partial<Place>): Promise<void> {
+  assertValidPlace(patch)
   const changes = patch.label === undefined ? patch : { ...patch, label: labelOrDefault(patch.label) }
   await db
     .update(favoritePlaces)
