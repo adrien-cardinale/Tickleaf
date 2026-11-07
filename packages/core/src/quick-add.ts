@@ -10,6 +10,7 @@ export type QuickAddResult = {
   priority: Priority
   projectName: string | null
   recurrence: Recurrence | null
+  focusDate: IsoDate | null
 }
 
 type DateRule = {
@@ -96,6 +97,7 @@ function extractTime(text: string): { text: string; dueTime: DueTime | null } {
 
 const PRIORITY_PATTERN = /(?:^|\s)[p!]([1-4])(?=\s|$)/i
 const PROJECT_PATTERN = /#([\p{L}\d_-]+)/u
+const FOCUS_PATTERN = /(?:^|\s)[@!]focus(?=\s|$)/i
 
 function extractDate(text: string, today: IsoDate): { text: string; due: IsoDate | null } {
   for (const rule of DATE_RULES) {
@@ -114,6 +116,12 @@ function extractPriority(text: string): { text: string; priority: Priority } {
   return { text: text.replace(match[0], " "), priority: Number(match[1]) as Priority }
 }
 
+function extractFocus(text: string, today: IsoDate): { text: string; focusDate: IsoDate | null } {
+  const match = text.match(FOCUS_PATTERN)
+  if (!match) return { text, focusDate: null }
+  return { text: text.replace(match[0], " "), focusDate: today }
+}
+
 function extractProject(text: string): { text: string; projectName: string | null } {
   const match = text.match(PROJECT_PATTERN)
   if (!match) return { text, projectName: null }
@@ -121,7 +129,8 @@ function extractProject(text: string): { text: string; projectName: string | nul
 }
 
 export function parseQuickAdd(input: string, today: IsoDate): QuickAddResult {
-  const repeated = extractRecurrence(input.trim(), today)
+  const focused = extractFocus(input.trim(), today)
+  const repeated = extractRecurrence(focused.text, today)
   const timed = extractTime(repeated.text)
   const dated = extractDate(timed.text, today)
   const prioritized = extractPriority(dated.text)
@@ -133,5 +142,6 @@ export function parseQuickAdd(input: string, today: IsoDate): QuickAddResult {
     priority: prioritized.priority,
     projectName: assigned.projectName,
     recurrence: repeated.recurrence,
+    focusDate: focused.focusDate,
   }
 }

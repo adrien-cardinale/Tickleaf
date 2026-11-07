@@ -25,6 +25,7 @@ function taskRow(changes: Partial<TaskRowPayload> = {}): TaskRowPayload {
     parentId: null,
     position: 0,
     completedAt: null,
+    focusDate: null,
     createdAt: "2026-01-01T08:00:00.000Z",
     updatedAt: "2026-01-01T08:00:00.000Z",
     deletedAt: null,
@@ -252,6 +253,18 @@ describe("applyPayload", () => {
     const row = taskRow({ due: "2026-01-02", dueTime: null, dueTimeZone: "Europe/Zurich" })
     await applyPayload(db, payloadSchema.parse({ v: 10, tasks: [row] }), 1)
     expect((await readTask(db))?.dueTimeZone).toBeNull()
+  })
+
+  test("lit une tâche v10 sans focus comme hors focus", () => {
+    const { focusDate: _, ...legacy } = taskRow()
+    const payload = payloadSchema.parse({ v: 10, tasks: [legacy] })
+    expect(payload.tasks[0]?.focusDate).toBeNull()
+  })
+
+  test("applique la date de focus d’une tâche", async () => {
+    const row = taskRow({ focusDate: "2026-01-02" })
+    await applyPayload(db, payloadSchema.parse({ v: 11, tasks: [row] }), 1)
+    expect((await readTask(db))?.focusDate).toBe("2026-01-02")
   })
 
   test("refuse une heure d’échéance mal formée", () => {

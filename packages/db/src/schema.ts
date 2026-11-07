@@ -53,6 +53,7 @@ export const tasks = sqliteTable(
     parentId: text("parent_id"),
     position: integer("position").notNull().default(0),
     completedAt: text("completed_at"),
+    focusDate: text("focus_date").$type<IsoDate>(),
     createdAt: text("created_at").notNull(),
     updatedAt: text("updated_at").notNull(),
     deletedAt: text("deleted_at"),
@@ -64,6 +65,7 @@ export const tasks = sqliteTable(
     index("tasks_parent_id_idx").on(table.parentId),
     index("tasks_due_idx").on(table.due),
     index("tasks_completed_at_idx").on(table.completedAt),
+    index("tasks_focus_date_idx").on(table.focusDate),
   ],
 )
 

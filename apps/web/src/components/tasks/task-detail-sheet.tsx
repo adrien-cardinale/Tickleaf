@@ -1,4 +1,5 @@
 import {
+  isFocused,
   isPriority,
   localDueTime,
   PRIORITIES,
@@ -270,6 +271,21 @@ function DueTimeField({ task }: { task: Task }) {
   )
 }
 
+function FocusField({ task }: { task: Task }) {
+  const { focus } = useTaskActions()
+  const today = useToday()
+  if (task.completedAt !== null || task.parentId !== null) return null
+
+  return (
+    <div className="flex items-center gap-2">
+      <Checkbox id="task-focus" checked={isFocused(task, today)} onCheckedChange={() => void focus(task, today)} />
+      <Label htmlFor="task-focus" className="text-sm font-normal">
+        {labels.detail.focusToday}
+      </Label>
+    </div>
+  )
+}
+
 function TaskDetailForm({ task, projects, sections }: TaskDetailFormProps) {
   const { update } = useTaskActions()
   const [title, setTitle] = useState(task.title)
@@ -346,6 +362,7 @@ function TaskDetailForm({ task, projects, sections }: TaskDetailFormProps) {
           </Select>
         </div>
       </div>
+      <FocusField task={task} />
       {task.due !== null && <DueTimeField task={task} />}
       <RecurrenceField task={task} />
       <ReminderField task={task} />

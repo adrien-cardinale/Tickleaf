@@ -28,6 +28,7 @@ export type NewTask = {
   parentId?: string | null
   recurrence?: Recurrence | null
   place?: Place | null
+  focusDate?: IsoDate | null
 }
 
 export type TaskPatch = Partial<
@@ -43,6 +44,7 @@ export type TaskPatch = Partial<
     | "priority"
     | "projectId"
     | "sectionId"
+    | "focusDate"
   >
 >
 
@@ -121,6 +123,7 @@ export async function createTask(db: Db, input: NewTask): Promise<Task> {
     parentId: input.parentId ?? null,
     position: await nextPosition(db),
     completedAt: null,
+    focusDate: input.focusDate ?? null,
     createdAt: timestamp,
     updatedAt: timestamp,
   }
@@ -158,6 +161,10 @@ export async function updateTasks(db: Db, ids: readonly string[], patch: TaskPat
   return previous
 }
 
+export async function setFocus(db: Db, ids: readonly string[], focusDate: IsoDate | null): Promise<Task[]> {
+  return updateTasks(db, ids, { focusDate })
+}
+
 export async function reorderTasks(db: Db, orderedIds: readonly string[]): Promise<void> {
   if (orderedIds.length === 0) return
   const current = await db
@@ -174,6 +181,24 @@ export async function reorderTasks(db: Db, orderedIds: readonly string[]): Promi
   }
 }
 
+export async function reorderAmong(db: Db, orderedIds: readonly string[]): Promise<void> {
+  if (orderedIds.length === 0) return
+  const current = await db
+    .select({ id: tasks.id, position: tasks.position })
+    .from(tasks)
+    .where(inArray(tasks.id, [...orderedIds]))
+  const slots = current.map((task) => task.position).sort((a, b) => a - b)
+  const positions = new Map(current.map((task) => [task.id, task.position]))
+  for (const [index, id] of orderedIds.entries()) {
+    const slot = slots[index]
+    if (slot === undefined || !positions.has(id) || positions.get(id) === slot) continue
+    await db
+      .update(tasks)
+      .set({ position: slot, ...touched() })
+      .where(eq(tasks.id, id))
+  }
+}
+
 function shiftTimestamp(timestamp: string, days: number): string {
   const date = new Date(timestamp)
   date.setDate(date.getDate() + days)
@@ -183,7 +208,11 @@ function shiftTimestamp(timestamp: string, days: number): string {
 function nextRepetition(task: Task, recurrence: Recurrence, today: IsoDate): TaskPatch {
   const due = nextOccurrence(task.due, recurrence, today)
   const shift = daysBetween(task.due ?? today, due)
-  return { due, reminderAt: task.reminderAt === null ? null : shiftTimestamp(task.reminderAt, shift) }
+  return {
+    due,
+    reminderAt: task.reminderAt === null ? null : shiftTimestamp(task.reminderAt, shift),
+    focusDate: null,
+  }
 }
 
 async function markSubtasks(db: Db, parentId: string, completedAt: string | null): Promise<Task[]> {

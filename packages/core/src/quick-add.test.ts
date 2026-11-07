@@ -12,6 +12,7 @@ describe("parseQuickAdd", () => {
       priority: 4,
       projectName: null,
       recurrence: null,
+      focusDate: null,
     })
   })
 
@@ -71,6 +72,7 @@ describe("parseQuickAdd", () => {
       priority: 1,
       projectName: "Travail",
       recurrence: null,
+      focusDate: null,
     })
   })
 
@@ -176,6 +178,22 @@ describe("parseQuickAdd", () => {
   test("uses only the first valid time", () => {
     expect(parseQuickAdd("Train 9h ou 10h", FRIDAY)).toMatchObject({ title: "Train ou 10h", dueTime: "09:00" })
     expect(parseQuickAdd("Train 25h ou 10h", FRIDAY)).toMatchObject({ title: "Train 25h ou", dueTime: "10:00" })
+  })
+
+  test("puts the task in focus today with @focus or !focus", () => {
+    expect(parseQuickAdd("Rédiger le rapport @focus", FRIDAY)).toMatchObject({
+      title: "Rédiger le rapport",
+      focusDate: FRIDAY,
+    })
+    expect(parseQuickAdd("!focus Rédiger le rapport p1", FRIDAY)).toMatchObject({
+      title: "Rédiger le rapport",
+      priority: 1,
+      focusDate: FRIDAY,
+    })
+  })
+
+  test("keeps focus inside a word", () => {
+    expect(parseQuickAdd("Lire refocus", FRIDAY)).toMatchObject({ title: "Lire refocus", focusDate: null })
   })
 
   test("returns an empty title when only tokens remain", () => {

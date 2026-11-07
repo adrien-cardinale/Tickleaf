@@ -61,4 +61,9 @@ export const GENERATED_MIGRATIONS: readonly Migration[] = [
     when: 1794084467773,
     sql: "ALTER TABLE `tasks` ADD `due_time_zone` text;",
   },
+  {
+    tag: "0012_focus-date",
+    when: 1794087967816,
+    sql: "ALTER TABLE `tasks` ADD `focus_date` text;--> statement-breakpoint\nCREATE INDEX `tasks_focus_date_idx` ON `tasks` (`focus_date`);",
+  },
 ]

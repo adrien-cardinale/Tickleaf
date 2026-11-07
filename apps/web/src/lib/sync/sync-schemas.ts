@@ -7,7 +7,7 @@ import {
 } from "@tickleaf/core"
 import { z } from "zod"
 
-export const PAYLOAD_VERSION = 10
+export const PAYLOAD_VERSION = 11
 
 const timestamp = z.iso.datetime()
 
@@ -66,6 +66,7 @@ export const taskRowSchema = z.object({
   parentId: z.string().nullable().default(null),
   position: z.number().int(),
   completedAt: timestamp.nullable(),
+  focusDate: z.iso.date().nullable().default(null),
 })
 
 export const favoritePlaceRowSchema = z.object({

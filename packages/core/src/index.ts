@@ -1,5 +1,6 @@
 export * from "./dates"
 export * from "./due"
+export * from "./focus"
 export * from "./matrix"
 export * from "./places"
 export * from "./projects"

@@ -26,6 +26,7 @@ function task(id: string, place: Place | null, completedAt: string | null = null
     parentId: null,
     position: 0,
     completedAt,
+    focusDate: null,
     createdAt: "2026-10-02T08:00:00.000Z",
     updatedAt: "2026-10-02T08:00:00.000Z",
   }

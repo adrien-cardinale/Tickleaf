@@ -24,6 +24,7 @@ function taskRow(task: Task, projectNames: Map<string, string>, taskTitles: Map<
     task.recurrence === null ? "" : recurrenceLabel(task.recurrence),
     task.place === null ? "" : placeLabel(task.place),
     `P${task.priority}`,
+    task.focusDate ?? "",
     task.completedAt === null ? labels.export.open : labels.export.done,
     task.completedAt ?? "",
     task.createdAt,

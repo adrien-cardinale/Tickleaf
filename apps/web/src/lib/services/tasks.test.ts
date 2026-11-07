@@ -13,6 +13,7 @@ import {
   reopenTasks,
   rescheduleOverdue,
   restoreTasks,
+  setFocus,
   updateTask,
   updateTasks,
 } from "./tasks"
@@ -139,6 +140,35 @@ describe("report des tâches en retard", () => {
     expect(await rescheduleOverdue(db, NOW)).toEqual([])
     expect(await reload(later.id)).toMatchObject({ dueTime: "20:00", updatedAt: later.updatedAt })
     expect(await reload(allDay.id)).toMatchObject({ updatedAt: allDay.updatedAt })
+  })
+})
+
+describe("focus", () => {
+  test("met les tâches en focus et renvoie leur état précédent", async () => {
+    const first = await createTask(db, { title: "Appel", due: null, projectId: null })
+    const second = await createTask(db, { title: "Courses", due: null, projectId: null })
+    const previous = await setFocus(db, [first.id, second.id], "2026-11-07")
+    expect(previous.map((task) => task.focusDate)).toEqual([null, null])
+    expect((await reload(first.id))?.focusDate).toBe("2026-11-07")
+    expect((await reload(second.id))?.focusDate).toBe("2026-11-07")
+  })
+
+  test("retire les tâches du focus", async () => {
+    const task = await createTask(db, { title: "Appel", due: null, projectId: null, focusDate: "2026-11-07" })
+    await setFocus(db, [task.id], null)
+    expect((await reload(task.id))?.focusDate).toBeNull()
+  })
+
+  test("retire le focus de l’occurrence suivante", async () => {
+    const task = await createTask(db, {
+      title: "Sport",
+      due: "2026-11-07",
+      projectId: null,
+      recurrence: { unit: "day", interval: 1 },
+      focusDate: "2026-11-07",
+    })
+    await completeTask(db, task.id, "2026-11-07")
+    expect(await reload(task.id)).toMatchObject({ due: "2026-11-08", focusDate: null })
   })
 })
 

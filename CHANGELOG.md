@@ -4,6 +4,28 @@ All notable changes to Tickleaf are documented here. The format follows [Keep a 
 
 The section matching the released version is attached automatically as the GitHub release notes.
 
+## [Unreleased]
+
+### Added
+
+- Focus. A new **Focus** view, between **Aujourd’hui** and **À venir**, lists the tasks you chose for today in your own order. Its description counts them against the limit of five and warns past it. The sidebar shows their count, and `g` then `f` opens the view.
+- **Mettre en focus** and **Retirer du focus** in the right-click menu and the selection bar apply to one task or the whole selection, with undo. The task detail gains a **Focus aujourd’hui** checkbox, and task rows show a target icon for tasks in focus today.
+- Quick add understands `@focus` and `!focus` to put the new task in focus today.
+- When nothing is in focus, the view suggests the urgent and important tasks of the matrix, with **Tout ajouter au focus**.
+- **Démarrer** opens a full-screen session with one task at a time and a 15, 25 or 45 minute timer that stays accurate in a background tab. **Terminer**, **Passer** and **Retirer du focus** move to the next task, and `Space`, `x`, `n` and `Esc` pause the timer, complete, skip and quit.
+- The CSV export gains a **Focus** column with the focus date.
+
+### Changed
+
+- The focus date is synchronized. Update every device: an older version cannot read the changes a newer one sends.
+- Completing a repeating task takes its next occurrence out of focus.
+
+### Fixed
+
+- Closing the desktop app no longer loses the last changes: the window waits for the local save, up to 3 seconds.
+- The web app also saves on `beforeunload`, and a failed local save now shows an error and retries every 2 seconds instead of waiting for the next change.
+- Pending changes go to the relay as soon as the app moves to the background, instead of 5 seconds after the last write.
+
 ## [0.5.0] - 2026-11-07
 
 ### Added

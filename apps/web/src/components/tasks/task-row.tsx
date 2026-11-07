@@ -1,12 +1,13 @@
 import {
   DEFAULT_PROJECT_COLOR,
+  isFocused,
   isOverdue,
   type ProjectColor,
   subtaskProgress,
   type Task,
   todayIso,
 } from "@tickleaf/core"
-import { ListChecks, MapPin, Repeat } from "lucide-react"
+import { ListChecks, MapPin, Repeat, Star } from "lucide-react"
 import type { KeyboardEvent, MouseEvent, ReactNode } from "react"
 import { ProjectDot } from "@/components/project-dot"
 import { Button } from "@/components/ui/button"
@@ -72,6 +73,28 @@ function SelectCheck({ task, selected, selecting, onToggle }: SelectCheckProps) 
   )
 }
 
+type FocusStarProps = { focused: boolean; onToggle: () => void }
+
+function FocusStar({ focused, onToggle }: FocusStarProps) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={focused}
+      aria-label={focused ? labels.task.menu.unfocus : labels.task.menu.focus}
+      title={focused ? labels.task.menu.unfocus : labels.task.menu.focus}
+      className={cn(
+        "mt-0.5 grid size-[18px] shrink-0 place-items-center rounded-sm outline-none transition-opacity focus-visible:ring-[3px] focus-visible:ring-ring/50 pointer-coarse:size-[22px]",
+        focused
+          ? "text-amber-500"
+          : "text-muted-foreground hover:text-foreground pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:focus-visible:opacity-100",
+      )}
+    >
+      <Star className={cn("size-4", focused && "fill-current")} aria-hidden="true" />
+    </button>
+  )
+}
+
 function dueClass(task: Task, now: Date): string {
   if (isOverdue(task, now)) return "text-red-600 dark:text-red-400"
   if (task.completedAt === null && task.due === todayIso(now)) return "font-medium text-foreground"
@@ -81,11 +104,12 @@ function dueClass(task: Task, now: Date): string {
 export function TaskRow({ task, now, projectName, handle, placeDetail }: TaskRowProps) {
   const today = todayIso(now)
   const { selectedTaskId, openTask, selectedIds, toggleSelected } = useWorkspace()
-  const { toggle } = useTaskActions()
+  const { toggle, focus } = useTaskActions()
   const { data: subtasks = [] } = useSubtasks(task.id)
   const progress = subtaskProgress(subtasks)
   const projectColor = useProjectColor(task.projectId)
   const done = task.completedAt !== null
+  const focused = isFocused(task, today)
   const hasMeta =
     task.due !== null || task.place !== null || projectName !== null || task.description !== "" || progress.total > 0
   const rowAttributes = { [TASK_ROW_ATTRIBUTE]: task.id }
@@ -178,6 +202,7 @@ export function TaskRow({ task, now, projectName, handle, placeDetail }: TaskRow
             </span>
           )}
         </button>
+        {!done && <FocusStar focused={focused} onToggle={() => void focus(task, today)} />}
         {done && (
           <Button variant="ghost" size="sm" className="self-center" onClick={() => void toggle(task)}>
             {labels.views.completed.restore}

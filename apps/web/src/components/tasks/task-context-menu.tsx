@@ -1,7 +1,8 @@
-import { type IsoDate, PRIORITIES, type Task } from "@tickleaf/core"
+import { type IsoDate, isFocused, PRIORITIES, type Task } from "@tickleaf/core"
 import {
   CalendarDays,
   Check,
+  Crosshair,
   Flag,
   FolderInput,
   PanelRight,
@@ -37,16 +38,22 @@ type TaskContextMenuProps = {
   children: ReactNode
 }
 
-function useMenuActions(task: Task) {
+function useMenuActions(task: Task, today: IsoDate) {
   const { selectedTaskId, closeTask } = useWorkspace()
-  const { toggle, update, remove, updateMany, completeMany, removeMany } = useTaskActions()
+  const { toggle, update, remove, updateMany, completeMany, removeMany, focus, focusMany, unfocusMany } =
+    useTaskActions()
   const targets = useMenuTargets(task)
   const grouped = targets.length > 1
   const ids = targets.map((target) => target.id)
+  const focused = targets.every((target) => isFocused(target, today))
+
+  const toggleGroupFocus = () => void (focused ? unfocusMany(ids) : focusMany(ids, today))
 
   return {
     targets,
+    focused,
     complete: () => void (grouped ? completeMany(targets) : toggle(task)),
+    toggleFocus: () => (grouped ? toggleGroupFocus() : void focus(task, today)),
     patch: (patch: TaskPatch) => void (grouped ? updateMany(ids, patch) : update(task.id, patch)),
     remove: () => {
       if (grouped) {
@@ -61,7 +68,7 @@ function useMenuActions(task: Task) {
 
 export function TaskContextMenu({ task, today, children }: TaskContextMenuProps) {
   const { openTask, selectedIds, toggleSelected } = useWorkspace()
-  const { targets, complete, patch, remove } = useMenuActions(task)
+  const { targets, focused, complete, toggleFocus, patch, remove } = useMenuActions(task, today)
   const { data: projects = [] } = useProjects()
   const text = labels.task.menu
   const done = targets.every((target) => target.completedAt !== null)
@@ -81,6 +88,11 @@ export function TaskContextMenu({ task, today, children }: TaskContextMenuProps)
         <ContextMenuItem onSelect={complete}>
           {done ? <RotateCcw /> : <Check />} {done ? text.reopen : text.complete}
         </ContextMenuItem>
+        {!done && (
+          <ContextMenuItem onSelect={toggleFocus}>
+            <Crosshair /> {focused ? text.unfocus : text.focus}
+          </ContextMenuItem>
+        )}
         <ContextMenuSeparator />
         <ContextMenuSub>
           <ContextMenuSubTrigger>

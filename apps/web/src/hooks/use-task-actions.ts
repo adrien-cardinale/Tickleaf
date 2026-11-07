@@ -1,4 +1,12 @@
-import { type IsoDate, nextOccurrence, type Project, parseQuickAdd, type Task, todayIso } from "@tickleaf/core"
+import {
+  type IsoDate,
+  isFocused,
+  nextOccurrence,
+  type Project,
+  parseQuickAdd,
+  type Task,
+  todayIso,
+} from "@tickleaf/core"
 import type { Db } from "@tickleaf/db"
 import { toast } from "sonner"
 import { useWorkspace } from "@/components/workspace-context"
@@ -15,9 +23,11 @@ import {
   deleteTasks,
   reopenTask,
   reopenTasks,
+  reorderAmong,
   reorderTasks,
   rescheduleOverdue,
   restoreTasks,
+  setFocus,
   type TaskPatch,
   updateTask,
   updateTasks,
@@ -50,6 +60,13 @@ export function useTaskActions() {
     toast(message, {
       action: { label: labels.toast.undo, onClick: () => void execute(undo) },
     })
+  }
+
+  const changeFocus = async (ids: readonly string[], focusDate: IsoDate | null) => {
+    const previous = await execute((db) => setFocus(db, ids, focusDate))
+    if (!previous || previous.length === 0) return
+    const message = focusDate === null ? labels.toast.unfocused(ids.length) : labels.toast.focused(ids.length)
+    showUndo({ message, undo: (db) => restoreTasks(db, previous) })
   }
 
   return {
@@ -102,6 +119,10 @@ export function useTaskActions() {
       await execute((db) => reorderTasks(db, orderedIds))
     },
 
+    reorderAmong: async (orderedIds: readonly string[]) => {
+      await execute((db) => reorderAmong(db, orderedIds))
+    },
+
     moveToSection: async (id: string, sectionId: string | null, orderedIds: readonly string[]) => {
       await execute(async (db) => {
         await updateTask(db, id, { sectionId })
@@ -139,6 +160,20 @@ export function useTaskActions() {
       const previous = await execute((db) => deleteTasks(db, ids))
       if (!previous || previous.length === 0) return
       showUndo({ message: labels.toast.deletedMany(ids.length), undo: (db) => restoreTasks(db, previous) })
+    },
+
+    focus: async (task: Task, today: IsoDate) => {
+      await changeFocus([task.id], isFocused(task, today) ? null : today)
+    },
+
+    focusMany: async (ids: readonly string[], today: IsoDate) => {
+      clearSelection()
+      await changeFocus(ids, today)
+    },
+
+    unfocusMany: async (ids: readonly string[]) => {
+      clearSelection()
+      await changeFocus(ids, null)
     },
 
     rescheduleOverdue: async (now: Date) => {

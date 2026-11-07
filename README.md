@@ -159,6 +159,10 @@ Account names and relay addresses are stored in clear text in IndexedDB.
 
 A task with a due date can carry an optional time, set in the task detail under the date or typed in quick add (`14h`, `14h30`, `14:30`, `à 14h`; a time without a date puts the task on today). Tasks of the same day are sorted by time, and a task turns overdue once its time has passed. The time is stored with the time zone of the device that set it and shown in the time zone of the device that reads it, with the original zone mentioned when they differ.
 
+## Focus
+
+Each task can be put in focus for the current day, from the right-click menu, the selection bar, the task detail or quick add with `@focus` or `!focus`. The **Focus** view lists the tasks in focus today in your own order and warns past five, the recommended limit. When nothing is in focus, it suggests the urgent and important tasks of the matrix. **Démarrer** opens a full-screen session that shows one task at a time with a 15, 25 or 45 minute timer: `Space` pauses, `x` completes, `n` skips and `Esc` quits. A focus lasts one day, and the next occurrence of a repeating task starts out of focus. Press `g` then `f` to open the view.
+
 ## Reminders
 
 The task detail sets a reminder date and time. The desktop and Android apps show a notification at that time; the web build stores the reminder but never rings. On the desktop, the reminder only rings while the app is open. On Android, the system schedules it, so it rings with the app closed.
@@ -181,6 +185,8 @@ The **Lieu** field in the task detail attaches a place to a task: latitude, long
 
 ## Where the data lives
 
-The SQLite database runs in memory with sql.js. It is saved encrypted in IndexedDB (database `tickleaf`, entry `database:<id>`, key in the entry `master-key:<id>`) 500 ms after each write, and when the page closes. `<id>` is the public user id derived from the key. The entry `accounts` lists the accounts and the open one. The `database` and `master-key` entries of an earlier version move under the new names on the next launch.
+The SQLite database runs in memory with sql.js. It is saved encrypted in IndexedDB (database `tickleaf`, entry `database:<id>`, key in the entry `master-key:<id>`) 500 ms after the last write. `<id>` is the public user id derived from the key. The entry `accounts` lists the accounts and the open one. The `database` and `master-key` entries of an earlier version move under the new names on the next launch.
+
+The page also saves when it is hidden or closed, and pushes pending changes to the relay without waiting. The desktop app holds the window open until the save ends, up to 3 seconds. A failed save shows an error and retries every 2 seconds until it succeeds.
 
 The browser may clear this storage: site data cleanup, private browsing, storage pressure, or long inactivity on Safari. With a relay configured, the data comes back on another device with the recovery key. Without a relay, do not trust Tickleaf with data you cannot afford to lose.

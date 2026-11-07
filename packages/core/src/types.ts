@@ -48,6 +48,7 @@ export type Task = {
   parentId: string | null
   position: number
   completedAt: string | null
+  focusDate: IsoDate | null
   createdAt: string
   updatedAt: string
 }

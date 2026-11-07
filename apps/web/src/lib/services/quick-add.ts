@@ -20,6 +20,7 @@ export async function addQuickTask(
     dueTime: parsed.dueTime,
     priority: parsed.priority,
     recurrence: parsed.recurrence,
+    focusDate: parsed.focusDate,
     projectId,
     sectionId: projectId === defaults.projectId ? defaults.sectionId : null,
   })

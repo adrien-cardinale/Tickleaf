@@ -1,5 +1,5 @@
-import { PRIORITIES, type Task } from "@tickleaf/core"
-import { CalendarDays, Check, Flag, FolderInput, RotateCcw, Trash2, X } from "lucide-react"
+import { isFocused, PRIORITIES, type Task } from "@tickleaf/core"
+import { CalendarDays, Check, Crosshair, Flag, FolderInput, RotateCcw, Trash2, X } from "lucide-react"
 import { type ReactNode, useEffect, useMemo } from "react"
 import { ProjectDot } from "@/components/project-dot"
 import { Button } from "@/components/ui/button"
@@ -60,6 +60,20 @@ function CompleteButton({ selected }: { selected: readonly Task[] }) {
   )
 }
 
+function FocusButton({ selected }: { selected: readonly Task[] }) {
+  const { focusMany, unfocusMany } = useTaskActions()
+  const today = useToday()
+  const focused = selected.every((task) => isFocused(task, today))
+  const ids = selected.map((task) => task.id)
+  const text = labels.task.menu
+  return (
+    <Button variant="ghost" size="sm" onClick={() => void (focused ? unfocusMany(ids) : focusMany(ids, today))}>
+      <Crosshair />
+      <ButtonLabel>{focused ? text.unfocus : text.focus}</ButtonLabel>
+    </Button>
+  )
+}
+
 function PatchMenus({ ids }: { ids: readonly string[] }) {
   const { updateMany } = useTaskActions()
   const { data: projects = [] } = useProjects()
@@ -112,6 +126,7 @@ export function SelectionBar() {
         {labels.selection.count(selected.length)}
       </span>
       <CompleteButton selected={selected} />
+      <FocusButton selected={selected} />
       <PatchMenus ids={ids} />
       <Button variant="destructive" size="sm" onClick={() => void removeMany(ids)}>
         <Trash2 />

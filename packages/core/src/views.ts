@@ -1,5 +1,6 @@
 import { addDays, todayIso } from "./dates"
 import { isOverdue } from "./due"
+import { isFocused } from "./focus"
 import { quadrantOf } from "./matrix"
 import { compareOverdue, compareTasks } from "./sort"
 import { isSubtask } from "./subtasks"
@@ -11,6 +12,7 @@ export const ALWAYS_SHOWN_DAYS = 2
 export type TaskCounts = {
   inbox: number
   today: number
+  focus: number
   upcoming: number
   matrix: number
   completed: number
@@ -28,7 +30,7 @@ export function isOpen(task: Pick<Task, "completedAt">): boolean {
 }
 
 export function countTasks(tasks: readonly Task[], today: IsoDate): TaskCounts {
-  const counts: TaskCounts = { inbox: 0, today: 0, upcoming: 0, matrix: 0, completed: 0, byProject: {} }
+  const counts: TaskCounts = { inbox: 0, today: 0, focus: 0, upcoming: 0, matrix: 0, completed: 0, byProject: {} }
   for (const task of tasks) {
     if (isSubtask(task)) continue
     if (!isOpen(task)) {
@@ -39,6 +41,7 @@ export function countTasks(tasks: readonly Task[], today: IsoDate): TaskCounts {
     else counts.byProject[task.projectId] = (counts.byProject[task.projectId] ?? 0) + 1
     if (task.due !== null && task.due <= today) counts.today += 1
     if (task.due !== null && task.due > today) counts.upcoming += 1
+    if (isFocused(task, today)) counts.focus += 1
     if (quadrantOf(task, today) === "doFirst") counts.matrix += 1
   }
   return counts

@@ -23,6 +23,7 @@ function task(overrides: Partial<Task>): Task {
     parentId: null,
     position: 0,
     completedAt: null,
+    focusDate: null,
     createdAt: "2026-10-01T00:00:00.000Z",
     updatedAt: "2026-10-01T00:00:00.000Z",
     ...overrides,
@@ -67,11 +68,19 @@ describe("views", () => {
       [task({ due: "2026-10-10" }), task({ due: "2026-10-20", projectId: "p" }), task({ completedAt: TODAY })],
       TODAY,
     )
-    expect(counts).toEqual({ inbox: 1, today: 1, upcoming: 1, matrix: 0, completed: 1, byProject: { p: 1 } })
+    expect(counts).toEqual({ inbox: 1, today: 1, focus: 0, upcoming: 1, matrix: 0, completed: 1, byProject: { p: 1 } })
+  })
+
+  test("counts the open tasks in focus today", () => {
+    const counts = countTasks(
+      [task({ focusDate: TODAY }), task({ focusDate: "2026-10-15" }), task({ focusDate: TODAY, completedAt: TODAY })],
+      TODAY,
+    )
+    expect(counts.focus).toBe(1)
   })
 
   test("leaves subtasks out of the counts", () => {
     const counts = countTasks([task({ due: TODAY }), task({ parentId: "parent" })], TODAY)
-    expect(counts).toEqual({ inbox: 1, today: 1, upcoming: 0, matrix: 0, completed: 0, byProject: {} })
+    expect(counts).toEqual({ inbox: 1, today: 1, focus: 0, upcoming: 0, matrix: 0, completed: 0, byProject: {} })
   })
 })

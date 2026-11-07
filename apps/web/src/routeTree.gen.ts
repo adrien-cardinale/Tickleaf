@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppCompletedRouteImport } from './routes/_app/completed'
+import { Route as AppFocusRouteImport } from './routes/_app/focus'
 import { Route as AppInboxRouteImport } from './routes/_app/inbox'
 import { Route as AppMatrixRouteImport } from './routes/_app/matrix'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
@@ -31,6 +32,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const AppCompletedRoute = AppCompletedRouteImport.update({
   id: '/completed',
   path: '/completed',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFocusRoute = AppFocusRouteImport.update({
+  id: '/focus',
+  path: '/focus',
   getParentRoute: () => AppRoute,
 } as any)
 const AppInboxRoute = AppInboxRouteImport.update({
@@ -67,6 +73,7 @@ const AppProjectProjectIdRoute = AppProjectProjectIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/completed': typeof AppCompletedRoute
+  '/focus': typeof AppFocusRoute
   '/inbox': typeof AppInboxRoute
   '/matrix': typeof AppMatrixRoute
   '/settings': typeof AppSettingsRoute
@@ -76,6 +83,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/completed': typeof AppCompletedRoute
+  '/focus': typeof AppFocusRoute
   '/inbox': typeof AppInboxRoute
   '/matrix': typeof AppMatrixRoute
   '/settings': typeof AppSettingsRoute
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/_app/completed': typeof AppCompletedRoute
+  '/_app/focus': typeof AppFocusRoute
   '/_app/inbox': typeof AppInboxRoute
   '/_app/matrix': typeof AppMatrixRoute
   '/_app/settings': typeof AppSettingsRoute
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/completed'
+    | '/focus'
     | '/inbox'
     | '/matrix'
     | '/settings'
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/completed'
+    | '/focus'
     | '/inbox'
     | '/matrix'
     | '/settings'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/_app/completed'
+    | '/_app/focus'
     | '/_app/inbox'
     | '/_app/matrix'
     | '/_app/settings'
@@ -155,6 +167,13 @@ declare module '@tanstack/react-router' {
       path: '/completed'
       fullPath: '/completed'
       preLoaderRoute: typeof AppCompletedRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/focus': {
+      id: '/_app/focus'
+      path: '/focus'
+      fullPath: '/focus'
+      preLoaderRoute: typeof AppFocusRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/inbox': {
@@ -204,6 +223,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppCompletedRoute: typeof AppCompletedRoute
+  AppFocusRoute: typeof AppFocusRoute
   AppInboxRoute: typeof AppInboxRoute
   AppMatrixRoute: typeof AppMatrixRoute
   AppSettingsRoute: typeof AppSettingsRoute
@@ -215,6 +235,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppCompletedRoute: AppCompletedRoute,
+  AppFocusRoute: AppFocusRoute,
   AppInboxRoute: AppInboxRoute,
   AppMatrixRoute: AppMatrixRoute,
   AppSettingsRoute: AppSettingsRoute,
