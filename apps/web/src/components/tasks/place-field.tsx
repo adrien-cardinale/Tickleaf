@@ -1,7 +1,8 @@
 import { PLACE_RADII, type Task } from "@tickleaf/core"
-import { LocateFixed, X } from "lucide-react"
+import { LocateFixed, MapPinned, X } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
+import { type MapPoint, PlaceMapDialog } from "@/components/places/place-map-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -59,6 +60,7 @@ export function PlaceField({ task }: { task: Task }) {
   const { update } = useTaskActions()
   const [draft, setDraft] = useState<PlaceDraft>(() => draftFromPlace(task.place))
   const [locating, setLocating] = useState(false)
+  const [mapOpen, setMapOpen] = useState(false)
   const locatable = canReadPosition()
 
   const change = (patch: Partial<PlaceDraft>) => {
@@ -82,6 +84,10 @@ export function PlaceField({ task }: { task: Task }) {
       latitude: String(roundCoordinate(reading.position.latitude)),
       longitude: String(roundCoordinate(reading.position.longitude)),
     })
+  }
+
+  const pickOnMap = ({ latitude, longitude }: MapPoint) => {
+    change({ latitude: String(latitude), longitude: String(longitude) })
   }
 
   const remove = () => {
@@ -120,6 +126,16 @@ export function PlaceField({ task }: { task: Task }) {
             <LocateFixed />
           </Button>
         )}
+        <Button
+          variant="outline"
+          size="icon"
+          className="shrink-0"
+          title={labels.places.chooseOnMap}
+          aria-label={labels.places.chooseOnMap}
+          onClick={() => setMapOpen(true)}
+        >
+          <MapPinned />
+        </Button>
       </div>
       {task.place !== null && (
         <div className="flex items-center gap-2">
@@ -153,6 +169,7 @@ export function PlaceField({ task }: { task: Task }) {
           </Button>
         </div>
       )}
+      <PlaceMapDialog open={mapOpen} onOpenChange={setMapOpen} draft={draft} onConfirm={pickOnMap} />
       {!locatable && <p className="text-xs text-muted-foreground">{labels.places.webHint}</p>}
     </div>
   )
