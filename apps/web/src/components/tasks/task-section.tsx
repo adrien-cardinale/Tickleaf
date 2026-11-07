@@ -13,7 +13,7 @@ type TaskSectionProps = {
   action?: ReactNode
   tasks: readonly Task[]
   now: Date
-  empty?: string
+  empty?: string | null
   projectNameOf: (task: Task) => string | null
   footer?: ReactNode
   onReorder?: (orderedIds: string[]) => Promise<void> | void
@@ -26,7 +26,8 @@ type TaskListProps = Pick<
   "tasks" | "now" | "empty" | "projectNameOf" | "onReorder" | "columnId" | "placeDetailOf"
 >
 
-function EmptySection({ text }: { text: string | undefined }) {
+function EmptySection({ text }: { text: string | null | undefined }) {
+  if (text === null) return <div className="h-2" />
   return <p className="py-8 text-center text-muted-foreground">{text ?? labels.views.emptySection}</p>
 }
 

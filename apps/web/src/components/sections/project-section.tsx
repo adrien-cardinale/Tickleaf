@@ -43,7 +43,7 @@ export function ProjectSection({ project, section, tasks, now }: ProjectSectionP
       }
       tasks={tasks}
       now={now}
-      empty={text.empty}
+      empty={null}
       projectNameOf={NO_PROJECT_NAME}
       footer={<SectionTaskAdd project={project} section={section} />}
       columnId={section.id}
