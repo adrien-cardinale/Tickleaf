@@ -2,6 +2,7 @@ import type { QueryClient } from "@tanstack/react-query"
 import { todayIso } from "@tickleaf/core"
 import { changeAccount } from "@/lib/account/accounts"
 import { openActiveAccount } from "@/lib/crypto/onboarding"
+import { guardWindowClose } from "@/lib/local-db/close-guard"
 import { setLocalDatabase } from "@/lib/local-db/current-database"
 import { openLocalDb } from "@/lib/local-db/open-local-db"
 import { seedStarterData } from "@/lib/services/seed"
@@ -17,6 +18,7 @@ async function openDatabase(): Promise<void> {
     await changeAccount(account.id, { seedPending: false })
   }
   setLocalDatabase(database)
+  guardWindowClose()
 }
 
 export function bootApp(queryClient: QueryClient): Promise<void> {

@@ -1,4 +1,5 @@
 import { createProxyDb, type Db, runMigrations } from "@tickleaf/db"
+import { toast } from "sonner"
 import type { Database } from "sql.js"
 import type { Vault } from "@/lib/crypto/envelope"
 import { labels } from "@/lib/labels"
@@ -8,6 +9,7 @@ import { openSqlJsDatabase } from "./sqljs-db"
 import { applyConnectionPragmas, createSqlJsExecutor, isWriteStatement } from "./sqljs-executor"
 
 const SAVE_DELAY_MS = 500
+const SAVE_FAILED_TOAST_ID = "local-save"
 
 export type LocalDatabase = {
   isNew: boolean
@@ -22,9 +24,15 @@ function exportSnapshot(database: Database): Uint8Array {
   return bytes
 }
 
+function reportSaveFailure(error: unknown): void {
+  console.error("Sauvegarde de la base locale impossible", error)
+  toast.error(labels.boot.saveFailed, { id: SAVE_FAILED_TOAST_ID })
+}
+
 function flushWhenHidden(flush: () => Promise<void>): void {
   const flushQuietly = () => void flush().catch(() => undefined)
   window.addEventListener("pagehide", flushQuietly)
+  window.addEventListener("beforeunload", flushQuietly)
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") flushQuietly()
   })
@@ -40,7 +48,7 @@ export async function openLocalDb(accountId: string, vault: Vault): Promise<Loca
     persistence,
     delayMs: SAVE_DELAY_MS,
     exportBytes: () => queue(async () => exportSnapshot(database)),
-    onError: (error) => console.error("Sauvegarde de la base locale impossible", error),
+    onError: reportSaveFailure,
   })
   const db = createProxyDb(
     createSqlJsExecutor(database, (sql) => {

@@ -41,10 +41,13 @@ export function withEncryption(inner: Persistence, vault: Vault): Persistence {
   }
 }
 
+export const RETRY_DELAY_MS = 2000
+
 export type AutoSaverOptions = {
   exportBytes: () => Promise<Uint8Array>
   persistence: Persistence
   delayMs: number
+  retryDelayMs?: number
   onError?: (error: unknown) => void
 }
 
@@ -54,7 +57,13 @@ export type AutoSaver = {
   stop(): Promise<void>
 }
 
-export function createAutoSaver({ exportBytes, persistence, delayMs, onError }: AutoSaverOptions): AutoSaver {
+export function createAutoSaver({
+  exportBytes,
+  persistence,
+  delayMs,
+  retryDelayMs = RETRY_DELAY_MS,
+  onError,
+}: AutoSaverOptions): AutoSaver {
   let timer: ReturnType<typeof setTimeout> | null = null
   let dirty = false
   let writing: Promise<void> = Promise.resolve()
@@ -66,12 +75,26 @@ export function createAutoSaver({ exportBytes, persistence, delayMs, onError }: 
     await persistence.save(await exportBytes())
   }
 
-  const flush = () => {
+  const clearTimer = () => {
     if (timer !== null) clearTimeout(timer)
     timer = null
+  }
+
+  const startTimer = (delay: number) => {
+    clearTimer()
+    timer = setTimeout(() => void flush().catch(() => undefined), delay)
+  }
+
+  const retryLater = () => {
+    if (!stopped && dirty && timer === null) startTimer(retryDelayMs)
+  }
+
+  const flush = (): Promise<void> => {
+    clearTimer()
     writing = writing.then(write).catch((error: unknown) => {
       dirty = true
       onError?.(error)
+      retryLater()
       throw error
     })
     const current = writing
@@ -83,14 +106,12 @@ export function createAutoSaver({ exportBytes, persistence, delayMs, onError }: 
     schedule: () => {
       if (stopped) return
       dirty = true
-      if (timer !== null) clearTimeout(timer)
-      timer = setTimeout(() => void flush().catch(() => undefined), delayMs)
+      startTimer(delayMs)
     },
     flush,
     stop: async () => {
       stopped = true
-      if (timer !== null) clearTimeout(timer)
-      timer = null
+      clearTimer()
       await writing
     },
   }

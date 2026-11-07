@@ -123,7 +123,7 @@ function syncInBackground(): void {
 
 function scheduleAfterWrite(): void {
   void refreshSyncState().catch(() => undefined)
-  if (writeTimer !== null) clearTimeout(writeTimer)
+  cancelWriteTimer()
   writeTimer = setTimeout(() => {
     writeTimer = null
     syncInBackground()
@@ -150,9 +150,8 @@ function startTimers(): void {
 
 function stopTimers(): void {
   if (intervalTimer !== null) clearInterval(intervalTimer)
-  if (writeTimer !== null) clearTimeout(writeTimer)
   intervalTimer = null
-  writeTimer = null
+  cancelWriteTimer()
 }
 
 export async function stopSync(): Promise<void> {
@@ -174,8 +173,19 @@ export async function deleteServerAccount(): Promise<void> {
   }
 }
 
-function syncWhenVisible(): void {
-  if (document.visibilityState === "visible") syncInBackground()
+function cancelWriteTimer(): void {
+  if (writeTimer !== null) clearTimeout(writeTimer)
+  writeTimer = null
+}
+
+function pushBeforeLeaving(): void {
+  cancelWriteTimer()
+  syncInBackground()
+}
+
+function syncOnVisibilityChange(): void {
+  if (document.visibilityState === "hidden") pushBeforeLeaving()
+  else syncInBackground()
 }
 
 export function startSyncScheduler(client: QueryClient): void {
@@ -184,7 +194,8 @@ export function startSyncScheduler(client: QueryClient): void {
   started = true
   onLocalWrite(scheduleAfterWrite)
   startTimers()
-  document.addEventListener("visibilitychange", syncWhenVisible)
+  document.addEventListener("visibilitychange", syncOnVisibilityChange)
+  window.addEventListener("pagehide", pushBeforeLeaving)
   window.addEventListener("online", syncInBackground)
   void refreshSyncState()
     .then(syncInBackground)
