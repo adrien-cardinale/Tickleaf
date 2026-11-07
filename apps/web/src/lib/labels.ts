@@ -63,6 +63,8 @@ export const labels = {
       escape: "Échap",
       down: "↓",
       up: "↑",
+      click: "Clic",
+      shift: "Maj",
     },
     goInbox: "Aller à la boîte de réception",
     goToday: "Aller à Aujourd’hui",
@@ -75,6 +77,8 @@ export const labels = {
     previousTask: "Tâche précédente",
     openTask: "Ouvrir la tâche",
     toggleTask: "Terminer ou rouvrir la tâche",
+    selectTask: "Sélectionner ou désélectionner la tâche",
+    clearSelection: "Vider la sélection",
     focusSearch: "Ouvrir la recherche",
     leaveField: "Vider la recherche ou quitter le champ",
     toggleSidebar: "Afficher ou masquer la barre latérale",
@@ -178,7 +182,6 @@ export const labels = {
       delete: "Supprimer",
       addTask: "Ajouter une tâche",
       addTaskPlaceholder: (name: string) => `Ajouter une tâche dans ${name}…`,
-      empty: "Aucune tâche ouverte dans cette section.",
     },
     emptySection: "Rien ici.",
   },
@@ -198,7 +201,16 @@ export const labels = {
       priority: "Priorité",
       project: "Projet",
       delete: "Supprimer",
+      select: "Sélectionner",
+      deselect: "Désélectionner",
     },
+  },
+  selection: {
+    toolbar: "Actions sur la sélection",
+    count: (count: number) =>
+      `${count} ${plural(count, "tâche", "tâches")} ${plural(count, "sélectionnée", "sélectionnées")}`,
+    select: (title: string) => `Sélectionner : ${title}`,
+    clear: "Désélectionner tout",
   },
   reorder: {
     instructions:
@@ -322,6 +334,14 @@ export const labels = {
     added: "Tâche ajoutée",
     addedWith: (where: string) => `Ajoutée : ${where}`,
     deleted: "Tâche supprimée",
+    completedMany: (count: number) =>
+      `${count} ${plural(count, "tâche", "tâches")} ${plural(count, "terminée", "terminées")}`,
+    reopenedMany: (count: number) =>
+      `${count} ${plural(count, "tâche", "tâches")} ${plural(count, "rouverte", "rouvertes")}`,
+    updatedMany: (count: number) =>
+      `${count} ${plural(count, "tâche", "tâches")} ${plural(count, "modifiée", "modifiées")}`,
+    deletedMany: (count: number) =>
+      `${count} ${plural(count, "tâche", "tâches")} ${plural(count, "supprimée", "supprimées")}`,
     rescheduled: (count: number) =>
       `${count} ${plural(count, "tâche", "tâches")} ${plural(count, "reportée", "reportées")}`,
     projectCreated: (name: string) => `Projet « ${name} » créé`,

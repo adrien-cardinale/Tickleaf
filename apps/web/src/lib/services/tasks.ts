@@ -152,6 +152,12 @@ export async function updateTask(db: Db, id: string, patch: TaskPatch): Promise<
   return previous
 }
 
+export async function updateTasks(db: Db, ids: readonly string[], patch: TaskPatch): Promise<Task[]> {
+  const previous: Task[] = []
+  for (const id of ids) previous.push(await updateTask(db, id, patch))
+  return previous
+}
+
 export async function reorderTasks(db: Db, orderedIds: readonly string[]): Promise<void> {
   if (orderedIds.length === 0) return
   const current = await db
@@ -225,6 +231,28 @@ export async function reopenTask(db: Db, id: string): Promise<Task> {
   return previous
 }
 
+async function isOpen(db: Db, id: string): Promise<boolean> {
+  const task = await getTask(db, id)
+  return task !== null && task.completedAt === null
+}
+
+export async function completeTasks(db: Db, ids: readonly string[], today: IsoDate = todayIso()): Promise<Task[]> {
+  const previous: Task[] = []
+  for (const id of ids) {
+    if (await isOpen(db, id)) previous.push(...(await completeTask(db, id, today)))
+  }
+  return previous
+}
+
+export async function reopenTasks(db: Db, ids: readonly string[]): Promise<Task[]> {
+  const previous: Task[] = []
+  for (const id of ids) {
+    const task = await getTask(db, id)
+    if (task !== null && task.completedAt !== null) previous.push(await reopenTask(db, id))
+  }
+  return previous
+}
+
 export async function deleteTask(db: Db, id: string): Promise<Task[]> {
   const previous = await db
     .select()
@@ -241,6 +269,12 @@ export async function deleteTask(db: Db, id: string): Promise<Task[]> {
         previous.map((task) => task.id),
       ),
     )
+  return previous
+}
+
+export async function deleteTasks(db: Db, ids: readonly string[]): Promise<Task[]> {
+  const previous: Task[] = []
+  for (const id of ids) previous.push(...(await deleteTask(db, id)))
   return previous
 }
 

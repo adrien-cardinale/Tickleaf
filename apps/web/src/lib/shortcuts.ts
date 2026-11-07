@@ -38,6 +38,7 @@ export const goToShortcuts: readonly GoToShortcut[] = [
 ]
 
 export const TOGGLE_TASK_KEYS: readonly string[] = ["x", "e"]
+export const SELECT_TASK_KEY = "s"
 
 const navigationShortcuts: readonly Shortcut[] = goToShortcuts.map(({ key, to, description }) => ({
   id: `go-${to.slice(1)}`,
@@ -57,6 +58,13 @@ const otherShortcuts: readonly Shortcut[] = [
     description: text.toggleTask,
     bindings: TOGGLE_TASK_KEYS.map((key) => [[key]]),
   },
+  {
+    id: "select-task",
+    group: "tasks",
+    description: text.selectTask,
+    bindings: [[[SELECT_TASK_KEY]], [[MOD_KEY, text.keys.click]], [[text.keys.shift, text.keys.click]]],
+  },
+  { id: "clear-selection", group: "tasks", description: text.clearSelection, bindings: [[[text.keys.escape]]] },
   { id: "focus-search", group: "general", description: text.focusSearch, bindings: [[[MOD_KEY, "K"]]] },
   { id: "leave-field", group: "general", description: text.leaveField, bindings: [[[text.keys.escape]]] },
   { id: "toggle-sidebar", group: "general", description: text.toggleSidebar, bindings: [[[MOD_KEY, "B"]]] },
@@ -83,6 +91,10 @@ export function isTaskRow(target: EventTarget | null): target is HTMLElement {
   return target instanceof HTMLElement && target.hasAttribute(TASK_ROW_ATTRIBUTE)
 }
 
+export function taskRowId(target: EventTarget | null): string | null {
+  return isTaskRow(target) ? target.getAttribute(TASK_ROW_ATTRIBUTE) || null : null
+}
+
 type ModifierState = Pick<KeyboardEvent, "ctrlKey" | "metaKey" | "altKey">
 
 export function hasAnyModifier(event: ModifierState): boolean {
@@ -94,7 +106,7 @@ export function isApplePlatform(): boolean {
   return /mac|iphone|ipad|ipod/i.test(`${navigator.platform} ${navigator.userAgent}`)
 }
 
-export function isModifierKey(event: KeyboardEvent): boolean {
+export function isModifierKey(event: ModifierState): boolean {
   if (event.altKey) return false
   return isApplePlatform() ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey
 }

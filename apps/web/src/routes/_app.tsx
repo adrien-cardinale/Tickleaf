@@ -8,6 +8,7 @@ import { ReminderScheduler } from "@/components/reminder-scheduler"
 import { SearchField } from "@/components/search-field"
 import { ShortcutsButton } from "@/components/shortcuts-button"
 import { ShortcutsDialog } from "@/components/shortcuts-dialog"
+import { SelectionBar } from "@/components/tasks/selection-bar"
 import { TaskDetailSheet } from "@/components/tasks/task-detail-sheet"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -48,6 +49,7 @@ function AppShell({ children }: { children: ReactNode }) {
           </header>
           <div className="flex-1 px-4 pt-6 pb-[calc(3rem+env(safe-area-inset-bottom))] text-sm sm:px-6">{children}</div>
         </SidebarInset>
+        <SelectionBar />
         <TaskDetailSheet />
         <KeyboardShortcuts />
         {isTauri() && <ReminderScheduler />}

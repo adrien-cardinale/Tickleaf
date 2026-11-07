@@ -3,7 +3,19 @@ import { type Db, tasks } from "@tickleaf/db"
 import { eq } from "@tickleaf/db/orm"
 import { createMemoryDb } from "../test-support/memory-db"
 import { deviceTimeZone } from "./clock"
-import { completeTask, createTask, getTask, rescheduleOverdue, updateTask } from "./tasks"
+import {
+  completeTask,
+  completeTasks,
+  createSubtask,
+  createTask,
+  deleteTasks,
+  getTask,
+  reopenTasks,
+  rescheduleOverdue,
+  restoreTasks,
+  updateTask,
+  updateTasks,
+} from "./tasks"
 
 let db: Db
 
@@ -127,5 +139,66 @@ describe("report des tâches en retard", () => {
     expect(await rescheduleOverdue(db, NOW)).toEqual([])
     expect(await reload(later.id)).toMatchObject({ dueTime: "20:00", updatedAt: later.updatedAt })
     expect(await reload(allDay.id)).toMatchObject({ updatedAt: allDay.updatedAt })
+  })
+})
+
+describe("actions groupées", () => {
+  async function twoTasks() {
+    const first = await createTask(db, { title: "Appel", due: "2026-11-07", dueTime: "14:30", projectId: null })
+    const second = await createTask(db, { title: "Courses", due: null, projectId: null })
+    return [first, second] as const
+  }
+
+  test("modifie toutes les tâches et renvoie leur état précédent", async () => {
+    const [first, second] = await twoTasks()
+    const previous = await updateTasks(db, [first.id, second.id], { priority: 1 })
+    expect(previous.map((task) => task.priority)).toEqual([first.priority, second.priority])
+    expect((await reload(first.id))?.priority).toBe(1)
+    expect((await reload(second.id))?.priority).toBe(1)
+  })
+
+  test("efface l’heure de chaque tâche quand la date est effacée", async () => {
+    const [first, second] = await twoTasks()
+    await updateTasks(db, [first.id, second.id], { due: null })
+    expect(await reload(first.id)).toMatchObject({ due: null, dueTime: null, dueTimeZone: null })
+  })
+
+  test("termine seulement les tâches ouvertes", async () => {
+    const [first, second] = await twoTasks()
+    await completeTask(db, second.id)
+    const previous = await completeTasks(db, [first.id, second.id])
+    expect(previous.map((task) => task.id)).toEqual([first.id])
+    expect((await reload(first.id))?.completedAt).not.toBeNull()
+  })
+
+  test("ne renvoie pas deux fois une sous-tâche terminée avec son parent", async () => {
+    const parent = await createTask(db, { title: "Projet", due: null, projectId: null })
+    const subtask = await createSubtask(db, parent.id, "Étape")
+    const previous = await completeTasks(db, [parent.id, subtask.id])
+    expect(previous.map((task) => task.id)).toEqual([parent.id, subtask.id])
+  })
+
+  test("rouvre seulement les tâches terminées", async () => {
+    const [first, second] = await twoTasks()
+    await completeTask(db, first.id)
+    const previous = await reopenTasks(db, [first.id, second.id])
+    expect(previous.map((task) => task.id)).toEqual([first.id])
+    expect((await reload(first.id))?.completedAt).toBeNull()
+  })
+
+  test("supprime les tâches et leurs sous-tâches", async () => {
+    const [first, second] = await twoTasks()
+    const subtask = await createSubtask(db, first.id, "Étape")
+    const previous = await deleteTasks(db, [first.id, second.id])
+    expect(previous.map((task) => task.id).sort()).toEqual([first.id, second.id, subtask.id].sort())
+    expect(await reload(first.id)).toBeNull()
+    expect(await reload(subtask.id)).toBeNull()
+  })
+
+  test("restaure les tâches supprimées en groupe", async () => {
+    const [first, second] = await twoTasks()
+    await restoreTasks(db, await deleteTasks(db, [first.id, second.id]))
+    expect(await reload(first.id)).not.toBeNull()
+    expect(await reload(second.id)).not.toBeNull()
   })
 })

@@ -14,7 +14,9 @@ import {
   isTypingTarget,
   QUICK_ADD_INPUT_ID,
   SEARCH_INPUT_ID,
+  SELECT_TASK_KEY,
   TASK_ROW_ATTRIBUTE,
+  taskRowId,
 } from "@/lib/shortcuts"
 
 type Step = 1 | -1
@@ -61,7 +63,8 @@ function goToPath(key: string): GoToPath | null {
 export function useKeyboardShortcuts(): void {
   const navigate = useNavigate()
   const isMobile = useIsMobile()
-  const { openShortcuts } = useWorkspace()
+  const { openShortcuts, selectedIds, toggleSelected, clearSelection } = useWorkspace()
+  const hasSelection = selectedIds.size > 0
   const chordStartedAt = useRef<number | null>(null)
 
   useEffect(() => {
@@ -85,8 +88,19 @@ export function useKeyboardShortcuts(): void {
       if (moveTaskFocus(step)) event.preventDefault()
     }
 
+    const toggleFocusedRow = (event: KeyboardEvent): void => {
+      const id = taskRowId(event.target)
+      if (id === null) return
+      event.preventDefault()
+      toggleSelected(id)
+    }
+
     const handlePlainKey = (event: KeyboardEvent): void => {
-      if (event.key === CHORD_PREFIX) chordStartedAt.current = performance.now()
+      if (event.key === "Escape" && hasSelection) {
+        event.preventDefault()
+        clearSelection()
+      } else if (event.key === SELECT_TASK_KEY) toggleFocusedRow(event)
+      else if (event.key === CHORD_PREFIX) chordStartedAt.current = performance.now()
       else if (event.key === "/") {
         event.preventDefault()
         focusInput(QUICK_ADD_INPUT_ID)
@@ -111,5 +125,5 @@ export function useKeyboardShortcuts(): void {
 
     document.addEventListener("keydown", onKeyDown)
     return () => document.removeEventListener("keydown", onKeyDown)
-  }, [isMobile, navigate, openShortcuts])
+  }, [isMobile, navigate, openShortcuts, hasSelection, toggleSelected, clearSelection])
 }
