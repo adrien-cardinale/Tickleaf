@@ -7,7 +7,7 @@ Task app inspired by Todoist. Local-first: data lives in the browser, the app in
 - Bun (workspaces), TypeScript.
 - `packages/core`: domain types, quick-add parser, dates, sorting. No dependency.
 - `packages/db`: Drizzle SQLite schema, bundled migrations.
-- `apps/web`: React 19, Vite, TanStack Router and Query, Tailwind 4, shadcn/ui, sql.js, vite-plugin-pwa. Encryption lives in `src/lib/crypto`, synchronization in `src/lib/sync`.
+- `apps/web`: React 19, Vite, TanStack Router and Query, Tailwind 4, shadcn/ui, sql.js, vite-plugin-pwa, Leaflet for the map. Encryption lives in `src/lib/crypto`, synchronization in `src/lib/sync`.
 - `apps/desktop`: Tauri 2 shell for Windows, macOS, Linux and Android. It packages the `apps/web` build made with `--mode desktop`.
 - `apps/server`: Hono relay on `bun:sqlite`. It stores a log of encrypted blobs and serves the web build. No business logic.
 
@@ -155,13 +155,17 @@ Account names and relay addresses are stored in clear text in IndexedDB.
 
 **Settings › Export** downloads every task of the open account as CSV: `;` separator, UTF-8 with BOM, one row per task, subtasks included with the title of their parent task. The Android app saves the file in its Download folder and shows the path.
 
+## Due time
+
+A task with a due date can carry an optional time, set in the task detail under the date or typed in quick add (`14h`, `14h30`, `14:30`, `à 14h`; a time without a date puts the task on today). Tasks of the same day are sorted by time, and a task turns overdue once its time has passed. The time is stored with the time zone of the device that set it and shown in the time zone of the device that reads it, with the original zone mentioned when they differ.
+
 ## Reminders
 
 The task detail sets a reminder date and time. The desktop and Android apps show a notification at that time; the web build stores the reminder but never rings. On the desktop, the reminder only rings while the app is open. On Android, the system schedules it, so it rings with the app closed.
 
 ## Places
 
-The **Lieu** field in the task detail attaches a place to a task: latitude, longitude, a radius from 50 m to 1 km, and an optional name. **Utiliser ma position** fills in the current position.
+The **Lieu** field in the task detail attaches a place to a task: latitude, longitude, a radius from 50 m to 1 km, and an optional name. **Utiliser ma position** fills in the current position. **Choisir sur la carte** opens an OpenStreetMap map (Leaflet): type an address and press Enter to search it through Nominatim, tap the map or drag the marker, and the circle shows the radius. The search runs only on demand, as the Nominatim usage policy forbids autocomplete.
 
 - A task with a due date arms its zone one hour before its due time, or from 23:00 the day before when it has no time. Before that, it neither notifies nor appears in **Près de moi**. A task without due date is always armed, and an overdue task stays armed. The due time is saved with the time zone of the device that sets it, so every synced device arms the zone at the same instant. On Android, the zone is armed at that time even when the app is closed, give or take a few minutes.
 - The Android app reads the position when it opens and each time it comes back to the foreground. It asks for the location permission the first time a task has a place.

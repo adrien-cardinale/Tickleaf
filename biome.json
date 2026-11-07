@@ -13,7 +13,10 @@
       "!**/migrations.generated.ts",
       "!**/drizzle/meta",
       "!apps/web/src/components/ui",
-      "!apps/web/public"
+      "!apps/web/public",
+      "!apps/desktop/src-tauri/plugins/*/android/build",
+      "!apps/desktop/src-tauri/plugins/*/android/.tauri",
+      "!apps/desktop/src-tauri/plugins/*/permissions/schemas"
     ]
   },
   "formatter": {

@@ -4,11 +4,11 @@ All notable changes to Tickleaf are documented here. The format follows [Keep a 
 
 The section matching the released version is attached automatically as the GitHub release notes.
 
-## [Unreleased]
+## [0.5.0] - 2026-11-07
 
 ### Added
 
-- Places. The **Lieu** field in the task detail attaches a place to a task: coordinates, a radius from 50 m to 1 km and an optional name. **Utiliser ma position** fills in the current position on Android and in the browser.
+- Places. The **Lieu** field in the task detail attaches a place to a task: coordinates, a radius from 50 m to 1 km and an optional name. **Utiliser ma position** fills in the current position on Android and in the browser. **Choisir sur la carte** opens an OpenStreetMap map: search an address, tap the map or drag the marker, and the circle shows the radius.
 - **Près de moi** at the top of **Aujourd’hui** lists open tasks with a place nearby. Tasks whose zone contains you come first, marked **Sur place**, then the others sorted by distance.
 - The Android app shows a notification when it opens or comes back to the foreground inside the zone of a task. A task notifies again only after you leave its zone and come back.
 - Task rows show the place name next to the due date.
@@ -25,6 +25,11 @@ The section matching the released version is attached automatically as the GitHu
 - The zone of a task with a due date is armed one hour before its due time, or from 23:00 the day before when the task has no time. Until then, the task neither notifies on arrival nor appears in **Près de moi**. A task without due date stays armed, and an overdue task stays armed until it is completed.
 - On Android, a zone is armed at its time even when the app is closed, give or take a few minutes. Before, it waited for the next opening of the app.
 - A task due today with a time turns overdue once that time has passed, instead of at midnight. It then appears under **En retard** in **Aujourd’hui**, and **Reporter à aujourd’hui** keeps its time only when the time is still to come.
+
+### Fixed
+
+- Dropping a reordered task no longer crashes the app with a React update-depth error.
+- The section board no longer loops when a dragged task sits on the boundary between two columns.
 
 ## [0.4.0] - 2026-10-24
 
