@@ -15,6 +15,7 @@ function task(overrides: Partial<Task>): Task {
     description: "",
     due: null,
     dueTime: null,
+    dueTimeZone: null,
     reminderAt: null,
     recurrence: null,
     place: OFFICE,

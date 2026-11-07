@@ -1,4 +1,4 @@
-import { dueInstant } from "./due"
+import { type DatedTask, dueInstant } from "./due"
 import type { Task } from "./types"
 
 export type Place = { latitude: number; longitude: number; radius: number; label: string }
@@ -32,9 +32,9 @@ export function isInsidePlace(place: Place, position: Position): boolean {
 
 export const PLACE_ARMING_MARGIN_MS = 60 * 60 * 1000
 
-type ArmableTask = Pick<Task, "place" | "due" | "dueTime" | "completedAt">
+type ArmableTask = DatedTask & Pick<Task, "place" | "completedAt">
 
-export function placeArmingTime(task: Pick<Task, "due" | "dueTime">): Date | null {
+export function placeArmingTime(task: DatedTask): Date | null {
   const instant = dueInstant(task)
   return instant === null ? null : new Date(instant.getTime() - PLACE_ARMING_MARGIN_MS)
 }

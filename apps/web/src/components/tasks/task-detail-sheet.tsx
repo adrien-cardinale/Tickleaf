@@ -1,5 +1,6 @@
 import {
   isPriority,
+  localDueTime,
   PRIORITIES,
   type Project,
   RECURRENCE_UNITS,
@@ -23,11 +24,12 @@ import { useWorkspace } from "@/components/workspace-context"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useTaskActions } from "@/hooks/use-task-actions"
 import { useToday } from "@/hooks/use-today"
-import { formatTimestamp, fromDateTimeInput, recurrenceLabel, toDateTimeInput } from "@/lib/format"
+import { foreignDueTimeZone, formatTimestamp, fromDateTimeInput, recurrenceLabel, toDateTimeInput } from "@/lib/format"
 import { labels } from "@/lib/labels"
 import { useProjects, useSections, useSubtasks, useTasks } from "@/lib/queries"
 import { ensureNotificationPermission } from "@/lib/reminders/reminder-notifications"
 import { isTauri } from "@/lib/runtime"
+import { deviceTimeZone } from "@/lib/services/clock"
 import { cn } from "@/lib/utils"
 import { PlaceField } from "./place-field"
 
@@ -235,6 +237,7 @@ function ReminderField({ task }: { task: Task }) {
 
 function DueTimeField({ task }: { task: Task }) {
   const { update } = useTaskActions()
+  const savedZone = foreignDueTimeZone(task, deviceTimeZone())
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -245,7 +248,7 @@ function DueTimeField({ task }: { task: Task }) {
         <Input
           id="task-due-time"
           type="time"
-          value={task.dueTime ?? ""}
+          value={localDueTime(task) ?? ""}
           onChange={(event) => void update(task.id, { dueTime: event.target.value || null })}
         />
         {task.dueTime !== null && (
@@ -260,6 +263,9 @@ function DueTimeField({ task }: { task: Task }) {
           </Button>
         )}
       </div>
+      {savedZone !== null && task.dueTime !== null && (
+        <p className="text-xs text-muted-foreground">{labels.detail.dueTimeSavedIn(task.dueTime, savedZone)}</p>
+      )}
     </div>
   )
 }

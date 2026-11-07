@@ -1,18 +1,22 @@
+import { type DatedTask, dueInstant } from "./due"
 import type { Task } from "./types"
 
 const NO_DUE = "9999-99-99"
 
 const NO_DUE_TIME = "99:99"
 
-type SortableTask = Pick<Task, "priority" | "due" | "dueTime" | "createdAt">
-
-type DatedTask = Pick<Task, "due" | "dueTime">
+type SortableTask = DatedTask & Pick<Task, "priority" | "createdAt">
 
 type ManualTask = Pick<Task, "position" | "createdAt">
+
+function compareInstants(a: DatedTask, b: DatedTask): number {
+  return (dueInstant(a)?.getTime() ?? 0) - (dueInstant(b)?.getTime() ?? 0)
+}
 
 export function compareDue(a: DatedTask, b: DatedTask): number {
   const byDay = (a.due ?? NO_DUE).localeCompare(b.due ?? NO_DUE)
   if (byDay !== 0) return byDay
+  if (a.dueTime !== null && b.dueTime !== null) return compareInstants(a, b)
   return (a.dueTime ?? NO_DUE_TIME).localeCompare(b.dueTime ?? NO_DUE_TIME)
 }
 

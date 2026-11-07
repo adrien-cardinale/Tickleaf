@@ -56,4 +56,9 @@ export const GENERATED_MIGRATIONS: readonly Migration[] = [
     when: 1794082830031,
     sql: "ALTER TABLE `tasks` ADD `due_time` text;",
   },
+  {
+    tag: "0011_due-time-zone",
+    when: 1794084467773,
+    sql: "ALTER TABLE `tasks` ADD `due_time_zone` text;",
+  },
 ]

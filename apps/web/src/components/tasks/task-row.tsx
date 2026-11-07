@@ -12,9 +12,10 @@ import { ProjectDot } from "@/components/project-dot"
 import { Button } from "@/components/ui/button"
 import { useWorkspace } from "@/components/workspace-context"
 import { useTaskActions } from "@/hooks/use-task-actions"
-import { dueWithTimeLabel, recurrenceLabel } from "@/lib/format"
+import { dueWithTimeLabel, foreignDueTimeZone, recurrenceLabel } from "@/lib/format"
 import { labels } from "@/lib/labels"
 import { useProjects, useSubtasks } from "@/lib/queries"
+import { deviceTimeZone } from "@/lib/services/clock"
 import { hasAnyModifier, TASK_ROW_ATTRIBUTE, TOGGLE_TASK_KEYS } from "@/lib/shortcuts"
 import { cn } from "@/lib/utils"
 import { PriorityCheck } from "./priority-check"
@@ -35,6 +36,12 @@ function useProjectColor(projectId: string | null): ProjectColor {
 
 function placeText(task: Task, detail: string | undefined): string {
   return [task.place?.label, detail].filter(Boolean).join(" · ")
+}
+
+function SavedTimeZone({ task }: { task: Task }) {
+  const zone = foreignDueTimeZone(task, deviceTimeZone())
+  if (zone === null || task.dueTime === null) return null
+  return <span className="opacity-70">{labels.due.savedTime(task.dueTime, zone)}</span>
 }
 
 function dueClass(task: Task, now: Date): string {
@@ -92,7 +99,8 @@ export function TaskRow({ task, now, projectName, handle, placeDetail }: TaskRow
             <span className="mt-0.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
               {task.due !== null && (
                 <span className={cn("inline-flex items-center gap-1", dueClass(task, now))}>
-                  {dueWithTimeLabel(task.due, task.dueTime, today)}
+                  {dueWithTimeLabel({ ...task, due: task.due }, today)}
+                  <SavedTimeZone task={task} />
                   {task.recurrence !== null && (
                     <Repeat className="size-3" role="img" aria-label={recurrenceLabel(task.recurrence)} />
                   )}

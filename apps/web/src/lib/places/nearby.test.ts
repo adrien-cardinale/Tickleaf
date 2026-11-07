@@ -16,6 +16,7 @@ function task(id: string, place: Place | null, completedAt: string | null = null
     description: "",
     due,
     dueTime: null,
+    dueTimeZone: null,
     reminderAt: null,
     recurrence: null,
     place,

@@ -20,6 +20,7 @@ function task(overrides: Partial<Task>): Task {
     description: "",
     due: null,
     dueTime: null,
+    dueTimeZone: null,
     reminderAt: null,
     recurrence: null,
     place: null,
@@ -61,6 +62,14 @@ describe("export CSV des tâches", () => {
       "Payer;;Maison;;2026-10-05;14:30;Toutes les 2 semaines;Bureau;P1;Terminée;2026-10-04T08:00:00.000Z;2026-10-02T08:00:00.000Z",
     )
     expect(lines[2]).toBe("Après;;Boîte de réception;;;;;;P4;Ouverte;;2026-10-03T08:00:00.000Z")
+  })
+
+  test("écrit l’heure dans le fuseau de l’appareil", () => {
+    const zoned = task({ due: "2026-10-05", dueTime: "14:30", dueTimeZone: "Asia/Kolkata" })
+    const instant = new Date("2026-10-05T09:00:00.000Z")
+    const local = `${String(instant.getHours()).padStart(2, "0")}:${String(instant.getMinutes()).padStart(2, "0")}`
+    const [, line] = tasksToCsv([zoned], []).split("\r\n")
+    expect(line?.split(";")[5]).toBe(local)
   })
 
   test("indique le titre de la tâche parente d'une sous-tâche", () => {

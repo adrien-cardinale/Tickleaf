@@ -1,4 +1,5 @@
 import { fromIsoDate, todayIso } from "./dates"
+import { zonedInstant } from "./time-zone"
 import type { DueTime, Task } from "./types"
 
 const DUE_TIME = /^(\d{2}):(\d{2})$/
@@ -10,16 +11,33 @@ export function isDueTime(value: unknown): value is DueTime {
   return Number(match[1]) < 24 && Number(match[2]) < 60
 }
 
-export function dueInstant(task: Pick<Task, "due" | "dueTime">): Date | null {
-  if (task.due === null) return null
-  const instant = fromIsoDate(task.due)
-  if (task.dueTime === null) return instant
-  const [hours = 0, minutes = 0] = task.dueTime.split(":").map(Number)
+export type DatedTask = Pick<Task, "due" | "dueTime" | "dueTimeZone">
+
+function localInstant(due: string, dueTime: DueTime): Date {
+  const instant = fromIsoDate(due)
+  const [hours = 0, minutes = 0] = dueTime.split(":").map(Number)
   instant.setHours(hours, minutes, 0, 0)
   return instant
 }
 
-export function isOverdue(task: Pick<Task, "due" | "dueTime" | "completedAt">, now: Date): boolean {
+export function dueInstant(task: DatedTask): Date | null {
+  if (task.due === null) return null
+  if (task.dueTime === null) return fromIsoDate(task.due)
+  if (task.dueTimeZone === null) return localInstant(task.due, task.dueTime)
+  return zonedInstant(task.due, task.dueTime, task.dueTimeZone)
+}
+
+function padded(value: number): string {
+  return String(value).padStart(2, "0")
+}
+
+export function localDueTime(task: DatedTask): DueTime | null {
+  if (task.dueTime === null || task.dueTimeZone === null) return task.dueTime
+  const instant = dueInstant(task)
+  return instant === null ? task.dueTime : `${padded(instant.getHours())}:${padded(instant.getMinutes())}`
+}
+
+export function isOverdue(task: DatedTask & Pick<Task, "completedAt">, now: Date): boolean {
   if (task.completedAt !== null || task.due === null) return false
   const today = todayIso(now)
   if (task.due !== today) return task.due < today
@@ -27,7 +45,7 @@ export function isOverdue(task: Pick<Task, "due" | "dueTime" | "completedAt">, n
   return instant !== null && instant < now
 }
 
-export function rescheduledToToday(task: Pick<Task, "dueTime">, now: Date): Pick<Task, "due" | "dueTime"> {
-  const moved = { due: todayIso(now), dueTime: task.dueTime }
-  return isOverdue({ ...moved, completedAt: null }, now) ? { ...moved, dueTime: null } : moved
+export function rescheduledToToday(task: Pick<Task, "dueTime" | "dueTimeZone">, now: Date): DatedTask {
+  const moved = { due: todayIso(now), dueTime: task.dueTime, dueTimeZone: task.dueTimeZone }
+  return isOverdue({ ...moved, completedAt: null }, now) ? { ...moved, dueTime: null, dueTimeZone: null } : moved
 }

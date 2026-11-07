@@ -33,10 +33,14 @@ async function applySection(db: Db, row: SectionRowPayload, seq: number): Promis
   return true
 }
 
+function withConsistentTimeZone(row: TaskRowPayload): TaskRowPayload {
+  return row.dueTime === null ? { ...row, dueTimeZone: null } : row
+}
+
 async function applyTask(db: Db, row: TaskRowPayload, seq: number): Promise<boolean> {
   const [local] = await db.select().from(tasks).where(eq(tasks.id, row.id))
   if (local && keepsLocal(local, row, seq)) return false
-  const values = { ...row, syncVersion: seq }
+  const values = { ...withConsistentTimeZone(row), syncVersion: seq }
   await db.insert(tasks).values(values).onConflictDoUpdate({ target: tasks.id, set: values })
   return true
 }

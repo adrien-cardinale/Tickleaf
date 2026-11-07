@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, test } from "bun:test"
-import type { Db } from "@tickleaf/db"
+import { type Db, tasks } from "@tickleaf/db"
+import { eq } from "@tickleaf/db/orm"
 import { createMemoryDb } from "../test-support/memory-db"
+import { deviceTimeZone } from "./clock"
 import { completeTask, createTask, getTask, rescheduleOverdue, updateTask } from "./tasks"
 
 let db: Db
@@ -60,6 +62,49 @@ describe("heure d’échéance", () => {
   })
 })
 
+describe("fuseau de l’heure d’échéance", () => {
+  async function savedIn(id: string, dueTimeZone: string) {
+    await db.update(tasks).set({ dueTimeZone }).where(eq(tasks.id, id))
+  }
+
+  test("enregistre le fuseau de l’appareil avec l’heure", async () => {
+    const task = await createTask(db, { title: "Appel", due: "2026-11-07", dueTime: "14:30", projectId: null })
+    expect(task.dueTimeZone).toBe(deviceTimeZone())
+    expect((await reload(task.id))?.dueTimeZone).toBe(deviceTimeZone())
+  })
+
+  test("n’enregistre aucun fuseau sans heure", async () => {
+    const task = await createTask(db, { title: "Appel", due: "2026-11-07", projectId: null })
+    expect((await reload(task.id))?.dueTimeZone).toBeNull()
+  })
+
+  test("remplace le fuseau quand l’heure change", async () => {
+    const task = await createTask(db, { title: "Appel", due: "2026-11-07", dueTime: "14:30", projectId: null })
+    await savedIn(task.id, "Asia/Kolkata")
+    await updateTask(db, task.id, { dueTime: "16:00" })
+    expect(await reload(task.id)).toMatchObject({ dueTime: "16:00", dueTimeZone: deviceTimeZone() })
+  })
+
+  test("garde l’heure et le fuseau quand seule la date change", async () => {
+    const task = await createTask(db, { title: "Appel", due: "2026-11-07", dueTime: "14:30", projectId: null })
+    await savedIn(task.id, "Asia/Kolkata")
+    await updateTask(db, task.id, { due: "2026-11-09" })
+    expect(await reload(task.id)).toMatchObject({ dueTime: "14:30", dueTimeZone: "Asia/Kolkata" })
+  })
+
+  test("efface le fuseau avec l’heure", async () => {
+    const task = await createTask(db, { title: "Appel", due: "2026-11-07", dueTime: "14:30", projectId: null })
+    await updateTask(db, task.id, { dueTime: null })
+    expect(await reload(task.id)).toMatchObject({ dueTime: null, dueTimeZone: null })
+  })
+
+  test("efface le fuseau quand la date est effacée", async () => {
+    const task = await createTask(db, { title: "Appel", due: "2026-11-07", dueTime: "14:30", projectId: null })
+    await updateTask(db, task.id, { due: null })
+    expect((await reload(task.id))?.dueTimeZone).toBeNull()
+  })
+})
+
 describe("report des tâches en retard", () => {
   const NOW = new Date(2026, 10, 7, 14, 30)
 
@@ -73,7 +118,7 @@ describe("report des tâches en retard", () => {
     const task = await createTask(db, { title: "Appel", due: "2026-11-07", dueTime: "09:00", projectId: null })
     const previous = await rescheduleOverdue(db, NOW)
     expect(previous.map((item) => item.id)).toEqual([task.id])
-    expect(await reload(task.id)).toMatchObject({ due: "2026-11-07", dueTime: null })
+    expect(await reload(task.id)).toMatchObject({ due: "2026-11-07", dueTime: null, dueTimeZone: null })
   })
 
   test("laisse les tâches à l’heure intactes", async () => {

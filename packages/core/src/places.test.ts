@@ -45,10 +45,10 @@ describe("isInsidePlace", () => {
   })
 })
 
-type ArmableTask = Pick<Task, "place" | "due" | "dueTime" | "completedAt">
+type ArmableTask = Pick<Task, "place" | "due" | "dueTime" | "dueTimeZone" | "completedAt">
 
 function armable(overrides: Partial<ArmableTask> = {}): ArmableTask {
-  return { place: place(), due: null, dueTime: null, completedAt: null, ...overrides }
+  return { place: place(), due: null, dueTime: null, dueTimeZone: null, completedAt: null, ...overrides }
 }
 
 describe("isPlaceArmed", () => {
@@ -69,6 +69,12 @@ describe("isPlaceArmed", () => {
   test("arms a task one hour before its due time", () => {
     expect(isPlaceArmed(armable({ due: "2026-11-07", dueTime: "14:00" }), now)).toBe(true)
     expect(isPlaceArmed(armable({ due: "2026-11-07", dueTime: "14:01" }), now)).toBe(false)
+  })
+
+  test("arms a task one hour before its due time in its time zone", () => {
+    const task = armable({ due: "2026-07-01", dueTime: "14:00", dueTimeZone: "Europe/Zurich" })
+    expect(isPlaceArmed(task, new Date("2026-07-01T10:59:00.000Z"))).toBe(false)
+    expect(isPlaceArmed(task, new Date("2026-07-01T11:00:00.000Z"))).toBe(true)
   })
 
   test("keeps an overdue task armed", () => {

@@ -15,7 +15,7 @@ import {
 } from "@tickleaf/core"
 import { type Db, tasks } from "@tickleaf/db"
 import { and, desc, eq, inArray, isNotNull, isNull, lte, max, or, type SQL } from "@tickleaf/db/orm"
-import { newId, nowIso, touched } from "./clock"
+import { deviceTimeZone, newId, nowIso, touched } from "./clock"
 
 export type NewTask = {
   title: string
@@ -45,6 +45,8 @@ export type TaskPatch = Partial<
     | "sectionId"
   >
 >
+
+type StoredTaskPatch = TaskPatch & Partial<Pick<Task, "dueTimeZone">>
 
 const notDeleted = isNull(tasks.deletedAt)
 
@@ -91,10 +93,15 @@ function checkedDueTime(due: IsoDate | null, dueTime: DueTime | null): DueTime |
   return dueTime
 }
 
-function withDueTimeChecked(previous: Task, patch: TaskPatch): TaskPatch {
+function zonedDueTime(due: IsoDate | null, dueTime: DueTime | null): Pick<Task, "dueTime" | "dueTimeZone"> {
+  const checked = checkedDueTime(due, dueTime)
+  return { dueTime: checked, dueTimeZone: checked === null ? null : deviceTimeZone() }
+}
+
+function withDueTimeChecked(previous: Task, patch: TaskPatch): StoredTaskPatch {
   const due = patch.due === undefined ? previous.due : patch.due
-  if (patch.dueTime !== undefined) return { ...patch, dueTime: checkedDueTime(due, patch.dueTime) }
-  return due === null ? { ...patch, dueTime: null } : patch
+  if (patch.dueTime !== undefined) return { ...patch, ...zonedDueTime(due, patch.dueTime) }
+  return due === null ? { ...patch, dueTime: null, dueTimeZone: null } : patch
 }
 
 export async function createTask(db: Db, input: NewTask): Promise<Task> {
@@ -104,7 +111,7 @@ export async function createTask(db: Db, input: NewTask): Promise<Task> {
     title: input.title,
     description: input.description ?? "",
     due: input.due,
-    dueTime: checkedDueTime(input.due, input.dueTime ?? null),
+    ...zonedDueTime(input.due, input.dueTime ?? null),
     reminderAt: null,
     recurrence: input.recurrence ?? null,
     place: input.place ?? null,
@@ -131,7 +138,7 @@ async function requireTask(db: Db, id: string): Promise<Task> {
   return task
 }
 
-function withSectionCleared(previous: Task, patch: TaskPatch): TaskPatch {
+function withSectionCleared(previous: Task, patch: StoredTaskPatch): StoredTaskPatch {
   const movesProject = patch.projectId !== undefined && patch.projectId !== previous.projectId
   return movesProject && patch.sectionId === undefined ? { ...patch, sectionId: null } : patch
 }

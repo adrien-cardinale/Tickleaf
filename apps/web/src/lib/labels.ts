@@ -215,6 +215,7 @@ export const labels = {
     today: "Aujourd’hui",
     tomorrow: "Demain",
     yesterday: "Hier",
+    savedTime: (time: string, zone: string) => `${time} (${zone})`,
   },
   detail: {
     title: "Tâche",
@@ -229,6 +230,7 @@ export const labels = {
     fieldDue: "Échéance",
     fieldDueTime: "Heure",
     clearDueTime: "Effacer l’heure",
+    dueTimeSavedIn: (time: string, zone: string) => `Enregistrée à ${time} (${zone}).`,
     fieldPriority: "Priorité",
     fieldRecurrence: "Répétition",
     fieldReminder: "Rappel",

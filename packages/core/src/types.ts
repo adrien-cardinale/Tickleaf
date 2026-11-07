@@ -38,6 +38,7 @@ export type Task = {
   description: string
   due: IsoDate | null
   dueTime: DueTime | null
+  dueTimeZone: string | null
   reminderAt: string | null
   recurrence: Recurrence | null
   place: Place | null

@@ -15,6 +15,7 @@ function taskRow(changes: Partial<TaskRowPayload> = {}): TaskRowPayload {
     description: "",
     due: null,
     dueTime: null,
+    dueTimeZone: null,
     reminderAt: null,
     recurrence: null,
     place: null,
@@ -227,6 +228,30 @@ describe("applyPayload", () => {
     const row = taskRow({ due: "2026-01-02", dueTime: "14:30" })
     await applyPayload(db, payloadSchema.parse({ v: 9, tasks: [row] }), 1)
     expect((await readTask(db))?.dueTime).toBe("14:30")
+  })
+
+  test("lit une tâche v9 sans fuseau comme une heure sans fuseau", () => {
+    const { dueTimeZone: _, ...legacy } = taskRow({ due: "2026-01-02", dueTime: "14:30" })
+    const payload = payloadSchema.parse({ v: 9, tasks: [legacy] })
+    expect(payload.tasks[0]).toMatchObject({ dueTime: "14:30", dueTimeZone: null })
+  })
+
+  test("garde une heure sans fuseau reçue d’un ancien appareil", async () => {
+    const { dueTimeZone: _, ...legacy } = taskRow({ due: "2026-01-02", dueTime: "14:30" })
+    await applyPayload(db, payloadSchema.parse({ v: 9, tasks: [legacy] }), 1)
+    expect(await readTask(db)).toMatchObject({ dueTime: "14:30", dueTimeZone: null })
+  })
+
+  test("applique le fuseau de l’heure d’échéance", async () => {
+    const row = taskRow({ due: "2026-01-02", dueTime: "14:30", dueTimeZone: "Europe/Zurich" })
+    await applyPayload(db, payloadSchema.parse({ v: 10, tasks: [row] }), 1)
+    expect((await readTask(db))?.dueTimeZone).toBe("Europe/Zurich")
+  })
+
+  test("efface un fuseau reçu sans heure d’échéance", async () => {
+    const row = taskRow({ due: "2026-01-02", dueTime: null, dueTimeZone: "Europe/Zurich" })
+    await applyPayload(db, payloadSchema.parse({ v: 10, tasks: [row] }), 1)
+    expect((await readTask(db))?.dueTimeZone).toBeNull()
   })
 
   test("refuse une heure d’échéance mal formée", () => {

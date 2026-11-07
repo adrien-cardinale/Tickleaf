@@ -1,4 +1,4 @@
-import type { Project, Task } from "@tickleaf/core"
+import { localDueTime, type Project, type Task } from "@tickleaf/core"
 import { placeLabel, recurrenceLabel } from "@/lib/format"
 import { labels } from "@/lib/labels"
 
@@ -20,7 +20,7 @@ function taskRow(task: Task, projectNames: Map<string, string>, taskTitles: Map<
     project,
     task.parentId === null ? "" : (taskTitles.get(task.parentId) ?? ""),
     task.due ?? "",
-    task.dueTime ?? "",
+    localDueTime(task) ?? "",
     task.recurrence === null ? "" : recurrenceLabel(task.recurrence),
     task.place === null ? "" : placeLabel(task.place),
     `P${task.priority}`,

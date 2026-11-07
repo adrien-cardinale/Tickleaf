@@ -23,8 +23,8 @@ describe("sortManually", () => {
   })
 })
 
-function dated(id: string, due: string | null, dueTime: string | null) {
-  return { id, due, dueTime, priority: 4 as const, createdAt: "2026-10-01T08:00:00.000Z" }
+function dated(id: string, due: string | null, dueTime: string | null, dueTimeZone: string | null = null) {
+  return { id, due, dueTime, dueTimeZone, priority: 4 as const, createdAt: "2026-10-01T08:00:00.000Z" }
 }
 
 describe("compareDue", () => {
@@ -40,6 +40,14 @@ describe("compareDue", () => {
       dated("morning", "2026-10-01", "09:00"),
     ]
     expect(rows.sort(compareDue).map((task) => task.id)).toEqual(["morning", "afternoon", "none"])
+  })
+
+  test("orders the same day by instant across time zones", () => {
+    const rows = [
+      dated("new-york", "2026-10-01", "10:00", "America/New_York"),
+      dated("zurich", "2026-10-01", "15:00", "Europe/Zurich"),
+    ]
+    expect(rows.sort(compareDue).map((task) => task.id)).toEqual(["zurich", "new-york"])
   })
 
   test("keeps tasks without due date last", () => {

@@ -43,6 +43,7 @@ export const tasks = sqliteTable(
     description: text("description").notNull().default(""),
     due: text("due").$type<IsoDate>(),
     dueTime: text("due_time"),
+    dueTimeZone: text("due_time_zone"),
     reminderAt: text("reminder_at"),
     recurrence: text("recurrence", { mode: "json" }).$type<Recurrence>(),
     place: text("place", { mode: "json" }).$type<Place>(),

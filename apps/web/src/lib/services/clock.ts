@@ -17,3 +17,7 @@ function uuidFromRandomBytes(): string {
 export function newId(): string {
   return typeof crypto.randomUUID === "function" ? crypto.randomUUID() : uuidFromRandomBytes()
 }
+
+export function deviceTimeZone(): string {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone
+}
