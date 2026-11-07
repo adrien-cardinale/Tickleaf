@@ -1,4 +1,4 @@
-import { distanceMeters, type Place, type Position, type Task } from "@tickleaf/core"
+import { distanceMeters, isPlaceArmed, type Place, type Position, type Task } from "@tickleaf/core"
 
 export const NEARBY_DISTANCE_METERS = 5_000
 
@@ -17,10 +17,11 @@ function compareNearby(left: NearbyTask, right: NearbyTask): number {
 export function nearbyTasks(
   tasks: readonly Task[],
   position: Position,
+  now: Date,
   maxDistance: number = NEARBY_DISTANCE_METERS,
 ): NearbyTask[] {
   return tasks
-    .flatMap((task) => (task.completedAt === null && task.place !== null ? [measure(task, task.place, position)] : []))
+    .flatMap((task) => (task.place !== null && isPlaceArmed(task, now) ? [measure(task, task.place, position)] : []))
     .filter((nearby) => nearby.onSite || nearby.distance <= maxDistance)
     .sort(compareNearby)
 }

@@ -1,7 +1,9 @@
 import {
   DEFAULT_PRIORITY,
+  type DueTime,
   daysBetween,
   type IsoDate,
+  isDueTime,
   nextOccurrence,
   type Place,
   type Priority,
@@ -17,6 +19,7 @@ export type NewTask = {
   title: string
   description?: string
   due: IsoDate | null
+  dueTime?: DueTime | null
   priority?: Priority
   projectId: string | null
   sectionId?: string | null
@@ -28,7 +31,16 @@ export type NewTask = {
 export type TaskPatch = Partial<
   Pick<
     Task,
-    "title" | "description" | "due" | "reminderAt" | "recurrence" | "place" | "priority" | "projectId" | "sectionId"
+    | "title"
+    | "description"
+    | "due"
+    | "dueTime"
+    | "reminderAt"
+    | "recurrence"
+    | "place"
+    | "priority"
+    | "projectId"
+    | "sectionId"
   >
 >
 
@@ -70,6 +82,19 @@ async function nextPosition(db: Db): Promise<number> {
   return (row?.value ?? -1) + 1
 }
 
+function checkedDueTime(due: IsoDate | null, dueTime: DueTime | null): DueTime | null {
+  if (dueTime === null) return null
+  if (!isDueTime(dueTime)) throw new Error(`Heure d’échéance ${dueTime} invalide`)
+  if (due === null) throw new Error("Une heure d’échéance demande une date d’échéance")
+  return dueTime
+}
+
+function withDueTimeChecked(previous: Task, patch: TaskPatch): TaskPatch {
+  const due = patch.due === undefined ? previous.due : patch.due
+  if (patch.dueTime !== undefined) return { ...patch, dueTime: checkedDueTime(due, patch.dueTime) }
+  return due === null ? { ...patch, dueTime: null } : patch
+}
+
 export async function createTask(db: Db, input: NewTask): Promise<Task> {
   const timestamp = nowIso()
   const task: Task = {
@@ -77,6 +102,7 @@ export async function createTask(db: Db, input: NewTask): Promise<Task> {
     title: input.title,
     description: input.description ?? "",
     due: input.due,
+    dueTime: checkedDueTime(input.due, input.dueTime ?? null),
     reminderAt: null,
     recurrence: input.recurrence ?? null,
     place: input.place ?? null,
@@ -112,7 +138,7 @@ export async function updateTask(db: Db, id: string, patch: TaskPatch): Promise<
   const previous = await requireTask(db, id)
   await db
     .update(tasks)
-    .set({ ...withSectionCleared(previous, patch), ...touched() })
+    .set({ ...withSectionCleared(previous, withDueTimeChecked(previous, patch)), ...touched() })
     .where(eq(tasks.id, id))
   return previous
 }

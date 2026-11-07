@@ -20,6 +20,7 @@ function taskRow(task: Task, projectNames: Map<string, string>, taskTitles: Map<
     project,
     task.parentId === null ? "" : (taskTitles.get(task.parentId) ?? ""),
     task.due ?? "",
+    task.dueTime ?? "",
     task.recurrence === null ? "" : recurrenceLabel(task.recurrence),
     task.place === null ? "" : placeLabel(task.place),
     `P${task.priority}`,

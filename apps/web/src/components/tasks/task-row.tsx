@@ -5,7 +5,7 @@ import { ProjectDot } from "@/components/project-dot"
 import { Button } from "@/components/ui/button"
 import { useWorkspace } from "@/components/workspace-context"
 import { useTaskActions } from "@/hooks/use-task-actions"
-import { dueLabel, recurrenceLabel } from "@/lib/format"
+import { dueWithTimeLabel, recurrenceLabel } from "@/lib/format"
 import { labels } from "@/lib/labels"
 import { useProjects, useSubtasks } from "@/lib/queries"
 import { hasAnyModifier, TASK_ROW_ATTRIBUTE, TOGGLE_TASK_KEYS } from "@/lib/shortcuts"
@@ -85,7 +85,7 @@ export function TaskRow({ task, today, projectName, handle, placeDetail }: TaskR
             <span className="mt-0.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
               {task.due !== null && (
                 <span className={cn("inline-flex items-center gap-1", dueClass(task, today))}>
-                  {dueLabel(task.due, today)}
+                  {dueWithTimeLabel(task.due, task.dueTime, today)}
                   {task.recurrence !== null && (
                     <Repeat className="size-3" role="img" aria-label={recurrenceLabel(task.recurrence)} />
                   )}

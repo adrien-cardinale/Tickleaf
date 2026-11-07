@@ -14,6 +14,7 @@ function taskRow(changes: Partial<TaskRowPayload> = {}): TaskRowPayload {
     title: "Arroser les plantes",
     description: "",
     due: null,
+    dueTime: null,
     reminderAt: null,
     recurrence: null,
     place: null,
@@ -214,6 +215,23 @@ describe("applyPayload", () => {
     const place = { latitude: 46.5197, longitude: 6.6323, radius: 250, label: "Bureau" }
     await applyPayload(db, payloadSchema.parse({ v: 7, tasks: [taskRow({ place })] }), 1)
     expect((await readTask(db))?.place).toEqual(place)
+  })
+
+  test("lit une ancienne tâche sans heure d’échéance comme une tâche sans heure", () => {
+    const { dueTime: _, ...legacy } = taskRow({ due: "2026-01-02" })
+    const payload = payloadSchema.parse({ v: 8, tasks: [legacy] })
+    expect(payload.tasks[0]?.dueTime).toBeNull()
+  })
+
+  test("applique l’heure d’échéance d’une tâche", async () => {
+    const row = taskRow({ due: "2026-01-02", dueTime: "14:30" })
+    await applyPayload(db, payloadSchema.parse({ v: 9, tasks: [row] }), 1)
+    expect((await readTask(db))?.dueTime).toBe("14:30")
+  })
+
+  test("refuse une heure d’échéance mal formée", () => {
+    const row = taskRow({ due: "2026-01-02", dueTime: "25:00" })
+    expect(payloadSchema.safeParse({ v: 9, tasks: [row] }).success).toBe(false)
   })
 })
 

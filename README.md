@@ -163,6 +163,7 @@ The task detail sets a reminder date and time. The desktop and Android apps show
 
 The **Lieu** field in the task detail attaches a place to a task: latitude, longitude, a radius from 50 m to 1 km, and an optional name. **Utiliser ma position** fills in the current position.
 
+- A task with a due date arms its zone one hour before its due time, or from 23:00 the day before when it has no time. Before that, it neither notifies nor appears in **Près de moi**. A task without due date is always armed, and an overdue task stays armed.
 - The Android app reads the position when it opens and each time it comes back to the foreground. It asks for the location permission the first time a task has a place.
 - **Près de moi** at the top of **Aujourd’hui** lists open tasks with a place within 5 km. Tasks whose zone contains you come first, marked **Sur place**. The others are sorted by distance.
 - When you enter the zone of a task, the Android app shows a notification, even when it is closed. Android watches the zones itself (geofencing through Google Play services) and wakes Tickleaf on arrival. A task notifies on entry only, so it notifies again only after you leave its zone and come back.

@@ -84,9 +84,9 @@ async function clear(signature: string): Promise<GeofenceSyncStatus> {
   return settle("empty")
 }
 
-async function sync(tasks: readonly Task[], force: boolean): Promise<GeofenceSyncStatus> {
+async function sync(tasks: readonly Task[], now: Date, force: boolean): Promise<GeofenceSyncStatus> {
   if (!isAndroid()) return settle("unsupported")
-  const targets = geofenceTargets(tasks)
+  const targets = geofenceTargets(tasks, now)
   const signature = targetsSignature(targets)
   if (!force && signature === syncedSignature) return current.status === "synced" ? "synced" : "empty"
   try {
@@ -104,18 +104,18 @@ function serialized<T>(run: () => Promise<T>): Promise<T> {
   return next
 }
 
-export function syncBackgroundGeofences(tasks: readonly Task[]): Promise<GeofenceSyncStatus> {
-  return serialized(() => sync(tasks, false))
+export function syncBackgroundGeofences(tasks: readonly Task[], now: Date): Promise<GeofenceSyncStatus> {
+  return serialized(() => sync(tasks, now, false))
 }
 
-export function refreshBackgroundGeofences(tasks: readonly Task[]): Promise<GeofenceSyncStatus> {
-  return serialized(() => sync(tasks, true))
+export function refreshBackgroundGeofences(tasks: readonly Task[], now: Date): Promise<GeofenceSyncStatus> {
+  return serialized(() => sync(tasks, now, true))
 }
 
-export function requestBackgroundGeofences(tasks: readonly Task[]): Promise<GeofenceSyncStatus> {
+export function requestBackgroundGeofences(tasks: readonly Task[], now: Date): Promise<GeofenceSyncStatus> {
   return serialized(async () => {
     backgroundAsked = true
     await requestPermissions()
-    return sync(tasks, true)
+    return sync(tasks, now, true)
   })
 }

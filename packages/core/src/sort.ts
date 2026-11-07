@@ -2,21 +2,27 @@ import type { Task } from "./types"
 
 const NO_DUE = "9999-99-99"
 
-type SortableTask = Pick<Task, "priority" | "due" | "createdAt">
+const NO_DUE_TIME = "99:99"
+
+type SortableTask = Pick<Task, "priority" | "due" | "dueTime" | "createdAt">
+
+type DatedTask = Pick<Task, "due" | "dueTime">
 
 type ManualTask = Pick<Task, "position" | "createdAt">
 
+export function compareDue(a: DatedTask, b: DatedTask): number {
+  const byDay = (a.due ?? NO_DUE).localeCompare(b.due ?? NO_DUE)
+  if (byDay !== 0) return byDay
+  return (a.dueTime ?? NO_DUE_TIME).localeCompare(b.dueTime ?? NO_DUE_TIME)
+}
+
 export function compareTasks(a: SortableTask, b: SortableTask): number {
   if (a.priority !== b.priority) return a.priority - b.priority
-  const dueA = a.due ?? NO_DUE
-  const dueB = b.due ?? NO_DUE
-  if (dueA !== dueB) return dueA < dueB ? -1 : 1
-  return a.createdAt.localeCompare(b.createdAt)
+  return compareDue(a, b) || a.createdAt.localeCompare(b.createdAt)
 }
 
 export function compareOverdue(a: SortableTask, b: SortableTask): number {
-  const byDue = (a.due ?? NO_DUE).localeCompare(b.due ?? NO_DUE)
-  return byDue !== 0 ? byDue : compareTasks(a, b)
+  return compareDue(a, b) || compareTasks(a, b)
 }
 
 export function compareCompleted(a: Pick<Task, "completedAt">, b: Pick<Task, "completedAt">): number {

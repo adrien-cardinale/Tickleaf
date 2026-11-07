@@ -1,6 +1,7 @@
 import type { IsoDate, Position, Task } from "@tickleaf/core"
 import { useMemo } from "react"
 import { TaskSection } from "@/components/tasks/task-section"
+import { useArmingClock } from "@/hooks/use-arming-clock"
 import { useCurrentPosition } from "@/hooks/use-current-position"
 import { labels } from "@/lib/labels"
 import { formatDistance } from "@/lib/places/distance"
@@ -36,7 +37,8 @@ function NearbyHint({ text, today }: { text: string; today: IsoDate }) {
 }
 
 function LocatedNearby({ position, tasks, ...rest }: NearbySectionProps & { position: Position }) {
-  const nearby = useMemo(() => nearbyTasks(tasks, position), [tasks, position])
+  const now = useArmingClock(tasks)
+  const nearby = useMemo(() => nearbyTasks(tasks, position, now), [tasks, position, now])
   if (nearby.length === 0) return null
   return <NearbyList nearby={nearby} {...rest} />
 }

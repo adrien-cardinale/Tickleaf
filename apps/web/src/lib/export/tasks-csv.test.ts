@@ -19,6 +19,7 @@ function task(overrides: Partial<Task>): Task {
     title: "Tâche",
     description: "",
     due: null,
+    dueTime: null,
     reminderAt: null,
     recurrence: null,
     place: null,
@@ -38,7 +39,7 @@ describe("export CSV des tâches", () => {
   test("commence par le BOM et l'en-tête", () => {
     const [header] = tasksToCsv([], []).split("\r\n")
     expect(header).toBe(
-      "﻿Titre;Description;Projet;Tâche parente;Échéance;Répétition;Lieu;Priorité;Statut;Terminée le;Créée le",
+      "﻿Titre;Description;Projet;Tâche parente;Échéance;Heure;Répétition;Lieu;Priorité;Statut;Terminée le;Créée le",
     )
   })
 
@@ -48,6 +49,7 @@ describe("export CSV des tâches", () => {
       title: "Payer",
       projectId: "p1",
       due: "2026-10-05",
+      dueTime: "14:30",
       reminderAt: null,
       recurrence: { unit: "week", interval: 2 },
       place: { latitude: 46.5197, longitude: 6.6323, radius: 100, label: "Bureau" },
@@ -56,22 +58,22 @@ describe("export CSV des tâches", () => {
     })
     const lines = tasksToCsv([later, done], [project]).split("\r\n")
     expect(lines[1]).toBe(
-      "Payer;;Maison;;2026-10-05;Toutes les 2 semaines;Bureau;P1;Terminée;2026-10-04T08:00:00.000Z;2026-10-02T08:00:00.000Z",
+      "Payer;;Maison;;2026-10-05;14:30;Toutes les 2 semaines;Bureau;P1;Terminée;2026-10-04T08:00:00.000Z;2026-10-02T08:00:00.000Z",
     )
-    expect(lines[2]).toBe("Après;;Boîte de réception;;;;;P4;Ouverte;;2026-10-03T08:00:00.000Z")
+    expect(lines[2]).toBe("Après;;Boîte de réception;;;;;;P4;Ouverte;;2026-10-03T08:00:00.000Z")
   })
 
   test("indique le titre de la tâche parente d'une sous-tâche", () => {
     const parent = task({ id: "parent", title: "Déménager" })
     const subtask = task({ id: "sub", title: "Cartons", parentId: "parent", createdAt: "2026-10-03T08:00:00.000Z" })
     const lines = tasksToCsv([parent, subtask], []).split("\r\n")
-    expect(lines[2]).toBe("Cartons;;Boîte de réception;Déménager;;;;P4;Ouverte;;2026-10-03T08:00:00.000Z")
+    expect(lines[2]).toBe("Cartons;;Boîte de réception;Déménager;;;;;P4;Ouverte;;2026-10-03T08:00:00.000Z")
   })
 
   test("écrit les coordonnées d'un lieu sans nom", () => {
     const placed = task({ place: { latitude: 46.5197, longitude: 6.6323, radius: 100, label: "" } })
     const [, line] = tasksToCsv([placed], []).split("\r\n")
-    expect(line).toBe("Tâche;;Boîte de réception;;;;46.5197,6.6323;P4;Ouverte;;2026-10-02T08:00:00.000Z")
+    expect(line).toBe("Tâche;;Boîte de réception;;;;;46.5197,6.6323;P4;Ouverte;;2026-10-02T08:00:00.000Z")
   })
 
   test("met entre guillemets les cellules avec séparateur, guillemet ou saut de ligne", () => {

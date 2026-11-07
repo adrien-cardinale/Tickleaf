@@ -1,4 +1,4 @@
-import { addDays, fromIsoDate, type IsoDate, type Place, type Recurrence } from "@tickleaf/core"
+import { addDays, type DueTime, fromIsoDate, type IsoDate, type Place, type Recurrence } from "@tickleaf/core"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { labels } from "@/lib/labels"
@@ -40,6 +40,11 @@ export function dueLabel(due: IsoDate, today: IsoDate): string {
   if (due === addDays(today, 1)) return labels.due.tomorrow
   if (due === addDays(today, -1)) return labels.due.yesterday
   return formatShortDate(due)
+}
+
+export function dueWithTimeLabel(due: IsoDate, dueTime: DueTime | null, today: IsoDate): string {
+  const day = dueLabel(due, today)
+  return dueTime === null ? day : `${day} ${dueTime}`
 }
 
 export function dayHeading(date: IsoDate, today: IsoDate): { title: string; detail: string } {

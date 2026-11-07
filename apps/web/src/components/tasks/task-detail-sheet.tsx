@@ -233,6 +233,37 @@ function ReminderField({ task }: { task: Task }) {
   )
 }
 
+function DueTimeField({ task }: { task: Task }) {
+  const { update } = useTaskActions()
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label htmlFor="task-due-time" className="text-xs text-muted-foreground">
+        {labels.detail.fieldDueTime}
+      </Label>
+      <div className="flex items-center gap-2">
+        <Input
+          id="task-due-time"
+          type="time"
+          value={task.dueTime ?? ""}
+          onChange={(event) => void update(task.id, { dueTime: event.target.value || null })}
+        />
+        {task.dueTime !== null && (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            title={labels.detail.clearDueTime}
+            aria-label={labels.detail.clearDueTime}
+            onClick={() => void update(task.id, { dueTime: null })}
+          >
+            <X />
+          </Button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function TaskDetailForm({ task, projects, sections }: TaskDetailFormProps) {
   const { update } = useTaskActions()
   const [title, setTitle] = useState(task.title)
@@ -309,6 +340,7 @@ function TaskDetailForm({ task, projects, sections }: TaskDetailFormProps) {
           </Select>
         </div>
       </div>
+      {task.due !== null && <DueTimeField task={task} />}
       <RecurrenceField task={task} />
       <ReminderField task={task} />
       <PlaceField task={task} />

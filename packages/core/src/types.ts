@@ -10,6 +10,8 @@ export const DEFAULT_PRIORITY: Priority = 4
 
 export type IsoDate = string
 
+export type DueTime = string
+
 export type Project = {
   id: string
   name: string
@@ -35,6 +37,7 @@ export type Task = {
   title: string
   description: string
   due: IsoDate | null
+  dueTime: DueTime | null
   reminderAt: string | null
   recurrence: Recurrence | null
   place: Place | null

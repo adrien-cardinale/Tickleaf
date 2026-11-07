@@ -1,4 +1,4 @@
-import { distanceMeters, type Position, type Task } from "@tickleaf/core"
+import { distanceMeters, isPlaceArmed, type Position, type Task } from "@tickleaf/core"
 import { labels } from "@/lib/labels"
 import { notificationId } from "@/lib/reminders/reminder-plan"
 
@@ -18,9 +18,9 @@ function arrivalBody(label: string): string {
   return label === "" ? labels.places.body : labels.places.bodyAt(label)
 }
 
-export function geofenceTargets(tasks: readonly Task[]): GeofenceTarget[] {
+export function geofenceTargets(tasks: readonly Task[], now: Date): GeofenceTarget[] {
   return tasks.flatMap((task) => {
-    if (task.completedAt !== null || task.place === null) return []
+    if (task.place === null || !isPlaceArmed(task, now)) return []
     const { latitude, longitude, radius, label } = task.place
     return [
       {

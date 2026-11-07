@@ -7,9 +7,11 @@ import {
 } from "@tickleaf/core"
 import { z } from "zod"
 
-export const PAYLOAD_VERSION = 8
+export const PAYLOAD_VERSION = 9
 
 const timestamp = z.iso.datetime()
+
+const dueTime = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/)
 
 const syncFields = {
   id: z.string().min(1),
@@ -53,6 +55,7 @@ export const taskRowSchema = z.object({
   title: z.string(),
   description: z.string(),
   due: z.string().nullable(),
+  dueTime: dueTime.nullable().default(null),
   reminderAt: timestamp.nullable().default(null),
   recurrence: recurrenceSchema.nullable().default(null),
   place: placeSchema.nullable().default(null),
