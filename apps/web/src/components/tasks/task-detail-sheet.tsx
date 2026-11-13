@@ -438,7 +438,7 @@ export function TaskDetailSheet() {
 
   return (
     <Sheet open={task !== null} onOpenChange={(open) => !open && closeTask()}>
-      <SheetContent side={isMobile ? "bottom" : "right"} className={isMobile ? "gap-0" : "gap-0 sm:max-w-[360px]"}>
+      <SheetContent side={isMobile ? "bottom" : "right"} className={isMobile ? "gap-0" : "gap-0 overflow-y-auto sm:max-w-[360px]"}>
         <SheetHeader className="flex-row items-center justify-between gap-2 pr-12 pointer-coarse:pr-15">
           <SheetTitle className="tracking-tight">{labels.detail.title}</SheetTitle>
           <SheetDescription className="sr-only">{labels.detail.description}</SheetDescription>
