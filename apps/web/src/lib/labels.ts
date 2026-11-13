@@ -264,6 +264,14 @@ export const labels = {
     focusToday: "Focus aujourd’hui",
     fieldRecurrence: "Répétition",
     fieldReminder: "Rappel",
+    reminderNone: "Aucun rappel",
+    reminderBefore: (minutes: number) => {
+      if (minutes === 0) return "À l’heure de l’échéance"
+      if (minutes % 1440 === 0) return minutes === 1440 ? "1 jour avant" : `${minutes / 1440} jours avant`
+      if (minutes % 60 === 0) return `${minutes / 60} h avant`
+      return `${minutes} min avant`
+    },
+    reminderCustom: (date: string) => `Le ${date}`,
     reminderWebHint: "Le rappel sonne sur les apps ordinateur et Android.",
     fieldPlace: "Lieu",
     fieldProject: "Projet",

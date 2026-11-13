@@ -25,10 +25,11 @@ import { useWorkspace } from "@/components/workspace-context"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useTaskActions } from "@/hooks/use-task-actions"
 import { useToday } from "@/hooks/use-today"
-import { foreignDueTimeZone, formatTimestamp, fromDateTimeInput, recurrenceLabel, toDateTimeInput } from "@/lib/format"
+import { foreignDueTimeZone, formatDateTime, formatTimestamp, recurrenceLabel } from "@/lib/format"
 import { labels } from "@/lib/labels"
 import { useProjects, useSections, useSubtasks, useTasks } from "@/lib/queries"
 import { ensureNotificationPermission } from "@/lib/reminders/reminder-notifications"
+import { REMINDER_OFFSETS, reminderAtFor, reminderOffset } from "@/lib/reminders/reminder-offset"
 import { isTauri } from "@/lib/runtime"
 import { deviceTimeZone } from "@/lib/services/clock"
 import { cn } from "@/lib/utils"
@@ -211,11 +212,21 @@ async function warnIfNotificationsBlocked(): Promise<void> {
   toast.error(labels.reminders.permissionDenied, { description: labels.reminders.permissionHint })
 }
 
+const NO_REMINDER_VALUE = "none"
+const CUSTOM_REMINDER_VALUE = "custom"
+
+function reminderValue(offset: number | null): string {
+  if (offset === null) return NO_REMINDER_VALUE
+  return (REMINDER_OFFSETS as readonly number[]).includes(offset) ? String(offset) : CUSTOM_REMINDER_VALUE
+}
+
 function ReminderField({ task }: { task: Task }) {
   const { update } = useTaskActions()
+  const value = reminderValue(reminderOffset(task))
 
-  const changeReminder = (value: string) => {
-    const reminderAt = fromDateTimeInput(value)
+  const changeReminder = (selected: string) => {
+    if (selected === CUSTOM_REMINDER_VALUE) return
+    const reminderAt = selected === NO_REMINDER_VALUE ? null : reminderAtFor(task, Number(selected))
     void update(task.id, { reminderAt })
     if (reminderAt !== null && isTauri()) void warnIfNotificationsBlocked()
   }
@@ -225,12 +236,24 @@ function ReminderField({ task }: { task: Task }) {
       <Label htmlFor="task-reminder" className="text-xs text-muted-foreground">
         {labels.detail.fieldReminder}
       </Label>
-      <Input
-        id="task-reminder"
-        type="datetime-local"
-        value={toDateTimeInput(task.reminderAt)}
-        onChange={(event) => changeReminder(event.target.value)}
-      />
+      <Select value={value} onValueChange={changeReminder}>
+        <SelectTrigger id="task-reminder" className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={NO_REMINDER_VALUE}>{labels.detail.reminderNone}</SelectItem>
+          {REMINDER_OFFSETS.map((offset) => (
+            <SelectItem key={offset} value={String(offset)}>
+              {labels.detail.reminderBefore(offset)}
+            </SelectItem>
+          ))}
+          {value === CUSTOM_REMINDER_VALUE && task.reminderAt !== null && (
+            <SelectItem value={CUSTOM_REMINDER_VALUE}>
+              {labels.detail.reminderCustom(formatDateTime(task.reminderAt))}
+            </SelectItem>
+          )}
+        </SelectContent>
+      </Select>
       {!isTauri() && <p className="text-xs text-muted-foreground">{labels.detail.reminderWebHint}</p>}
     </div>
   )
@@ -364,8 +387,8 @@ function TaskDetailForm({ task, projects, sections }: TaskDetailFormProps) {
       </div>
       <FocusField task={task} />
       {task.due !== null && <DueTimeField task={task} />}
+      {task.due !== null && task.dueTime !== null && <ReminderField task={task} />}
       <RecurrenceField task={task} />
-      <ReminderField task={task} />
       <PlaceField task={task} />
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="task-project" className="text-xs text-muted-foreground">

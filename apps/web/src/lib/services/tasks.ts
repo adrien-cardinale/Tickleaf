@@ -15,6 +15,7 @@ import {
 } from "@tickleaf/core"
 import { type Db, tasks } from "@tickleaf/db"
 import { and, desc, eq, inArray, isNotNull, isNull, lte, max, or, type SQL } from "@tickleaf/db/orm"
+import { followDueChange } from "@/lib/reminders/reminder-offset"
 import { deviceTimeZone, newId, nowIso, touched } from "./clock"
 
 export type NewTask = {
@@ -141,6 +142,17 @@ async function requireTask(db: Db, id: string): Promise<Task> {
   return task
 }
 
+function withReminderFollowingDue(previous: Task, patch: StoredTaskPatch): StoredTaskPatch {
+  const movesDue = patch.due !== undefined || patch.dueTime !== undefined
+  if (!movesDue || patch.reminderAt !== undefined) return patch
+  const next = {
+    due: patch.due === undefined ? previous.due : patch.due,
+    dueTime: patch.dueTime === undefined ? previous.dueTime : patch.dueTime,
+    dueTimeZone: patch.dueTimeZone === undefined ? previous.dueTimeZone : patch.dueTimeZone,
+  }
+  return { ...patch, reminderAt: followDueChange(previous, next) }
+}
+
 function withSectionCleared(previous: Task, patch: StoredTaskPatch): StoredTaskPatch {
   const movesProject = patch.projectId !== undefined && patch.projectId !== previous.projectId
   return movesProject && patch.sectionId === undefined ? { ...patch, sectionId: null } : patch
@@ -150,7 +162,10 @@ export async function updateTask(db: Db, id: string, patch: TaskPatch): Promise<
   const previous = await requireTask(db, id)
   await db
     .update(tasks)
-    .set({ ...withSectionCleared(previous, withDueTimeChecked(previous, patch)), ...touched() })
+    .set({
+      ...withSectionCleared(previous, withReminderFollowingDue(previous, withDueTimeChecked(previous, patch))),
+      ...touched(),
+    })
     .where(eq(tasks.id, id))
   return previous
 }
