@@ -31,6 +31,10 @@ function padded(value: number): string {
   return String(value).padStart(2, "0")
 }
 
+export function timedDueInstant(task: DatedTask): Date | null {
+  return task.dueTime === null ? null : dueInstant(task)
+}
+
 export function localDueTime(task: DatedTask): DueTime | null {
   if (task.dueTime === null || task.dueTimeZone === null) return task.dueTime
   const instant = dueInstant(task)
@@ -41,7 +45,7 @@ export function isOverdue(task: DatedTask & Pick<Task, "completedAt">, now: Date
   if (task.completedAt !== null || task.due === null) return false
   const today = todayIso(now)
   if (task.due !== today) return task.due < today
-  const instant = task.dueTime === null ? null : dueInstant(task)
+  const instant = timedDueInstant(task)
   return instant !== null && instant < now
 }
 

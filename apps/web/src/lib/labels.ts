@@ -272,6 +272,7 @@ export const labels = {
       return `${minutes} min avant`
     },
     reminderCustom: (date: string) => `Le ${date}`,
+    reminderPast: "Ce rappel est déjà passé.",
     reminderWebHint: "Le rappel sonne sur les apps ordinateur et Android.",
     fieldPlace: "Lieu",
     fieldProject: "Projet",

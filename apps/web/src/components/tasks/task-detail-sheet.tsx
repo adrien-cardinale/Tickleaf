@@ -1,18 +1,22 @@
 import {
   isFocused,
   isPriority,
+  isReminderPast,
   localDueTime,
   PRIORITIES,
   type Project,
   RECURRENCE_UNITS,
+  REMINDER_OFFSETS,
   type Recurrence,
   type RecurrenceUnit,
+  reminderAtFor,
+  reminderOffset,
   type Section,
   subtaskProgress,
   type Task,
 } from "@tickleaf/core"
 import { Trash2, X } from "lucide-react"
-import { type FormEvent, useState } from "react"
+import { type ComponentProps, type FormEvent, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -29,7 +33,6 @@ import { foreignDueTimeZone, formatDateTime, formatTimestamp, recurrenceLabel } 
 import { labels } from "@/lib/labels"
 import { useProjects, useSections, useSubtasks, useTasks } from "@/lib/queries"
 import { ensureNotificationPermission } from "@/lib/reminders/reminder-notifications"
-import { REMINDER_OFFSETS, reminderAtFor, reminderOffset } from "@/lib/reminders/reminder-offset"
 import { isTauri } from "@/lib/runtime"
 import { deviceTimeZone } from "@/lib/services/clock"
 import { cn } from "@/lib/utils"
@@ -215,14 +218,23 @@ async function warnIfNotificationsBlocked(): Promise<void> {
 const NO_REMINDER_VALUE = "none"
 const CUSTOM_REMINDER_VALUE = "custom"
 
-function reminderValue(offset: number | null): string {
-  if (offset === null) return NO_REMINDER_VALUE
-  return (REMINDER_OFFSETS as readonly number[]).includes(offset) ? String(offset) : CUSTOM_REMINDER_VALUE
+function reminderValue(task: Task): string {
+  if (task.reminderAt === null) return NO_REMINDER_VALUE
+  const offset = reminderOffset(task)
+  const isPreset = offset !== null && (REMINDER_OFFSETS as readonly number[]).includes(offset)
+  return isPreset ? String(offset) : CUSTOM_REMINDER_VALUE
+}
+
+function isOffsetAvailable(task: Task, offset: number, now: Date): boolean {
+  const reminderAt = reminderAtFor(task, offset)
+  return reminderAt !== null && !isReminderPast(reminderAt, now)
 }
 
 function ReminderField({ task }: { task: Task }) {
   const { update } = useTaskActions()
-  const value = reminderValue(reminderOffset(task))
+  const value = reminderValue(task)
+  const now = new Date()
+  const offsets = task.dueTime === null ? [] : REMINDER_OFFSETS
 
   const changeReminder = (selected: string) => {
     if (selected === CUSTOM_REMINDER_VALUE) return
@@ -242,8 +254,8 @@ function ReminderField({ task }: { task: Task }) {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={NO_REMINDER_VALUE}>{labels.detail.reminderNone}</SelectItem>
-          {REMINDER_OFFSETS.map((offset) => (
-            <SelectItem key={offset} value={String(offset)}>
+          {offsets.map((offset) => (
+            <SelectItem key={offset} value={String(offset)} disabled={!isOffsetAvailable(task, offset, now)}>
               {labels.detail.reminderBefore(offset)}
             </SelectItem>
           ))}
@@ -254,8 +266,39 @@ function ReminderField({ task }: { task: Task }) {
           )}
         </SelectContent>
       </Select>
+      {task.reminderAt !== null && isReminderPast(task.reminderAt, now) && (
+        <p className="text-xs text-muted-foreground">{labels.detail.reminderPast}</p>
+      )}
       {!isTauri() && <p className="text-xs text-muted-foreground">{labels.detail.reminderWebHint}</p>}
     </div>
+  )
+}
+
+type CommittedInputProps = Omit<ComponentProps<typeof Input>, "value" | "onChange" | "onBlur"> & {
+  value: string
+  onCommit: (value: string | null) => void
+}
+
+function CommittedInput({ value, onCommit, ...props }: CommittedInputProps) {
+  const [draft, setDraft] = useState(value)
+  const [saved, setSaved] = useState(value)
+  if (value !== saved) {
+    setSaved(value)
+    setDraft(value)
+  }
+
+  return (
+    <Input
+      {...props}
+      value={draft}
+      onChange={(event) => {
+        setDraft(event.target.value)
+        if (event.target.value !== "") onCommit(event.target.value)
+      }}
+      onBlur={() => {
+        if (draft === "" && value !== "") onCommit(null)
+      }}
+    />
   )
 }
 
@@ -269,11 +312,11 @@ function DueTimeField({ task }: { task: Task }) {
         {labels.detail.fieldDueTime}
       </Label>
       <div className="flex items-center gap-2">
-        <Input
+        <CommittedInput
           id="task-due-time"
           type="time"
           value={localDueTime(task) ?? ""}
-          onChange={(event) => void update(task.id, { dueTime: event.target.value || null })}
+          onCommit={(dueTime) => void update(task.id, { dueTime })}
         />
         {task.dueTime !== null && (
           <Button
@@ -360,11 +403,11 @@ function TaskDetailForm({ task, projects, sections }: TaskDetailFormProps) {
           <Label htmlFor="task-due" className="text-xs text-muted-foreground">
             {labels.detail.fieldDue}
           </Label>
-          <Input
+          <CommittedInput
             id="task-due"
             type="date"
             value={task.due ?? ""}
-            onChange={(event) => void update(task.id, { due: event.target.value || null })}
+            onCommit={(due) => void update(task.id, { due })}
           />
         </div>
         <div className="flex min-w-0 flex-col gap-1.5">
@@ -387,7 +430,7 @@ function TaskDetailForm({ task, projects, sections }: TaskDetailFormProps) {
       </div>
       <FocusField task={task} />
       {task.due !== null && <DueTimeField task={task} />}
-      {task.due !== null && task.dueTime !== null && <ReminderField task={task} />}
+      {(task.dueTime !== null || task.reminderAt !== null) && <ReminderField task={task} />}
       <RecurrenceField task={task} />
       <PlaceField task={task} />
       <div className="flex flex-col gap-1.5">
@@ -438,7 +481,10 @@ export function TaskDetailSheet() {
 
   return (
     <Sheet open={task !== null} onOpenChange={(open) => !open && closeTask()}>
-      <SheetContent side={isMobile ? "bottom" : "right"} className={isMobile ? "gap-0" : "gap-0 overflow-y-auto sm:max-w-[360px]"}>
+      <SheetContent
+        side={isMobile ? "bottom" : "right"}
+        className={isMobile ? "gap-0" : "gap-0 overflow-y-auto sm:max-w-[360px]"}
+      >
         <SheetHeader className="flex-row items-center justify-between gap-2 pr-12 pointer-coarse:pr-15">
           <SheetTitle className="tracking-tight">{labels.detail.title}</SheetTitle>
           <SheetDescription className="sr-only">{labels.detail.description}</SheetDescription>

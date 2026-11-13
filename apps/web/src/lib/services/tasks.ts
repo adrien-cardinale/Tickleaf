@@ -1,21 +1,22 @@
 import {
+  type DatedTask,
   DEFAULT_PRIORITY,
   type DueTime,
-  daysBetween,
   type IsoDate,
   isDueTime,
   isOverdue,
+  movedReminder,
   nextOccurrence,
   type Place,
   type Priority,
   type Recurrence,
+  type RemindedTask,
   rescheduledToToday,
   type Task,
   todayIso,
 } from "@tickleaf/core"
 import { type Db, tasks } from "@tickleaf/db"
 import { and, desc, eq, inArray, isNotNull, isNull, lte, max, or, type SQL } from "@tickleaf/db/orm"
-import { followDueChange } from "@/lib/reminders/reminder-offset"
 import { deviceTimeZone, newId, nowIso, touched } from "./clock"
 
 export type NewTask = {
@@ -142,6 +143,10 @@ async function requireTask(db: Db, id: string): Promise<Task> {
   return task
 }
 
+function withDueMoved(previous: Task, next: DatedTask): RemindedTask {
+  return { ...next, reminderAt: movedReminder(previous, next) }
+}
+
 function withReminderFollowingDue(previous: Task, patch: StoredTaskPatch): StoredTaskPatch {
   const movesDue = patch.due !== undefined || patch.dueTime !== undefined
   if (!movesDue || patch.reminderAt !== undefined) return patch
@@ -150,7 +155,7 @@ function withReminderFollowingDue(previous: Task, patch: StoredTaskPatch): Store
     dueTime: patch.dueTime === undefined ? previous.dueTime : patch.dueTime,
     dueTimeZone: patch.dueTimeZone === undefined ? previous.dueTimeZone : patch.dueTimeZone,
   }
-  return { ...patch, reminderAt: followDueChange(previous, next) }
+  return { ...patch, ...withDueMoved(previous, next) }
 }
 
 function withSectionCleared(previous: Task, patch: StoredTaskPatch): StoredTaskPatch {
@@ -214,20 +219,10 @@ export async function reorderAmong(db: Db, orderedIds: readonly string[]): Promi
   }
 }
 
-function shiftTimestamp(timestamp: string, days: number): string {
-  const date = new Date(timestamp)
-  date.setDate(date.getDate() + days)
-  return date.toISOString()
-}
-
-function nextRepetition(task: Task, recurrence: Recurrence, today: IsoDate): TaskPatch {
+function nextRepetition(task: Task, recurrence: Recurrence, today: IsoDate): StoredTaskPatch {
   const due = nextOccurrence(task.due, recurrence, today)
-  const shift = daysBetween(task.due ?? today, due)
-  return {
-    due,
-    reminderAt: task.reminderAt === null ? null : shiftTimestamp(task.reminderAt, shift),
-    focusDate: null,
-  }
+  const next = { due, dueTime: task.dueTime, dueTimeZone: task.dueTimeZone }
+  return { ...withDueMoved({ ...task, due: task.due ?? today }, next), focusDate: null }
 }
 
 async function markSubtasks(db: Db, parentId: string, completedAt: string | null): Promise<Task[]> {
@@ -330,7 +325,7 @@ export async function rescheduleOverdue(db: Db, now: Date): Promise<Task[]> {
   for (const task of previous) {
     await db
       .update(tasks)
-      .set({ ...rescheduledToToday(task, now), ...stamp })
+      .set({ ...withDueMoved(task, rescheduledToToday(task, now)), ...stamp })
       .where(eq(tasks.id, task.id))
   }
   return previous
