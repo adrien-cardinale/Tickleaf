@@ -12,7 +12,7 @@
     },
     "apps/desktop": {
       "name": "@tickleaf/desktop",
-      "version": "0.4.0",
+      "version": "0.6.0",
       "devDependencies": {
         "@tauri-apps/cli": "^2",
       },
